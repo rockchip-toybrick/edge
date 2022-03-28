@@ -611,7 +611,12 @@ static int rkusb_do_vs_read(struct fsg_common *common)
 			rc = toybrick_read_SnMacActcode(common, curlun, vhead, data);
 			if (rc < 0)
 				return rc;
-# else
+		} else if (type == 3) {
+			rc = trusty_read_toybrick_cpu_id((uint8_t *)data);
+			if (rc < 0)
+				return rc;
+			vhead->size = common->data_size - 8;
+#else
 			/* security storage */
 #ifdef CONFIG_RK_AVB_LIBAVB_USER
 			rc = rk_avb_read_perm_attr(vhead->id,

@@ -73,6 +73,7 @@ static int do_script(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *next_line, *script, *buf;
 	ulong addr;
+	int ret = CMD_RET_SUCCESS;
 
 	if (argc != 2 || !argv[1])
 		return CMD_RET_USAGE;
@@ -89,12 +90,13 @@ static int do_script(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	memcpy(buf, (char *)addr, SCRIPT_FILE_MAX_SIZE);
 	while ((next_line = script_next_line(&script)) != NULL) {
 		printf("\n$ %s\n", next_line);
-		run_command(next_line, 0);
+		ret = run_command(next_line, 0);
+		if (ret)
+			break;	/* fail */
 	}
-
 	free(buf);
 
-	return CMD_RET_SUCCESS;
+	return ret;
 }
 
 static int do_sd_update(cmd_tbl_t *cmdtp, int flag,
@@ -108,10 +110,12 @@ static int do_sd_update(cmd_tbl_t *cmdtp, int flag,
 	if (!buf)
 		return CMD_RET_FAILURE;
 
-	snprintf(cmd, 128,
-		 "fatload mmc 1 0x%08lx sd_update.txt && script 0x%08lx",
-		 (ulong)buf, (ulong)buf);
+	snprintf(cmd, 128, "fatload mmc 1 0x%08lx sd_update.txt", (ulong)buf);
 	ret = run_command(cmd, 0);
+	if (!ret) {
+		snprintf(cmd, 128, "script 0x%08lx", (ulong)buf);
+		ret = run_command(cmd, 0);
+	}
 	free(buf);
 
 	return ret;
@@ -128,10 +132,16 @@ static int do_usb_update(cmd_tbl_t *cmdtp, int flag,
 	if (!buf)
 		return CMD_RET_FAILURE;
 
-	snprintf(cmd, 128,
-		 "usb reset && fatload usb 0 0x%08lx usb_update.txt && script 0x%08lx",
-		 (ulong)buf, (ulong)buf);
+	snprintf(cmd, 128, "usb reset");
 	ret = run_command(cmd, 0);
+	if (!ret) {
+		snprintf(cmd, 128, "fatload usb 0 0x%08lx usb_update.txt", (ulong)buf);
+		ret = run_command(cmd, 0);
+	}
+	if (!ret) {
+		snprintf(cmd, 128, "script 0x%08lx", (ulong)buf);
+		ret = run_command(cmd, 0);
+	}
 	free(buf);
 
 	return ret;
@@ -155,10 +165,12 @@ static int do_tftp_update(cmd_tbl_t *cmdtp, int flag,
 	if (dhcp)
 		run_command("dhcp", 0);
 
-	snprintf(cmd, 128,
-		 "tftp 0x%08lx tftp_update.txt && script 0x%08lx",
-		 (ulong)buf, (ulong)buf);
+	snprintf(cmd, 128, "tftp 0x%08lx tftp_update.txt", (ulong)buf);
 	ret = run_command(cmd, 0);
+	if (!ret) {
+		snprintf(cmd, 128, "script 0x%08lx", (ulong)buf);
+		ret = run_command(cmd, 0);
+	}
 	free(buf);
 
 	return ret;

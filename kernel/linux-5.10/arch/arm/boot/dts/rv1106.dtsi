@@ -121,20 +121,6 @@
 		status = "disabled";
 	};
 
-	reserved-memory {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-
-		linux,cma {
-			compatible = "shared-dma-pool";
-			inactive;
-			reusable;
-			size = <0x800000>;
-			linux,cma-default;
-		};
-	};
-
 	rkcif_dvp: rkcif-dvp {
 		compatible = "rockchip,rkcif-dvp";
 		rockchip,hw = <&rkcif>;
@@ -248,6 +234,11 @@
 		compatible = "rockchip,rv1106-grf", "syscon", "simple-mfd";
 		reg = <0xff000000 0x68000>;
 
+		grf_cru: grf-clock-controller {
+			compatible = "rockchip,rv1106-grf-cru";
+			#clock-cells = <1>;
+		};
+
 		reboot_mode: reboot-mode {
 			compatible = "syscon-reboot-mode";
 			offset = <0x20200>;
@@ -312,6 +303,21 @@
 	arm-debug@ff200000 {
 		compatible = "rockchip,debug";
 		reg = <0xff200000 0x1000>;
+	};
+
+	pvtm@ff240000 {
+		compatible = "rockchip,rv1106-core-pvtm";
+		reg = <0xff240000 0x100>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pvtm@0 {
+			reg = <0>;
+			clocks = <&cru CLK_PVTM_CORE>;
+			clock-names = "clk";
+			resets = <&cru SRST_PVTM_CORE>, <&cru SRST_P_PVTM_CORE>;
+			reset-names = "rst", "rst-p";
+		};
 	};
 
 	i2c0: i2c@ff310000 {
@@ -463,6 +469,21 @@
 		reg = <0xff388000 0x1000>;
 	};
 
+	pvtm@ff390000 {
+		compatible = "rockchip,rv1106-pmu-pvtm";
+		reg = <0xff390000 0x100>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pvtm@0 {
+			reg = <1>;
+			clocks = <&cru CLK_PVTM_PMU>, <&cru PCLK_PVTM_PMU>;
+			clock-names = "clk", "pclk";
+			resets = <&cru SRST_PVTM_PMU>, <&cru SRST_P_PVTM_PMU>;
+			reset-names = "rst", "rst-p";
+		};
+	};
+
 	cru: clock-controller@ff3a0000 {
 		compatible = "rockchip,rv1106-cru";
 		reg = <0xff3a0000 0x20000>;
@@ -602,7 +623,7 @@
 	};
 
 	crypto: crypto@ff440000 {
-		compatible = "rockchip,crypto_v3";
+		compatible = "rockchip,crypto-v3";
 		reg = <0xff440000 0x2000>;
 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>,
@@ -877,6 +898,18 @@
 		status = "disabled";
 	};
 
+	system_sram: sram@ff6c0000 {
+		compatible = "mmio-sram";
+		reg = <0xff6c0000 0x40000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0 0xff6c0000 0x40000>;
+
+		rkisp_sram: rkisp-sram@0 {
+			reg = <0 0x40000>;
+		};
+	};
+
 	rga2: rga@ff980000 {
 		compatible = "rockchip,rga2_core0";
 		reg = <0xff980000 0x1000>;
@@ -912,7 +945,7 @@
 		reg = <0xff9a0000 0x4000>;
 		interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru HCLK_SDIO>, <&cru CCLK_SRC_SDIO>,
-			 <&cru SCLK_SDIO_DRV>, <&cru SCLK_SDIO_SAMPLE>;
+			 <&grf_cru SCLK_SDIO_DRV>, <&grf_cru SCLK_SDIO_SAMPLE>;
 		clock-names = "biu", "ciu", "ciu-drive", "ciu-sample";
 		fifo-depth = <0x100>;
 		max-frequency = <200000000>;
@@ -930,6 +963,7 @@
 			 <&cru CLK_CORE_ISP3P2>, <&cru ISP0CLK_VICAP>;
 		clock-names = "aclk_isp", "hclk_isp",
 			      "clk_isp_core", "clk_isp_core_vicap";
+		rockchip,sram = <&rkisp_sram>;
 		status = "disabled";
 	};
 
@@ -1086,7 +1120,7 @@
 		reg = <0xffa90000 0x4000>;
 		interrupts = <GIC_SPI 48 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru HCLK_EMMC>, <&cru CCLK_SRC_EMMC>,
-			 <&cru SCLK_EMMC_DRV>, <&cru SCLK_EMMC_SAMPLE>;
+			 <&grf_cru SCLK_EMMC_DRV>, <&grf_cru SCLK_EMMC_SAMPLE>;
 		clock-names = "biu", "ciu", "ciu-drive", "ciu-sample";
 		fifo-depth = <0x100>;
 		max-frequency = <200000000>;
@@ -1099,7 +1133,7 @@
 		reg = <0xffaa0000 0x4000>;
 		interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru HCLK_SDMMC>, <&cru CCLK_SRC_SDMMC>,
-			 <&cru SCLK_SDMMC_DRV>, <&cru SCLK_SDMMC_SAMPLE>;
+			 <&grf_cru SCLK_SDMMC_DRV>, <&grf_cru SCLK_SDMMC_SAMPLE>;
 		clock-names = "biu", "ciu", "ciu-drive", "ciu-sample";
 		fifo-depth = <0x100>;
 		max-frequency = <200000000>;

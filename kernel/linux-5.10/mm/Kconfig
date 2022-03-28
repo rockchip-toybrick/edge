@@ -63,6 +63,13 @@ config SPARSEMEM_MANUAL
 
 endchoice
 
+config MEMBLOCK_DEBUGFS
+	bool "Memblock debugfs for reserved memory"
+	depends on DEBUG_FS && ARCH_KEEP_MEMBLOCK
+	help
+	  Extend memblock debugfs to show size of each memblock, and shows the
+	  result of total size by KiB format.
+
 config DISCONTIGMEM
 	def_bool y
 	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
@@ -495,6 +502,15 @@ config CMA
 	  be allocated from it. This way, the kernel can use the memory for
 	  pagecache and when a subsystem requests for contiguous area, the
 	  allocated pages are migrated away to serve the contiguous request.
+
+	  If unsure, say "n".
+
+config CMA_INACTIVE
+	bool "CMA not active to system"
+	depends on CMA
+	help
+	  This forbids the CMA to active its pages to system memory, to keep
+	  page from CMA never be borrowed by system.
 
 	  If unsure, say "n".
 

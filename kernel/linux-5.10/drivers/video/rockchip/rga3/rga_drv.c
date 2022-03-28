@@ -41,14 +41,83 @@ static const struct rga_backend_ops rga2_ops = {
 	.soft_reset = rga2_soft_reset
 };
 
+static int rga_mpi_set_channel_buffer(struct dma_buf *dma_buf, struct rga_img_info_t *channel_info)
+{
+	struct rga_external_buffer buffer;
+
+	buffer.memory = (unsigned long)dma_buf;
+	buffer.type = RGA_DMA_BUFFER_PTR;
+	buffer.memory_parm.width = channel_info->vir_w;
+	buffer.memory_parm.height = channel_info->vir_h;
+	buffer.memory_parm.format = channel_info->format;
+
+	buffer.handle = rga_mm_import_buffer(&buffer);
+	if (buffer.handle == 0) {
+		pr_err("can not import dma_buf %p\n", dma_buf);
+		return -EFAULT;
+	}
+	channel_info->yrgb_addr = buffer.handle;
+
+	return 0;
+}
+
+static void rga_mpi_set_channel_info(uint32_t flags_mask, uint32_t flags,
+				     struct rga_video_frame_info *mpi_frame,
+				     struct rga_img_info_t *channel_info,
+				     struct rga_img_info_t *cache_info)
+{
+	uint32_t fix_enable_flag, cache_info_flag;
+
+	switch (flags_mask) {
+	case RGA_CONTEXT_SRC_MASK:
+		fix_enable_flag = RGA_CONTEXT_SRC_FIX_ENABLE;
+		cache_info_flag = RGA_CONTEXT_SRC_CACHE_INFO;
+		break;
+	case RGA_CONTEXT_PAT_MASK:
+		fix_enable_flag = RGA_CONTEXT_PAT_FIX_ENABLE;
+		cache_info_flag = RGA_CONTEXT_PAT_CACHE_INFO;
+		break;
+	case RGA_CONTEXT_DST_MASK:
+		fix_enable_flag = RGA_CONTEXT_DST_FIX_ENABLE;
+		cache_info_flag = RGA_CONTEXT_DST_CACHE_INFO;
+		break;
+	default:
+		return;
+	}
+
+	if (flags & fix_enable_flag) {
+		channel_info->x_offset = mpi_frame->x_offset;
+		channel_info->y_offset = mpi_frame->y_offset;
+		channel_info->act_w = mpi_frame->width;
+		channel_info->act_h = mpi_frame->height;
+		channel_info->vir_w = mpi_frame->vir_w;
+		channel_info->vir_h = mpi_frame->vir_h;
+		channel_info->rd_mode = mpi_frame->rd_mode;
+		channel_info->format = mpi_frame->format;
+
+		if (flags & cache_info_flag) {
+			/* Replace the config of src in ctx with the config of mpi src. */
+			cache_info->x_offset = mpi_frame->x_offset;
+			cache_info->y_offset = mpi_frame->y_offset;
+			cache_info->act_w = mpi_frame->width;
+			cache_info->act_h = mpi_frame->height;
+			cache_info->vir_w = mpi_frame->vir_w;
+			cache_info->vir_h = mpi_frame->vir_h;
+			cache_info->rd_mode = mpi_frame->rd_mode;
+			cache_info->format = mpi_frame->format;
+
+		}
+	}
+}
+
 int rga_mpi_commit(struct rga_mpi_job_t *mpi_job)
 {
 	int ret = 0;
 	struct rga_pending_ctx_manager *ctx_manager;
 	struct rga_internal_ctx_t *ctx;
 	struct rga_req *cached_cmd;
+	struct rga_req mpi_cmd;
 	unsigned long flags;
-	int i;
 
 	ctx_manager = rga_drvdata->pend_ctx_manager;
 
@@ -60,52 +129,106 @@ int rga_mpi_commit(struct rga_mpi_job_t *mpi_job)
 
 	spin_lock_irqsave(&ctx->lock, flags);
 
-	ctx->sync_mode = RGA_BLIT_SYNC;
 	/* TODO: batch mode need mpi async mode */
+	ctx->sync_mode = RGA_BLIT_SYNC;
 	ctx->use_batch_mode = false;
 
 	cached_cmd = ctx->cached_cmd;
+	memcpy(&mpi_cmd, cached_cmd, sizeof(mpi_cmd));
 
 	spin_unlock_irqrestore(&ctx->lock, flags);
 
-	/* change src cmd config by mpi frame info */
-	if (!ctx->mpi_config_flags) {
-		cached_cmd->src.x_offset = mpi_job->src.x_offset;
-		cached_cmd->src.y_offset = mpi_job->src.y_offset;
-		cached_cmd->src.act_w = mpi_job->src.width;
-		cached_cmd->src.act_h = mpi_job->src.height;
-		cached_cmd->src.vir_w = mpi_job->src.vir_w;
-		cached_cmd->src.vir_h = mpi_job->src.vir_h;
-		cached_cmd->src.rd_mode = mpi_job->src.rd_mode;
-		cached_cmd->src.format = mpi_job->src.format;
-	}
+	/* set channel info */
+	if ((mpi_job->src != NULL) && (ctx->flags & RGA_CONTEXT_SRC_MASK))
+		rga_mpi_set_channel_info(RGA_CONTEXT_SRC_MASK,
+					 ctx->flags,
+					 mpi_job->src,
+					 &mpi_cmd.src,
+					 &cached_cmd->src);
 
-	/* copy dst info to mpi job */
-	mpi_job->dst.x_offset = cached_cmd->dst.x_offset;
-	mpi_job->dst.y_offset = cached_cmd->dst.y_offset;
-	mpi_job->dst.width = cached_cmd->dst.act_w;
-	mpi_job->dst.height = cached_cmd->dst.act_h;
-	mpi_job->dst.vir_w = cached_cmd->dst.vir_w;
-	mpi_job->dst.vir_h = cached_cmd->dst.vir_h;
-	mpi_job->dst.rd_mode = cached_cmd->dst.rd_mode;
-	mpi_job->dst.format = cached_cmd->dst.format;
+	if ((mpi_job->pat != NULL) && (ctx->flags & RGA_CONTEXT_PAT_MASK))
+		rga_mpi_set_channel_info(RGA_CONTEXT_PAT_MASK,
+					 ctx->flags,
+					 mpi_job->pat,
+					 &mpi_cmd.pat,
+					 &cached_cmd->pat);
 
-	for (i = 0; i < ctx->cmd_num; i++) {
-		if (DEBUGGER_EN(MSG))
-			rga_cmd_print_debug_info(&(cached_cmd[i]));
+	if ((mpi_job->dst != NULL) && (ctx->flags & RGA_CONTEXT_DST_MASK))
+		rga_mpi_set_channel_info(RGA_CONTEXT_DST_MASK,
+					 ctx->flags,
+					 mpi_job->dst,
+					 &mpi_cmd.dst,
+					 &cached_cmd->dst);
 
-		ret = rga_job_mpi_commit(&(cached_cmd[i]), mpi_job, ctx);
+	/* set buffer handle */
+	if (mpi_job->dma_buf_src0 != NULL) {
+		ret = rga_mpi_set_channel_buffer(mpi_job->dma_buf_src0, &mpi_cmd.src);
 		if (ret < 0) {
-			if (ret == -ERESTARTSYS) {
-				if (DEBUGGER_EN(MSG))
-					pr_err("%s, commit mpi job failed, by a software interrupt.\n",
-						__func__);
-			} else {
-				pr_err("%s, commit mpi job failed\n", __func__);
-			}
-
+			pr_err("src channel set buffer handle failed!\n");
 			return ret;
 		}
+	}
+
+	if (mpi_job->dma_buf_src1 != NULL) {
+		ret = rga_mpi_set_channel_buffer(mpi_job->dma_buf_src1, &mpi_cmd.pat);
+		if (ret < 0) {
+			pr_err("src1 channel set buffer handle failed!\n");
+			return ret;
+		}
+	}
+
+	if (mpi_job->dma_buf_dst != NULL) {
+		ret = rga_mpi_set_channel_buffer(mpi_job->dma_buf_dst, &mpi_cmd.dst);
+		if (ret < 0) {
+			pr_err("dst channel set buffer handle failed!\n");
+			return ret;
+		}
+	}
+
+	mpi_cmd.handle_flag = 1;
+	mpi_cmd.mmu_info.mmu_en = 0;
+	mpi_cmd.mmu_info.mmu_flag = 0;
+
+	/* commit job */
+	if (ctx->cmd_num > 1) {
+		pr_err("Currently ctx does not support multiple tasks!");
+		/* TODO */
+		return -EINVAL;
+	}
+
+	if (DEBUGGER_EN(MSG))
+		rga_cmd_print_debug_info(&mpi_cmd);
+
+	ret = rga_job_mpi_commit(&mpi_cmd, mpi_job, ctx);
+	if (ret < 0) {
+		if (ret == -ERESTARTSYS) {
+			if (DEBUGGER_EN(MSG))
+				pr_err("%s, commit mpi job failed, by a software interrupt.\n",
+					__func__);
+		} else {
+			pr_err("%s, commit mpi job failed\n", __func__);
+		}
+
+		return ret;
+	}
+
+	if ((mpi_job->dma_buf_src0 != NULL) && (mpi_cmd.src.yrgb_addr > 0))
+		rga_mm_release_buffer(mpi_cmd.src.yrgb_addr);
+	if ((mpi_job->dma_buf_src1 != NULL) && (mpi_cmd.pat.yrgb_addr > 0))
+		rga_mm_release_buffer(mpi_cmd.pat.yrgb_addr);
+	if ((mpi_job->dma_buf_dst != NULL) && (mpi_cmd.dst.yrgb_addr > 0))
+		rga_mm_release_buffer(mpi_cmd.dst.yrgb_addr);
+
+	/* copy dst info to mpi job for next node */
+	if (mpi_job->output != NULL) {
+		mpi_job->output->x_offset = mpi_cmd.dst.x_offset;
+		mpi_job->output->y_offset = mpi_cmd.dst.y_offset;
+		mpi_job->output->width = mpi_cmd.dst.act_w;
+		mpi_job->output->height = mpi_cmd.dst.act_h;
+		mpi_job->output->vir_w = mpi_cmd.dst.vir_w;
+		mpi_job->output->vir_h = mpi_cmd.dst.vir_h;
+		mpi_job->output->rd_mode = mpi_cmd.dst.rd_mode;
+		mpi_job->output->format = mpi_cmd.dst.format;
 	}
 
 	return ret;
@@ -278,8 +401,10 @@ static long rga_ioctl_import_buffer(unsigned long arg)
 
 	for (i = 0; i < buffer_pool.size; i++) {
 		ret = rga_mm_import_buffer(&external_buffer[i]);
-		if (ret < 0) {
-			pr_err("buffer[%d] mm import buffer failed!\n", i);
+		if (ret == 0) {
+			pr_err("buffer[%d] mm import buffer failed! memory = 0x%lx, type = 0x%x\n",
+			       i, (unsigned long)external_buffer[i].memory,
+			       external_buffer[i].type);
 
 			goto err_free_external_buffer;
 		}
@@ -359,9 +484,13 @@ err_free_external_buffer:
 static long rga_ioctl_cmd_start(unsigned long arg)
 {
 	uint32_t rga_user_ctx_id;
+	uint32_t flags;
 	int ret = 0;
 
-	rga_user_ctx_id = rga_internal_ctx_alloc_to_get_idr_id();
+	if (copy_from_user(&flags, (void *)arg, sizeof(uint32_t)))
+		ret = -EFAULT;
+
+	rga_user_ctx_id = rga_internal_ctx_alloc_to_get_idr_id(flags);
 
 	if (copy_to_user((void *)arg, &rga_user_ctx_id, sizeof(uint32_t)))
 		ret = -EFAULT;

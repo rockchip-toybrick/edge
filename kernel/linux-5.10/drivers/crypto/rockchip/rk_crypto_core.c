@@ -22,37 +22,8 @@
 #include "rk_crypto_core.h"
 #include "rk_crypto_v1.h"
 #include "rk_crypto_v2.h"
+#include "rk_crypto_v3.h"
 #include "cryptodev_linux/rk_cryptodev.h"
-
-#define RK_CRYPTO_V1_SOC_DATA_INIT(names) {\
-	.crypto_ver  = "CRYPTO V1.0.0.0",\
-	.use_soft_aes192 = false,\
-	.valid_algs_name = (names),\
-	.valid_algs_num = ARRAY_SIZE(names),\
-	.total_algs = crypto_v1_algs,\
-	.total_algs_num = ARRAY_SIZE(crypto_v1_algs),\
-	.rsts = crypto_v1_rsts,\
-	.rsts_num = ARRAY_SIZE(crypto_v1_rsts),\
-	.hw_init = rk_hw_crypto_v1_init,\
-	.hw_deinit = rk_hw_crypto_v1_deinit,\
-	.hw_info_size = sizeof(struct rk_hw_crypto_v1_info),\
-	.default_pka_offset = 0,\
-}
-
-#define RK_CRYPTO_V2_SOC_DATA_INIT(names, soft_aes_192) {\
-	.crypto_ver  = "CRYPTO V2.0.0.0",\
-	.use_soft_aes192 = soft_aes_192,\
-	.valid_algs_name = (names),\
-	.valid_algs_num = ARRAY_SIZE(names),\
-	.total_algs = crypto_v2_algs,\
-	.total_algs_num = ARRAY_SIZE(crypto_v2_algs),\
-	.rsts = crypto_v2_rsts,\
-	.rsts_num = ARRAY_SIZE(crypto_v2_rsts),\
-	.hw_init = rk_hw_crypto_v2_init,\
-	.hw_deinit = rk_hw_crypto_v2_deinit,\
-	.hw_info_size = sizeof(struct rk_hw_crypto_v2_info),\
-	.default_pka_offset = 0x0480,\
-}
 
 static struct rk_alg_ctx *rk_alg_ctx_cast(struct crypto_async_request *async_req)
 {
@@ -160,6 +131,8 @@ static int rk_load_data(struct rk_crypto_dev *rk_dev,
 	unsigned int count;
 	struct device *dev = rk_dev->dev;
 	struct rk_alg_ctx *alg_ctx = rk_alg_ctx_cast(rk_dev->async_req);
+
+	alg_ctx->count = 0;
 
 	/* 0 data input just do nothing */
 	if (alg_ctx->total == 0)
@@ -441,10 +414,13 @@ static struct rk_crypto_algt *rk_crypto_find_algs(struct rk_crypto_dev *rk_dev,
 	u32 i;
 	struct rk_crypto_algt **algs;
 	struct rk_crypto_algt *tmp_algs;
+	uint32_t total_algs_num = 0;
 
-	algs = rk_dev->soc_data->total_algs;
+	algs = rk_dev->soc_data->hw_get_algts(&total_algs_num);
+	if (!algs || total_algs_num == 0)
+		return NULL;
 
-	for (i = 0; i < rk_dev->soc_data->total_algs_num; i++, algs++) {
+	for (i = 0; i < total_algs_num; i++, algs++) {
 		tmp_algs = *algs;
 		tmp_algs->rk_dev = rk_dev;
 
@@ -467,10 +443,17 @@ static int rk_crypto_register(struct rk_crypto_dev *rk_dev)
 
 	algs_name = soc_data->valid_algs_name;
 
+	rk_dev->request_crypto(rk_dev, __func__);
+
 	for (i = 0; i < soc_data->valid_algs_num; i++, algs_name++) {
 		tmp_algs = rk_crypto_find_algs(rk_dev, *algs_name);
 		if (!tmp_algs) {
 			CRYPTO_TRACE("%s not matched!!!\n", *algs_name);
+			continue;
+		}
+
+		if (soc_data->hw_is_algo_valid && !soc_data->hw_is_algo_valid(rk_dev, tmp_algs)) {
+			CRYPTO_TRACE("%s skipped!!!\n", *algs_name);
 			continue;
 		}
 
@@ -506,6 +489,9 @@ static int rk_crypto_register(struct rk_crypto_dev *rk_dev)
 
 		CRYPTO_TRACE("%s register OK!!!\n", *algs_name);
 	}
+
+	rk_dev->release_crypto(rk_dev, __func__);
+
 	return 0;
 
 err_cipher_algs:
@@ -513,6 +499,9 @@ err_cipher_algs:
 
 	for (k = 0; k < i; k++, algs_name++) {
 		tmp_algs = rk_crypto_find_algs(rk_dev, *algs_name);
+		if (!tmp_algs)
+			continue;
+
 		if (tmp_algs->type == ALG_TYPE_CIPHER)
 			crypto_unregister_skcipher(&tmp_algs->alg.crypto);
 		else if (tmp_algs->type == ALG_TYPE_HASH || tmp_algs->type == ALG_TYPE_HMAC)
@@ -520,6 +509,9 @@ err_cipher_algs:
 		else if (tmp_algs->type == ALG_TYPE_ASYM)
 			crypto_unregister_akcipher(&tmp_algs->alg.asym);
 	}
+
+	rk_dev->release_crypto(rk_dev, __func__);
+
 	return err;
 }
 
@@ -531,8 +523,13 @@ static void rk_crypto_unregister(struct rk_crypto_dev *rk_dev)
 
 	algs_name = rk_dev->soc_data->valid_algs_name;
 
+	rk_dev->request_crypto(rk_dev, __func__);
+
 	for (i = 0; i < rk_dev->soc_data->valid_algs_num; i++, algs_name++) {
 		tmp_algs = rk_crypto_find_algs(rk_dev, *algs_name);
+		if (!tmp_algs)
+			continue;
+
 		if (tmp_algs->type == ALG_TYPE_CIPHER)
 			crypto_unregister_skcipher(&tmp_algs->alg.crypto);
 		else if (tmp_algs->type == ALG_TYPE_HASH || tmp_algs->type == ALG_TYPE_HMAC)
@@ -540,6 +537,8 @@ static void rk_crypto_unregister(struct rk_crypto_dev *rk_dev)
 		else if (tmp_algs->type == ALG_TYPE_ASYM)
 			crypto_unregister_akcipher(&tmp_algs->alg.asym);
 	}
+
+	rk_dev->release_crypto(rk_dev, __func__);
 }
 
 static void rk_crypto_request(struct rk_crypto_dev *rk_dev, const char *name)
@@ -563,52 +562,6 @@ static void rk_crypto_action(void *data)
 	if (rk_dev->rst)
 		reset_control_assert(rk_dev->rst);
 }
-
-static const char * const crypto_v2_rsts[] = {
-	"crypto-rst",
-};
-
-static struct rk_crypto_algt *crypto_v2_algs[] = {
-	&rk_v2_ecb_sm4_alg,		/* ecb(sm4) */
-	&rk_v2_cbc_sm4_alg,		/* cbc(sm4) */
-	&rk_v2_xts_sm4_alg,		/* xts(sm4) */
-	&rk_v2_cfb_sm4_alg,		/* cfb(sm4) */
-	&rk_v2_ofb_sm4_alg,		/* ofb(sm4) */
-	&rk_v2_ctr_sm4_alg,		/* ctr(sm4) */
-
-	&rk_v2_ecb_aes_alg,		/* ecb(aes) */
-	&rk_v2_cbc_aes_alg,		/* cbc(aes) */
-	&rk_v2_xts_aes_alg,		/* xts(aes) */
-	&rk_v2_cfb_aes_alg,		/* cfb(aes) */
-	&rk_v2_ofb_aes_alg,		/* ofb(aes) */
-	&rk_v2_ctr_aes_alg,		/* ctr(aes) */
-
-	&rk_v2_ecb_des_alg,		/* ecb(des) */
-	&rk_v2_cbc_des_alg,		/* cbc(des) */
-	&rk_v2_cfb_des_alg,		/* cfb(des) */
-	&rk_v2_ofb_des_alg,		/* ofb(des) */
-
-	&rk_v2_ecb_des3_ede_alg,	/* ecb(des3_ede) */
-	&rk_v2_cbc_des3_ede_alg,	/* cbc(des3_ede) */
-	&rk_v2_cfb_des3_ede_alg,	/* cfb(des3_ede) */
-	&rk_v2_ofb_des3_ede_alg,	/* ofb(des3_ede) */
-
-	&rk_v2_ahash_sha1,		/* sha1 */
-	&rk_v2_ahash_sha224,		/* sha224 */
-	&rk_v2_ahash_sha256,		/* sha256 */
-	&rk_v2_ahash_sha384,		/* sha384 */
-	&rk_v2_ahash_sha512,		/* sha512 */
-	&rk_v2_ahash_md5,		/* md5 */
-	&rk_v2_ahash_sm3,		/* sm3 */
-
-	&rk_v2_hmac_sha1,		/* hmac(sha1) */
-	&rk_v2_hmac_sha256,		/* hmac(sha256) */
-	&rk_v2_hmac_sha512,		/* hmac(sha512) */
-	&rk_v2_hmac_md5,		/* hmac(md5) */
-	&rk_v2_hmac_sm3,		/* hmac(sm3) */
-
-	&rk_v2_asym_rsa,		/* rsa */
-};
 
 static char *crypto_no_sm_algs_name[] = {
 	"ecb(aes)", "cbc(aes)", "cfb(aes)", "ofb(aes)", "ctr(aes)",
@@ -648,24 +601,8 @@ static const struct rk_crypto_soc_data rv1126_soc_data =
 static const struct rk_crypto_soc_data full_soc_data =
 	RK_CRYPTO_V2_SOC_DATA_INIT(crypto_full_algs_name, false);
 
-static const char * const crypto_v1_rsts[] = {
-	"crypto-rst",
-};
-
-static struct rk_crypto_algt *crypto_v1_algs[] = {
-	&rk_v1_ecb_aes_alg,		/* ecb(aes) */
-	&rk_v1_cbc_aes_alg,		/* cbc(aes) */
-
-	&rk_v1_ecb_des_alg,		/* ecb(des) */
-	&rk_v1_cbc_des_alg,		/* cbc(des) */
-
-	&rk_v1_ecb_des3_ede_alg,	/* ecb(des3_ede) */
-	&rk_v1_cbc_des3_ede_alg,	/* cbc(des3_ede) */
-
-	&rk_v1_ahash_sha1,		/* sha1 */
-	&rk_v1_ahash_sha256,		/* sha256 */
-	&rk_v1_ahash_md5,		/* md5 */
-};
+static const struct rk_crypto_soc_data cryto_v3_soc_data =
+	RK_CRYPTO_V3_SOC_DATA_INIT(crypto_full_algs_name);
 
 static char *rk3288_cipher_algs[] = {
 	"ecb(aes)", "cbc(aes)",
@@ -678,6 +615,16 @@ static const struct rk_crypto_soc_data rk3288_soc_data =
 	RK_CRYPTO_V1_SOC_DATA_INIT(rk3288_cipher_algs);
 
 static const struct of_device_id crypto_of_id_table[] = {
+
+#if IS_ENABLED(CONFIG_CRYPTO_DEV_ROCKCHIP_V3)
+	/* crypto v3 in belows */
+	{
+		.compatible = "rockchip,crypto-v3",
+		.data = (void *)&cryto_v3_soc_data,
+	},
+#endif
+
+#if IS_ENABLED(CONFIG_CRYPTO_DEV_ROCKCHIP_V2)
 	/* crypto v2 in belows */
 	{
 		.compatible = "rockchip,px30-crypto",
@@ -695,11 +642,16 @@ static const struct of_device_id crypto_of_id_table[] = {
 		.compatible = "rockchip,rk3588-crypto",
 		.data = (void *)&full_soc_data,
 	},
+#endif
+
+#if IS_ENABLED(CONFIG_CRYPTO_DEV_ROCKCHIP_V1)
 	/* crypto v1 in belows */
 	{
 		.compatible = "rockchip,rk3288-crypto",
 		.data = (void *)&rk3288_soc_data,
 	},
+#endif
+
 	{ /* sentinel */ }
 };
 
@@ -713,6 +665,8 @@ static int rk_crypto_probe(struct platform_device *pdev)
 	struct rk_crypto_soc_data *soc_data;
 	const struct of_device_id *match;
 	struct rk_crypto_dev *rk_dev;
+	const char * const *rsts;
+	uint32_t rst_num = 0;
 	int err = 0;
 
 	rk_dev = devm_kzalloc(&pdev->dev,
@@ -726,9 +680,10 @@ static int rk_crypto_probe(struct platform_device *pdev)
 	soc_data = (struct rk_crypto_soc_data *)match->data;
 	rk_dev->soc_data = soc_data;
 
-	if (soc_data->rsts[0]) {
+	rsts = soc_data->hw_get_rsts(&rst_num);
+	if (rsts && rsts[0]) {
 		rk_dev->rst =
-			devm_reset_control_get(dev, soc_data->rsts[0]);
+			devm_reset_control_get(dev, rsts[0]);
 		if (IS_ERR(rk_dev->rst)) {
 			err = PTR_ERR(rk_dev->rst);
 			goto err_crypto;
