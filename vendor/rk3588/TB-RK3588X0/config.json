@@ -1,0 +1,15 @@
+{
+  "board": "TB-RK3588X0",
+  "chip": "rk3588",
+  "arch": "arm64",
+  "uboot": {
+    "config": "rk3588-toybrick"
+  },
+  "kernel": {
+    "config": "rk3588_edge.config rk3588_toybrick.config",
+    "linuxdtb": "rk3588-toybrick-x0-linux",
+    "androiddtb": "rk3588-toybrick-x0-android",
+    "initrd": true,
+    "debug": "0xfeb50000"
+  }
+}

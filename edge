@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+
+#encoding=utf-8
+__author__ = 'addy.ke@rock-chips.com'
+
+import traceback
+import os
+import sys
+import getopt
+
+sys.path.append('./build/python3')
+from utils import *
+from env import Env
+from build import Build
+from flash import Flash
+
+EDGE_NAME = 'edge'
+VERSION = '0.1.0'
+
+def help():
+    text = 'Usage: %s {flash, build, set, env}\n\n' % EDGE_NAME
+    text += 'Edge Compute SDK Build System Version: %s\n\n' % VERSION
+    text += 'Arguments:\n'
+    text += '  flash                    Flash images\n'
+    text += '  build                    Build source code\n'
+    text += '  set                      Set build env\n'
+    text += '  env                      Show build env\n'
+    EDGE_DBG(text)
+
+def flash_help():
+    text = 'Usage: %s flash [options]\n' % EDGE_NAME
+    text += '\n'
+    text += 'Options:\n'
+    text += '  -h, --help               Show this help message and exit\n'
+    text += '  -q, --query              Query board flash mode(none, loader, maskrom)\n'
+    text += '  -u, --uboot              Build uboot(MiniLoader.bin, uboot.bin)\n'
+    text += '  -k, --kernel             Build kernel(source.img, boot_linux.img)\n'
+    text += '  -r, --rootfs             Build rootfs(rootfs.img)\n'
+    text += '  -a, --all                Build all images\n'
+    text += '\n'
+    text += 'e.g.\n'
+    text += '  %s build -uk\n' % EDGE_NAME
+    text += '  %s build -a\n' % EDGE_NAME
+    text +='\n'
+
+    EDGE_DBG(text)
+
+
+def build_help():
+    text = 'Usage: %s build [options]\n' % EDGE_NAME
+    text += '\n'
+    text += 'Options:\n'
+    text += '  -h, --help               Show this help message and exit\n'
+    text += '  -u, --uboot              Build uboot(MiniLoader.bin, uboot.bin)\n'
+    text += '  -k, --kernel             Build kernel(source.img, boot_linux.img)\n'
+    text += '  -a, --all                Build all images\n'
+    text += '  -b, --boot               Build boot image for android(boot.img)\n'
+    text += '                           Note: you should cp boot_android.img to kernel source directory first\n'
+    text += '\n'
+    text += 'e.g.\n'
+    text += '  %s build -uk             Build uboot and kernel images\n' % EDGE_NAME
+    text +='\n'
+
+    EDGE_DBG(text)
+
+def flash_parse_args(argv):
+    flash_list = []
+    try:
+        options,args = getopt.getopt(argv, 'hqukra', ['help', 'query', 'uboot', 'kernel', 'rootfs', 'all'])
+    except getopt.GetoptError:
+        flash_help()
+        sys.exit(1)
+
+    if len(options) == 0:
+        flash_help()
+        sys.exit(1)
+
+    for option, param in options:
+        if option in ('-h', '--help'):
+            flash_help()
+            sys.exit(1)
+        if option in ('-q', '--query'):
+            flash_list = ['query']
+            break
+        elif option in ('-a', '--all'):
+            flash_list = ['uboot', 'boot_linux', 'resource', 'rootfs']
+            break
+        else:
+            if option in ('-u', '--uboot'):
+                flash_list.append('uboot')
+            if option in ('-k', '--kernel'):
+                flash_list.append('boot_linux')
+                flash_list.append('resource')
+            if option in ('-r', '--rootfs'):
+                flash_list.append('rootfs')
+
+    return flash_list
+
+def build_parse_args(argv):
+    build_list = []
+    try:
+        options,args = getopt.getopt(argv, 'hukab', ['help', 'uboot', 'kernel', 'all', 'boot'])
+    except getopt.GetoptError:
+        build_help()
+        sys.exit(1)
+
+    if len(options) == 0:
+        build_help()
+        sys.exit(1)
+
+    for option, param in options:
+        if option in ('-h', '--help'):
+            build_help()
+            sys.exit(1)
+        elif option in ('-a', '--all'):
+            build_list = ['uboot', 'kernel']
+            break
+        else:
+            if option in ('-u', '--uboot'):
+                build_list.append('uboot')
+            if option in ('-k', '--kernel'):
+                build_list.append('kernel')
+            if option in ('-b', '--boot'):
+                build_list.append('boot')
+
+    return build_list
+
+root_path = os.getcwd()
+if len(sys.argv) <= 1:
+    help()
+    sys.exit(1)
+elif sys.argv[1] == 'flash':
+    flash_list = flash_parse_args(sys.argv[2:])
+    if len(flash_list) == 0:
+        sys.exit(1)
+    else:
+        flash = Flash(root_path)
+        ret = flash.flash(flash_list)
+elif sys.argv[1] == 'build':
+    build_list = build_parse_args(sys.argv[2:])
+    if len(build_list) == 0:
+        sys.exit(1)
+    else:
+        build = Build(root_path)
+        ret = build.build(build_list)
+elif sys.argv[1] == 'set':
+    env = Env(root_path)
+    ret = env.set()
+elif sys.argv[1] == 'env':
+    env = Env(root_path)
+    ret = env.show()
+else:
+    help()
+    sys.exit(1)
+
+sys.exit(ret)

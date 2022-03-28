@@ -1,0 +1,16 @@
+{
+  "board": "not set",
+  "chip": "not set",
+  "arch": "not set",
+  "uboot": {
+    "config": "not set"
+  },
+  "kernel": {
+    "config": "rk3588_edge.config rk3588_toybrick.config",
+    "linuxdtb": "not set",
+    "androiddtb": "not set",
+    "initrd": true,
+    "docker": false,
+    "debug": "not set"
+  }
+}
