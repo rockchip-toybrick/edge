@@ -1,11 +1,17 @@
 
-# Rockchip RK3588 Toybrick开发板开发指南
+# RK3588 边缘计算快速入门
 
 [TOC]
 
 ---
 
 ## 前言
+
+边缘计算是针对**Toybrick RK3588系列开发板**推出一套基于Debian11、高性能，应用于边缘计算产品的解决方案。
+
+如下描述边缘计算SDK的快速入门，包括搭建系统环境、下载源码、源码编译、固件烧写和串口调试等。
+
+更多信息见Toybrick官方网站：[Toybrick Wiki (rock-chips.com)](https://t.rock-chips.com/wiki.php)。
 
 为了方便文档描述，约定如下变量定义：
 
@@ -39,18 +45,30 @@ sudo apt -y install python lz4 coreutils qemu qemu-user-static python3 \
 device-tree-compiler clang bison flex lld libssl-dev bc genext2fs git make
 ```
 
-### 获取源码
+## 获取源码
 
-1. SSH下载
+### SSH下载
+
+```shell
+git clone git@github.com:rockchip-toybrick/edge.git
+```
+
+### HTTP下载
+
+```shell
+git clone https://github.com/rockchip-toybrick/edge.git
+```
+
+## 固件下载
+
+1. 从百度网盘或OneDriver下载镜像，下载链接：
+
+   **TB-RK3588X0** (TB-RK3588X0-IMAGES.tar.gz)：[百度网盘](https://eyun.baidu.com/s/3dGofGR3)  [OneDrive](https://rockchips-my.sharepoint.com/:f:/g/personal/addy_ke_rockchips_onmicrosoft_com/EqkdA85flEdHvxShK_872xkB05Kv2RY6zCYAEch7u_iKzQ?e=eQMiqR) 
+
+2. 将下载好的镜像解压到源码路径的out/rk3588路径
 
    ```shell
-   git clone git@github.com:rockchip-toybrick/edge.git
-   ```
-
-2. HTTP下载
-
-   ```shell
-   git clone https://github.com/rockchip-toybrick/edge.git
+   tar zxvf ${IMAGES} -C ${ROOT_DIR}/out/rk3588
    ```
 
 ## 编译配置
