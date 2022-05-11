@@ -1,0 +1,28 @@
+# Android fstab file.
+#<src>                                          <mnt_point>         <type>    <mnt_flags and options>                       <fs_mgr_flags>
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+system  /system   ext4 ro,barrier=1 wait,logical,first_stage_mount
+vendor  /vendor   ext4 ro,barrier=1 wait,logical,first_stage_mount
+odm     /odm      ext4 ro,barrier=1 wait,logical,first_stage_mount
+product /product  ext4 ro,barrier=1 wait,logical,first_stage_mount
+system_ext /system_ext  ext4 ro,barrier=1 wait,logical,first_stage_mount
+/dev/block/by-name/metadata /metadata ext4 nodev,noatime,nosuid,discard,sync wait,formattable,first_stage_mount,check
+/dev/block/by-name/misc         /misc               emmc      defaults     defaults
+/dev/block/by-name/cache          /cache              ext4      noatime,nodiratime,nosuid,nodev,noauto_da_alloc,discard                wait,check
+
+/devices/platform/*usb*   auto vfat defaults      voldmanaged=usb:auto
+
+# For sata
+/devices/platform/*.sata* auto vfat defaults voldmanaged=sata:auto
+
+# For pcie ssd
+/devices/platform/*.pcie* auto vfat defaults voldmanaged=pcie:auto
+
+/dev/block/zram0                                none                swap      defaults                                              zramsize=50%
+# For sdmmc
+/devices/platform/fe2b0000.dwmmc/mmc_host*        auto  auto    defaults        voldmanaged=sdcard1:auto
+#  Full disk encryption has less effect on rk3326, so default to enable this.
+/dev/block/by-name/userdata /data f2fs noatime,nosuid,nodev,discard,reserve_root=32768,resgid=1065 latemount,wait,check,quota,formattable,reservedsize=128M
+# for ext4
+#/dev/block/by-name/userdata    /data      ext4    discard,noatime,nosuid,nodev,noauto_da_alloc,data=ordered,user_xattr,barrier=1    latemount,wait,formattable,check,fileencryption=software,quota,reservedsize=128M,checkpoint=block

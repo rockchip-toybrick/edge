@@ -1,5 +1,5 @@
 
-# RK3588 边缘计算快速入门
+# Toybrik RK3588 Linux Debian11 快速入门
 
 [TOC]
 
@@ -7,19 +7,13 @@
 
 ## 前言
 
-边缘计算是针对**Toybrick RK3588系列开发板**推出一套基于Debian11、高性能，应用于边缘计算产品的解决方案。
-
-如下描述边缘计算SDK的快速入门，包括搭建系统环境、下载源码、源码编译、固件烧写和串口调试等。
-
-更多信息见Toybrick官方网站：[Toybrick Wiki (rock-chips.com)](https://t.rock-chips.com/wiki.php)。
-
 为了方便文档描述，约定如下变量定义：
 
-- BOARD：开发板/产品型号；如TB-RK3588X0开发板的型号是TB-RK3588X0。
-- DTB：内核设备树；如TB-RK3588X0开发板的产品内核设备树是rk3588-toybrick-x0-linux。
+- BOARD：开发板/产品型号；如Toybrick RK3588开发板的型号是TB-RK3588X0。
+- DTB：内核设备树；如Toybrick RK3588开发板的产品内核设备树是rk3588-toybrick-x0-linux。
 - ROOT_DIR：边缘计算SDK的工作目录；文档中所示的目录为/home/toybrick/work/edge。
-- CHIP：开发板的芯片型号；当前边缘计算SDK支持的芯片型号为rk3588或rk3568。
-- OUT_DIR：编译生成的镜像路径${ROOT_DIR}/out/${CHIP}/${BOARD}/images ，如TB-RK3588X0的路径为/home/toybrick/work/edge/out/rk3588/TB-RK3588X0/images。
+- CHIP：开发板的芯片型号；当前边缘计算SDK支持的芯片型号为rk3588。
+- OUT_DIR：编译生成的镜像路径${ROOT_DIR}/out/${CHIP}/${BOARD}/images ，如RK3588 EVB1的路径为/home/toybrick/work/edge/out/rk3588/TB-RK3588X0/images。
 
 ## 搭建系统环境
 
@@ -45,48 +39,37 @@ sudo apt -y install python lz4 coreutils qemu qemu-user-static python3 \
 device-tree-compiler clang bison flex lld libssl-dev bc genext2fs git make
 ```
 
-## 获取源码
+### 获取源码
 
-### SSH下载
+1. 注册github账号，并上传本地ssh公钥
 
-```shell
-git clone git@github.com:rockchip-toybrick/edge.git
-```
-
-### HTTP下载
-
-```shell
-git clone https://github.com/rockchip-toybrick/edge.git
-```
-
-## 固件下载
-
-1. 从百度网盘或OneDriver下载镜像，下载链接：
-
-   **TB-RK3588X0** (TB-RK3588X0-IMAGES.tar.gz)：[百度网盘](https://eyun.baidu.com/s/3dGofGR3)  [OneDrive](https://rockchips-my.sharepoint.com/:f:/g/personal/addy_ke_rockchips_onmicrosoft_com/EqkdA85flEdHvxShK_872xkB05Kv2RY6zCYAEch7u_iKzQ?e=eQMiqR) 
-
-2. 将下载好的镜像解压到源码路径的out/rk3588路径
+2. 执行如下命令获取代码：
 
    ```shell
-   tar zxvf ${IMAGES} -C ${ROOT_DIR}/out/rk3588
+   git clone git@github.com:rockchip-toybrick/edge.git
    ```
+   
+
+### 获取rootfs镜像
+
+[Toybrick Wiki (rock-chips.com)](https://t.rock-chips.com/wiki.php?filename=资料下载/资料下载)
 
 ## 编译配置
 
 ### 设置配置信息
 
-执行如下执行命令，输入产品型号的序号（如：TB-RK3588X0开发板所对应的序号为0）设置配置信息：
+执行如下执行命令，输入产品型号的序号（如：RK3588 EVB1开发板所对应的序号为0）设置配置信息：
 
 ```shell
 ./edge set
 
 [EDGE DEBUG] Board list:
 > rk3588
-0. TB-RK3568X0
-Enter the number of the board: 0
+  0. TB-RK3588X0
+Enter the number of the board: 1
 ```
 
-***注意：每次更新或修改相关代码后，请重新执行此命令，更新配置。***  
+***注意：每次更新或修改边缘计算SDK相关代码后，请重新执行此命令，更新配置。***
 
 ### 查看配置信息
 
@@ -95,79 +78,118 @@ Enter the number of the board: 0
 ```shell
 ./edge env
 
-[EDGE DEBUG] root path: /home/toybrick/work/edge
-[EDGE DEBUG] out path: /home/toybrick/work/edge/out/rk3588/TB-RK3588X0/images
+[EDGE DEBUG] root path: /home/toybrick/edge
+[EDGE DEBUG] out path: /home/toybrick/edge/out/rk3588/TB-RK3588X0/images
 [EDGE DEBUG] board: TB-RK3588X0
 [EDGE DEBUG] chip: rk3588
 [EDGE DEBUG] arch: arm64
+[EDGE DEBUG] bootmode: extlinux
+[EDGE DEBUG] > Partition:
+[EDGE DEBUG]   uboot: ['0x00002000', '0x00004000']
+[EDGE DEBUG]   misc: ['0x00006000', '0x00002000']
+[EDGE DEBUG]   boot_linux:bootable: ['0x00008000', '0x00020000']
+[EDGE DEBUG]   recovery: ['0x00028000', '0x00040000']
+[EDGE DEBUG]   resource: ['0x00068000', '0x00010000']
+[EDGE DEBUG]   rootfs:grow: ['0x00078000', '-']
 [EDGE DEBUG] > Uboot:
-[EDGE DEBUG] config: rk3588-toybrick
+[EDGE DEBUG]   config: rk3588-edge
 [EDGE DEBUG] > Kernel:
-[EDGE DEBUG] config: rk3588_edge.config rk3588_toybrick.config
-[EDGE DEBUG] linuxdtb: rk3588-toybrick-x0-linux
-[EDGE DEBUG] androiddtb: rk3588-toybrick-x0-android
-[EDGE DEBUG] initrd: True
-[EDGE DEBUG] docker: False
-[EDGE DEBUG] debug: 0xfeb50000
+[EDGE DEBUG]   version: 5.10
+[EDGE DEBUG]   config: rk3588_edge.config
+[EDGE DEBUG]   dtbname: rk3588s-toybrik-x0-linux
+[EDGE DEBUG]   size: 64
+[EDGE DEBUG]   docker: False
+[EDGE DEBUG]   debug: 0xfeb50000
 ```
 
 ### 配置信息说明
 
-#### 公共配置
+SDK配置项包含系统配置、安全启动、分区配置、uboot配置、内核配置和文件系统配置。配置说明如下：
 
-公共配置保存在vendor/common/config.json，其中值为“not set”的配置项必须在《板级配置》中设置；其他配置项可根据实际需要在《板级配置》中修改。
+- 公共配置保存在vendor/common/config.json。
+- 板级配置保存在vendor/${CHIP}/${BOARD}/config.json，其值会覆盖公共配置的同名配置项的值。
+- 值为“not set”的配置项必须在《板级配置》中设置；其他配置项可根据实际需要在《板级配置》中修改。
 
-公共配置项包含：
+#### 系统配置
 
-1. kernel：Kernel的配置信息。
+系统配置项包含board、chip、arch和bootmode配置项：
 
-   - config：内核menuconfig配置，默认值为rk3588_edge.config rk3588_tobrick.config，编译时会加载rockchip_linux_defconfig、rk3588_edge.config和rk3588_toybrick.config。
+| 配置项   | 描述             | 默认值   | 备注                                                  |
+| -------- | ---------------- | -------- | ----------------------------------------------------- |
+| board    | 开发板或产品型号 | not set  | board值必须和vendor/${CHIP}目录下的${BOARD}目录名一致 |
+| chip     | 芯片型号         | not set  | RK3588和RK3588s的芯片型号都设置为rk3588               |
+| arch     | 芯片架构         | not set  | arm或arm64                                            |
+| bootmode | Uboot的启动方式  | extlinux | 支持extlinux和fit两种启动方式                         |
 
-     如果有需要增减内核配置可修改kernel/linux-5.10/arch/arm64/configs/rk3588_toybrick.config。
+#### 分区配置
 
-   - initrd：是否加载initrd.img，initrd可以让系统进入紧急修复模式，详见《Rockchip_Developer_Guide_Linux_Edge_Debian_CN.pdf》的紧急模式章节，默认值为true。
+系统的分区信息，包括分区名，起始地址和分区大小（起始地址和分区大小的单位为block，每个block的大小为512字节）。编译脚本会根据bootmode设置的启动方式加载part-extlinux和part-fit分区表，分区表信息如下：
 
-   ​        说明：启用initrd的优点是每次启动时都会检查并修复由于异常断电导致的文件系统损坏；缺点是启动会变慢。
+**part-extlinux：extlinux启动方式的系统分区**
 
-   - docker：是否需要支持docker；支持docker会增加不少config配置项，默认值为false。
+| 配置项     | 描述           | 起始地址   | 分区大小   | 备注                       |
+| ---------- | -------------- | ---------- | ---------- | -------------------------- |
+| uboot      | uboot分区      | 0x00002000 | 0x00004000 | 必选                       |
+| misc       | misc分区       | 0x00006000 | 0x00002000 | 烧写进入recovery模式，可选 |
+| boot_linux | 内核分区       | 0x00008000 | 0x00020000 | 必选                       |
+| recovery   | recovery分区   | 0x00028000 | 0x00040000 | 必选                       |
+| resource   | resource分区   | 0x00068000 | 0x00010000 | 保存开机LOGO，必选         |
+| rootfs     | 根文件系统分区 | 0x00078000 | -          | 所有剩余空间，必选         |
 
-#### 板级配置
+**part-fit: fit启动方式的系统分区**
 
-公共配置保存在vendor/${CHIP}/${BOARD}/config.json，其值会覆盖公共配置的同名配置项的值。
+| 配置项   | 描述           | 起始地址   | 分区大小   | 备注                       |
+| -------- | -------------- | ---------- | ---------- | -------------------------- |
+| uboot    | uboot分区      | 0x00002000 | 0x00004000 | 必选                       |
+| misc     | misc分区       | 0x00006000 | 0x00002000 | 烧写进入recovery模式，可选 |
+| boot     | 内核分区       | 0x00008000 | 0x00020000 | 必选                       |
+| recovery | recovery分区   | 0x00028000 | 0x00040000 | 必选                       |
+| backup   | backup分区     | 0x00068000 | 0x00010000 | 可选                       |
+| rootfs   | 根文件系统分区 | 0x00078000 | 0x01c00000 | 必选                       |
+| oem      | oem分区        | 0x01c78000 | 0x00040000 | 可选                       |
+| userdata | userdata分区   | 0x01cb8000 | -          | 所有剩余空间，可选         |
 
-板级配置项包含：
+*说明：* 
 
-1. board：开发板或产品型号，其值必须和vendor/${CHIP}目录下的${BOARD}目录名一致。
+1. *如果起始地址和分区地址都为0，则脚本会忽略此分区。*
+2. *OTG口不接USB线、长按recovery按键，系统会从recovery分区引导，并进入紧急修复模式。*
+3. *烧写misc镜像，系统也会从recovery分区引导，并进入紧急修复模式。*
 
-2. chip：芯片型号，目前支持rk3568。
+#### uboot配置
 
-3. arch：芯片架构，目前支持的两颗芯片都是arm64。
+| 配置项 | 描述          | 默认值      | 备注                       |
+| ------ | ------------- | ----------- | -------------------------- |
+| config | uboot编译配置 | rk3588-edge | configs/rk3588-edge.config |
 
-4. uboot：Uboot的配置信息
+#### 内核配置
 
-   - config：uboot的编译配置信息，默认为rk3588-toybrick。
+| 配置项  | 描述                       | 默认值             | 备注                                  |
+| ------- | -------------------------- | ------------------ | ------------------------------------- |
+| version | 内核版本号                 | 5.10               | 目前只支持5.10内核                    |
+| config  | 内核编译配置               | rk3588_edge.config | arch/arm64/configs/rk3588_edge.config |
+| size    | 内核镜像的大小，单位：M    | 64                 | auto表示自动调整大小                  |
+| dtbname | 内核设备树文件名           | not set            | 不包含后缀dts                         |
+| docker  | 内核配置是否需要支持docker | false              | 内核镜像会增大                        |
+| debug   | 芯片调试口物理地址         | not set            | 根据芯片配置                          |
 
-     如果有需要增减uboot配置可修改uboot/configs/rk3588-toybrick.config。
-
-5. kernel：内核的配置信息
-
-   - linuxdtb：产品/开发板的内核设备树文件名，如RK3588 EVB1开发板的dtbname为rk3588-toybrick-x0-linux。
-   - androiddtb：产品/开发板的内核设备树文件名，如RK3588 EVB1开发板的dtbname为rk3588-toybrick-x0-android。
-
-#### 注意事项
-
-- 产品目录下的config.json只需要添加需要修改的字段即可。
-- edge脚本首先会加载vendor/common/config.json；然后加载vendor/${CHIP}/${BOARD}/config.json，更新相同字段的值。
-- RK3588和RK3588s芯片的配置信息里的kernel子集的chip值都设置为：**rk3588**。
+说明：内核编译配置默认会加载rockchip_linux_defconfig和config配置项指定的配置。
 
 ## 镜像编译
 
 ### 一键编译
 
-执行如下命令编译所有镜像（包括MiniLoaderAll.bin，uboot.img，kernel.img，resource.img），保存在OUT_DIR目录：
+执行如下命令编译所有镜像，并打包update.img，保存在OUT_DIR目录：
 
 ```shell
 ./edge build -a
+```
+
+### 生成分区文件
+
+执行如下命令生成parameter.txt，保存在OUT_DIR目录：
+
+```shell
+./edge build -p
 ```
 
 ### 编译Uboot镜像
@@ -180,21 +202,17 @@ Enter the number of the board: 0
 
 ### 编译kernel镜像
 
-执行如下命令编译生成boot_linux.img和resource.img，保存在OUT_DIR目录：
+执行如下命令编译生成内核镜像，保存在OUT_DIR目录：
 
 ```shell
 ./edge build -k
 ```
 
-### 制作android boot镜像
+说明：
 
-1. 把android镜像里的boot.img拷贝到kernel/linux-5.10/boot_android.img
+fit启动方式：生成boot.img和recovery.img
 
-2. 执行如下命令编译生成boot.img，保存在OUT_DIR目录：
-
-   ```shell
-   ./edge build -b
-   ```
+extlinux启动方式：生成boot_linux.img、recovery.img和resource.img
 
 ### 查看编译帮助
 
@@ -238,9 +256,9 @@ Enter the number of the board: 0
 
 #### Windows主机查询
 
-双机打开tools\RKDevTool_Release_v2.84目录下的RKDevTool.exe，界面显示：  
+双击打开tools\RKDevTool_Release_v2.84目录下的RKDevTool.exe，界面显示：
 
-- 没有发现设备（如果图1-1所示）：表示开发板未进入烧写模式。
+- 没有发现设备（如图1-1所示）：表示开发板未进入烧写模式。
 
 - 发现一个LOADER设备（如图1-2所示）：表示开发板进入loader烧写模式。
 
@@ -248,21 +266,21 @@ Enter the number of the board: 0
 
 ![none](./resources/Flash_none.png)
 
-​                                                                        图1-1：没有发现设备
+<center> 图1-1：没有发现设备</center>
 
 ![loader](./resources/Flash_loader.png)
 
-​                                                                        图1-2：发现一个LOADER设备
+<center> 图1-2：发现一个LOADER设备</center>
 
 ![maskrom](./resources/Flash_maskrom.png)
 
-​                                                                        图1-3：发现一个MASKROM设备
+<center>图1-3：发现一个MASKROM设备</center>
 
 ### LINUX主机烧写镜像
 
 #### 烧写所有镜像
 
-烧写所有镜像包括：MiniLoaderAll.bin, uboot.img, resource.img, boot_linux.img，rootfs.img和parameter.txt
+烧写所有镜像
 
 ```shell
 ./edge flash -a
@@ -276,9 +294,12 @@ Enter the number of the board: 0
 ./edge flash -u
 ```
 
-#### 烧写kernel镜像
+#### 烧写内核镜像
 
-烧写镜像：boot_linux.img和resource.img
+烧写内核镜像：
+
+1. extlinux启动模式会烧写boot_linux.img、recovery.img和resource.img
+2. fit启动模式会烧写boot.img和recovery.img
 
 ```shell
 ./edge flash -k
@@ -292,6 +313,30 @@ Enter the number of the board: 0
 ./edge flash -r
 ```
 
+#### 烧写misc镜像
+
+烧写misc镜像： misc.img
+
+```shell
+./edge flash -m
+```
+
+#### 烧写oem镜像
+
+烧写oem镜像： oem.img (仅支持fit启动方式)
+
+```shell
+./edge flash -o
+```
+
+#### 烧写userdata镜像
+
+烧写userdata镜像： userdata.img (仅支持fit启动方式)
+
+```shell
+./edge flash -d
+```
+
 #### 查看烧写帮助
 
 查看支持的烧写参数：
@@ -302,19 +347,31 @@ Enter the number of the board: 0
 
 ### Windows主机烧写镜像
 
-1. 双机打开tools\RKDevTool_Release_v2.84目录下的RKDevTool.exe。
+1. 双击打开tools\RKDevTool_Release_v2.84目录下的RKDevTool.exe。
+
+2. 在工具的空白处点击右键，选择弹出菜单的"导入配置"，如下图所示：
+
+   ![flash](./resources/Flash_cfg.png)
+
+<center>图2-1：导入配置</center>
+
+3. 选择要烧写的分区配置
+
+   - config-extlinx.cfg：extlinux启动方式
+
+   - config-fit.cfg: fit启动方式
 
 2. 确认开发板已经进入loader或者maskrom烧写模式。
 
 3. 打勾选择需要烧写的镜像。
 
-   ***注意：Loader和Parmeter选项建议打勾选择，其他选项根据需要打勾选择。***  
+   ***注意：Loader和Parmeter选项建议打勾选择，其他选项根据需要打勾选择。***
 
 4. 点击“执行”按钮，开始烧写固件（如图2-1所示）。
 
-   ![flash](./resources/Flash.png)
+   ![flash](./resources/Flash_fit.png)
 
-​                                                                        图2-1：烧写固件
+<center>图2-2：烧写固件</center>
 
 ## 串口调试
 
@@ -330,7 +387,7 @@ Enter the number of the board: 0
 
 ![Debug_Port](./resources/Debug_port.png)
 
-​                                                                        图3-1：获取调试端口号
+<center> 图3-1：获取调试端口号</center>
 
 #### 配置调试串口信息
 
@@ -342,11 +399,11 @@ Enter the number of the board: 0
 
 ![Debug_SecureCRT](./resources/Debug_SecureCRT.png)
 
-​                                                                        图3-2：SecureCRT
+<center>图3-2：SecureCRT</center>
 
 ![Debug_Config](./resources/Debug_config.png)
 
-​                                                                        图3-3：配置调试串口信息
+<center>图3-3：配置调试串口信息</center>
 
 ### Linux主机调试
 
@@ -414,3 +471,14 @@ sudo apt -y install minicom
 ```shell
 sudo minicom
 ```
+
+## 更多文档
+
+1. Debian系统软件包： docs/edge/debian
+2. docker文档：docs/edge/docker
+3. mpp文档：docs/edge/mpp
+4. rga文档：docs/edge/rga
+5. rknn文档：docs/edge/rknn
+6. python-sdk文档：docs/edge/python-sdk
+7. ros2文档：docs/edge/ros2
+

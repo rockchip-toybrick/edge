@@ -1,0 +1,66 @@
+#line 1 "device/rockchip/common/sepolicy/vendor/property_contexts"
+#camera
+persist.vendor.camera.                  u:object_r:vendor_camera_prop:s0
+vendor.cam.                             u:object_r:vendor_camera_prop:s0
+#omx
+vendor.use_mpp_mode                     u:object_r:vendor_omx_prop:s0
+vendor.dump.omx.log                     u:object_r:vendor_omx_prop:s0
+vendor.omx.                             u:object_r:vendor_omx_prop:s0
+vendor.mpp_buffer_debug                 u:object_r:vendor_omx_prop:s0
+vendor.mpp_mem_flag                     u:object_r:vendor_omx_prop:s0
+#np_rockchip_drmservice
+persist.vendor.sys.hid                  u:object_r:vendor_drm_prop:s0
+vendor.serialno                         u:object_r:vendor_drm_prop:s0
+vendor.secureboot                       u:object_r:vendor_drm_prop:s0
+vendor.hwc.device.primary               u:object_r:public_vendor_system_prop:s0
+vendor.rga.                             u:object_r:public_vendor_system_prop:s0
+vendor.hwc.compose_policy               u:object_r:public_vendor_system_prop:s0
+vendor.hwc.                             u:object_r:public_vendor_system_prop:s0
+vendor.3d_resolution.                   u:object_r:public_vendor_system_prop:s0
+vendor.dump                             u:object_r:public_vendor_system_prop:s0
+vendor.gralloc.                         u:object_r:public_vendor_system_prop:s0
+
+persist.vendor.overscan.                u:object_r:public_vendor_system_prop:s0
+persist.vendor.color.                   u:object_r:public_vendor_system_prop:s0
+vendor.display.timeline                 u:object_r:public_vendor_system_prop:s0
+persist.vendor.framebuffer.             u:object_r:public_vendor_system_prop:s0
+vendor.ghwc.                            u:object_r:public_vendor_system_prop:s0
+vendor.xxx.                             u:object_r:public_vendor_system_prop:s0
+persist.vendor.resolution.              u:object_r:public_vendor_system_prop:s0
+persist.vendor.hdcp1x.                  u:object_r:public_vendor_system_prop:s0
+persist.vendor.resolution_white.        u:object_r:public_vendor_system_prop:s0
+persist.vendor.brightness.              u:object_r:public_vendor_system_prop:s0
+persist.vendor.contrast.                u:object_r:public_vendor_system_prop:s0
+persist.vendor.saturation.              u:object_r:public_vendor_system_prop:s0
+persist.vendor.hue.                     u:object_r:public_vendor_system_prop:s0
+persist.vendor.video.cvrs               u:object_r:public_vendor_system_prop:s0
+persist.vendor.saveconfig               u:object_r:public_vendor_system_prop:s0
+vendor.hdmi_status.                     u:object_r:public_vendor_system_prop:s0
+vendor.hwc                              u:object_r:public_vendor_system_prop:s0
+vendor.wifi.                            u:object_r:vendor_hal_wifi_prop:s0
+
+ro.vendor.udisk.visible                 u:object_r:vendor_default_prop:s0
+
+#cec
+vendor.sys.hdmicec.                     u:object_r:vendor_cec_prop:s0
+
+#sensor
+vendor.sensor.debug.                    u:object_r:vendor_default_prop:s0
+
+# mali
+vendor.gmali.                           u:object_r:public_vendor_system_prop:s0
+
+# gralloc
+vendor.ggralloc.                        u:object_r:public_vendor_system_prop:s0
+#tee_supplicant_prop
+vendor.security.tee_supplicant       u:object_r:tee_supplicant_prop:s0
+
+# audio
+vendor.audio                            u:object_r:public_vendor_system_prop:s0
+
+#for vendor/build.prop
+vendor.all.modules.ready                   u:object_r:public_vendor_system_prop:s0
+#line 1 "system/sepolicy/reqd_mask/property_contexts"
+# empty property_contexts file - this file is used to generate an empty
+# non-platform property context for devices without any property_contexts
+# customizations.

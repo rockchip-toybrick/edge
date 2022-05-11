@@ -97,6 +97,8 @@ static const struct snd_pcm_hardware uac_pcm_hardware = {
 	.periods_min = MIN_PERIODS,
 };
 
+static struct class *audio_class;
+
 static void u_audio_set_fback_frequency(enum usb_device_speed speed,
 					struct usb_ep *out_ep,
 					unsigned long long freq,
@@ -520,6 +522,8 @@ int u_audio_set_capture_srate(struct g_audio *audio_dev, int srate)
 		if (params->c_srates[i] == srate) {
 			spin_lock_irqsave(&prm->lock, flags);
 			prm->srate = srate;
+			audio_dev->usb_state[SET_SAMPLE_RATE_OUT] = true;
+			schedule_work(&audio_dev->work);
 			spin_unlock_irqrestore(&prm->lock, flags);
 			return 0;
 		}
@@ -559,6 +563,8 @@ int u_audio_set_playback_srate(struct g_audio *audio_dev, int srate)
 		if (params->p_srates[i] == srate) {
 			spin_lock_irqsave(&prm->lock, flags);
 			prm->srate = srate;
+			audio_dev->usb_state[SET_SAMPLE_RATE_IN] = true;
+			schedule_work(&audio_dev->work);
 			spin_unlock_irqrestore(&prm->lock, flags);
 			return 0;
 		}
@@ -594,6 +600,19 @@ int u_audio_start_capture(struct g_audio *audio_dev)
 	struct uac_rtd_params *prm;
 	struct uac_params *params = &audio_dev->params;
 	int req_len, i;
+
+	/*
+	 * For better compatibility on some PC Hosts which
+	 * failed to send SetInterface(AltSet=0) to stop
+	 * capture last time. It needs to stop capture
+	 * prior to start capture next time.
+	 */
+	if (audio_dev->stream_state[STATE_OUT])
+		u_audio_stop_capture(audio_dev);
+
+	audio_dev->usb_state[SET_INTERFACE_OUT] = true;
+	audio_dev->stream_state[STATE_OUT] = true;
+	schedule_work(&audio_dev->work);
 
 	prm = &uac->c_prm;
 	dev_dbg(dev, "start capture with rate %d\n", prm->srate);
@@ -674,6 +693,10 @@ void u_audio_stop_capture(struct g_audio *audio_dev)
 	if (audio_dev->in_ep_fback)
 		free_ep_fback(&uac->c_prm, audio_dev->in_ep_fback);
 	free_ep(&uac->c_prm, audio_dev->out_ep);
+
+	audio_dev->usb_state[SET_INTERFACE_OUT] = true;
+	audio_dev->stream_state[STATE_OUT] = false;
+	schedule_work(&audio_dev->work);
 }
 EXPORT_SYMBOL_GPL(u_audio_stop_capture);
 
@@ -690,6 +713,19 @@ int u_audio_start_playback(struct g_audio *audio_dev)
 	const struct usb_endpoint_descriptor *ep_desc;
 	int req_len, i;
 	unsigned int p_pktsize;
+
+	/*
+	 * For better compatibility on some PC Hosts which
+	 * failed to send SetInterface(AltSet=0) to stop
+	 * playback last time. It needs to stop playback
+	 * prior to start playback next time.
+	 */
+	if (audio_dev->stream_state[STATE_IN])
+		u_audio_stop_playback(audio_dev);
+
+	audio_dev->usb_state[SET_INTERFACE_IN] = true;
+	audio_dev->stream_state[STATE_IN] = true;
+	schedule_work(&audio_dev->work);
 
 	prm = &uac->p_prm;
 	dev_dbg(dev, "start playback with rate %d\n", prm->srate);
@@ -754,6 +790,10 @@ void u_audio_stop_playback(struct g_audio *audio_dev)
 
 	set_active(&uac->p_prm, false);
 	free_ep(&uac->p_prm, audio_dev->in_ep);
+
+	audio_dev->usb_state[SET_INTERFACE_IN] = true;
+	audio_dev->stream_state[STATE_IN] = false;
+	schedule_work(&audio_dev->work);
 }
 EXPORT_SYMBOL_GPL(u_audio_stop_playback);
 
@@ -805,9 +845,16 @@ int u_audio_set_volume(struct g_audio *audio_dev, int playback, s16 val)
 	}
 	spin_unlock_irqrestore(&prm->lock, flags);
 
-	if (change)
+	if (change) {
+		if (playback)
+			audio_dev->usb_state[SET_VOLUME_IN] = true;
+		else
+			audio_dev->usb_state[SET_VOLUME_OUT] = true;
+		schedule_work(&audio_dev->work);
+
 		snd_ctl_notify(uac->card, SNDRV_CTL_EVENT_MASK_VALUE,
 				&prm->snd_kctl_volume->id);
+	}
 
 	return 0;
 }
@@ -854,9 +901,16 @@ int u_audio_set_mute(struct g_audio *audio_dev, int playback, int val)
 	}
 	spin_unlock_irqrestore(&prm->lock, flags);
 
-	if (change)
+	if (change) {
+		if (playback)
+			audio_dev->usb_state[SET_MUTE_IN] = true;
+		else
+			audio_dev->usb_state[SET_MUTE_OUT] = true;
+		schedule_work(&audio_dev->work);
+
 		snd_ctl_notify(uac->card, SNDRV_CTL_EVENT_MASK_VALUE,
 			       &prm->snd_kctl_mute->id);
+	}
 
 	return 0;
 }
@@ -1152,6 +1206,90 @@ static struct snd_kcontrol_new u_audio_controls[]  = {
 	},
 };
 
+static void g_audio_work(struct work_struct *data)
+{
+	struct g_audio *audio = container_of(data, struct g_audio, work);
+	struct usb_gadget *gadget = audio->gadget;
+	struct snd_uac_chip *uac = audio->uac;
+	struct uac_rtd_params *prm;
+	struct device *dev = &gadget->dev;
+	char *uac_event[4]  = { NULL, NULL, NULL, NULL };
+	char str[19];
+	int i;
+
+	for (i = 0; i < SET_USB_STATE_MAX; i++) {
+		if (!audio->usb_state[i])
+			continue;
+
+		switch (i) {
+		case SET_INTERFACE_OUT:
+			uac_event[0] = "USB_STATE=SET_INTERFACE";
+			uac_event[1] = "STREAM_DIRECTION=OUT";
+			uac_event[2] = audio->stream_state[STATE_OUT] ?
+				       "STREAM_STATE=ON" : "STREAM_STATE=OFF";
+			break;
+		case SET_INTERFACE_IN:
+			uac_event[0] = "USB_STATE=SET_INTERFACE";
+			uac_event[1] = "STREAM_DIRECTION=IN";
+			uac_event[2] = audio->stream_state[STATE_IN] ?
+				       "STREAM_STATE=ON" : "STREAM_STATE=OFF";
+			break;
+		case SET_SAMPLE_RATE_OUT:
+			uac_event[0] = "USB_STATE=SET_SAMPLE_RATE";
+			uac_event[1] = "STREAM_DIRECTION=OUT";
+			prm = &uac->c_prm;
+			snprintf(str, sizeof(str), "SAMPLE_RATE=%d",
+				 prm->srate);
+			uac_event[2] = str;
+			break;
+		case SET_SAMPLE_RATE_IN:
+			uac_event[0] = "USB_STATE=SET_SAMPLE_RATE";
+			uac_event[1] = "STREAM_DIRECTION=IN";
+			prm = &uac->p_prm;
+			snprintf(str, sizeof(str), "SAMPLE_RATE=%d",
+				 prm->srate);
+			uac_event[2] = str;
+			break;
+		case SET_MUTE_OUT:
+			uac_event[0] = "USB_STATE=SET_MUTE";
+			uac_event[1] = "STREAM_DIRECTION=OUT";
+			prm = &uac->c_prm;
+			snprintf(str, sizeof(str), "MUTE=%d", prm->mute);
+			uac_event[2] = str;
+			break;
+		case SET_MUTE_IN:
+			uac_event[0] = "USB_STATE=SET_MUTE";
+			uac_event[1] = "STREAM_DIRECTION=IN";
+			prm = &uac->p_prm;
+			snprintf(str, sizeof(str), "MUTE=%d", prm->mute);
+			uac_event[2] = str;
+			break;
+		case SET_VOLUME_OUT:
+			uac_event[0] = "USB_STATE=SET_VOLUME";
+			uac_event[1] = "STREAM_DIRECTION=OUT";
+			prm = &uac->c_prm;
+			snprintf(str, sizeof(str), "VOLUME=0x%hx", prm->volume);
+			uac_event[2] = str;
+			break;
+		case SET_VOLUME_IN:
+			uac_event[0] = "USB_STATE=SET_VOLUME";
+			uac_event[1] = "STREAM_DIRECTION=IN";
+			prm = &uac->p_prm;
+			snprintf(str, sizeof(str), "VOLUME=0x%hx", prm->volume);
+			uac_event[2] = str;
+			break;
+		default:
+			break;
+		}
+
+		audio->usb_state[i] = false;
+		kobject_uevent_env(&audio->device->kobj, KOBJ_CHANGE,
+				   uac_event);
+		dev_dbg(dev, "%s: sent uac uevent %s %s %s\n", __func__,
+			uac_event[0], uac_event[1], uac_event[2]);
+	}
+}
+
 int g_audio_setup(struct g_audio *g_audio, const char *pcm_name,
 					const char *card_name)
 {
@@ -1394,6 +1532,17 @@ int g_audio_setup(struct g_audio *g_audio, const char *pcm_name,
 				       NULL, 0, BUFF_SIZE_MAX);
 
 	err = snd_card_register(card);
+	if (err < 0)
+		goto snd_fail;
+
+	g_audio->device = device_create(audio_class, NULL, MKDEV(0, 0), NULL,
+					"%s", g_audio->uac->card->longname);
+	if (IS_ERR(g_audio->device)) {
+		err = PTR_ERR(g_audio->device);
+		goto snd_fail;
+	}
+
+	INIT_WORK(&g_audio->work, g_audio_work);
 
 	if (!err)
 		return 0;
@@ -1419,6 +1568,10 @@ void g_audio_cleanup(struct g_audio *g_audio)
 	if (!g_audio || !g_audio->uac)
 		return;
 
+	cancel_work_sync(&g_audio->work);
+	device_destroy(g_audio->device->class, g_audio->device->devt);
+	g_audio->device = NULL;
+
 	uac = g_audio->uac;
 	card = uac->card;
 	if (card)
@@ -1431,6 +1584,27 @@ void g_audio_cleanup(struct g_audio *g_audio)
 	kfree(uac);
 }
 EXPORT_SYMBOL_GPL(g_audio_cleanup);
+
+static int __init u_audio_init(void)
+{
+	int err = 0;
+
+	audio_class = class_create(THIS_MODULE, "u_audio");
+	if (IS_ERR(audio_class)) {
+		err = PTR_ERR(audio_class);
+		audio_class = NULL;
+	}
+
+	return err;
+}
+module_init(u_audio_init);
+
+static void __exit u_audio_exit(void)
+{
+	if (audio_class)
+		class_destroy(audio_class);
+}
+module_exit(u_audio_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("USB gadget \"ALSA sound card\" utilities");

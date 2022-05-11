@@ -1,0 +1,5 @@
+androidboot.console=ttyFIQ0
+androidboot.wificountrycode=CN
+androidboot.hardware=rk30board
+androidboot.boot_devices=fe310000.sdhci,fe330000.nandc
+androidboot.selinux=permissive

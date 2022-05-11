@@ -36,7 +36,7 @@
 #include "mpp_common.h"
 #include "mpp_iommu.h"
 
-#define MPP_WORK_TIMEOUT_DELAY		(200)
+#define MPP_WORK_TIMEOUT_DELAY		(500)
 #define MPP_WAIT_TIMEOUT_DELAY		(2000)
 
 /* Use 'v' as magic number */
@@ -375,9 +375,9 @@ static void mpp_session_deinit_default(struct mpp_session *session)
 		mpp_session_clear(mpp, session);
 
 		if (session->dma) {
-			mpp_iommu_down_read(mpp->iommu_info);
+			mpp_iommu_down_write(mpp->iommu_info);
 			mpp_dma_session_destroy(session->dma);
-			mpp_iommu_up_read(mpp->iommu_info);
+			mpp_iommu_up_write(mpp->iommu_info);
 			session->dma = NULL;
 		}
 	}
@@ -1675,9 +1675,9 @@ mpp_task_attach_fd(struct mpp_task *task, int fd)
 		mpp_iommu_down_read(mpp->iommu_info);
 		buffer = mpp_dma_import_fd(mpp->iommu_info, dma, fd);
 		mpp_iommu_up_read(mpp->iommu_info);
-		if (IS_ERR_OR_NULL(buffer)) {
+		if (IS_ERR(buffer)) {
 			mpp_err("can't import dma-buf %d\n", fd);
-			return ERR_PTR(-ENOMEM);
+			return ERR_CAST(buffer);
 		}
 
 		mem_region->hdl = buffer;
@@ -1888,9 +1888,9 @@ int mpp_task_finalize(struct mpp_session *session,
 				 &task->mem_region_list,
 				 reg_link) {
 		if (!mem_region->is_dup) {
-			mpp_iommu_down_read(mpp->iommu_info);
+			mpp_iommu_down_write(mpp->iommu_info);
 			mpp_dma_release(session->dma, mem_region->hdl);
-			mpp_iommu_up_read(mpp->iommu_info);
+			mpp_iommu_up_write(mpp->iommu_info);
 		}
 		list_del_init(&mem_region->reg_link);
 	}

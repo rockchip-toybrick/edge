@@ -259,6 +259,7 @@ struct dw_dp {
 	struct regmap *grf;
 	struct completion complete;
 	int irq;
+	int hpd_irq;
 	int id;
 	struct work_struct hpd_work;
 	struct gpio_desc *hpd_gpio;
@@ -1923,6 +1924,9 @@ static int dw_dp_bridge_mode_valid(struct drm_bridge *bridge,
 	if (dp->split_mode)
 		drm_mode_convert_to_origin_mode(&m);
 
+	if (m.hsync_end - m.hsync_start < 32)
+		return MODE_HSYNC_NARROW;
+
 	if (!dw_dp_bandwidth_ok(dp, &m, min_bpp, link->lanes, link->rate))
 		return MODE_CLOCK_HIGH;
 
@@ -2112,6 +2116,26 @@ static void dw_dp_bridge_atomic_enable(struct drm_bridge *bridge,
 	}
 }
 
+static void dw_dp_reset(struct dw_dp *dp)
+{
+	int val;
+
+	disable_irq(dp->irq);
+	regmap_update_bits(dp->regmap, DPTX_SOFT_RESET_CTRL, CONTROLLER_RESET,
+			   FIELD_PREP(CONTROLLER_RESET, 1));
+	udelay(10);
+	regmap_update_bits(dp->regmap, DPTX_SOFT_RESET_CTRL, CONTROLLER_RESET,
+			   FIELD_PREP(CONTROLLER_RESET, 0));
+
+	dw_dp_init(dp);
+	if (!dp->hpd_gpio) {
+		regmap_read_poll_timeout(dp->regmap, DPTX_HPD_STATUS, val,
+					 FIELD_GET(HPD_HOT_PLUG, val), 200, 200000);
+		regmap_write(dp->regmap, DPTX_HPD_STATUS, HPD_HOT_PLUG);
+	}
+	enable_irq(dp->irq);
+}
+
 static void dw_dp_bridge_atomic_disable(struct drm_bridge *bridge,
 					struct drm_bridge_state *old_bridge_state)
 {
@@ -2120,6 +2144,7 @@ static void dw_dp_bridge_atomic_disable(struct drm_bridge *bridge,
 	dw_dp_video_disable(dp);
 	dw_dp_link_disable(dp);
 	bitmap_zero(dp->sdp_reg_bank, SDP_REG_BANK_SIZE);
+	dw_dp_reset(dp);
 }
 
 static enum drm_connector_status dw_dp_detect_dpcd(struct dw_dp *dp)
@@ -2672,6 +2697,8 @@ static int dw_dp_bind(struct device *dev, struct device *master, void *data)
 	pm_runtime_get_sync(dp->dev);
 
 	enable_irq(dp->irq);
+	if (dp->hpd_gpio)
+		enable_irq(dp->hpd_irq);
 
 	return 0;
 }
@@ -2680,6 +2707,8 @@ static void dw_dp_unbind(struct device *dev, struct device *master, void *data)
 {
 	struct dw_dp *dp = dev_get_drvdata(dev);
 
+	if (dp->hpd_gpio)
+		disable_irq(dp->hpd_irq);
 	disable_irq(dp->irq);
 
 	pm_runtime_put(dp->dev);
@@ -2791,9 +2820,13 @@ static int dw_dp_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, PTR_ERR(dp->hpd_gpio),
 				     "failed to get hpd GPIO\n");
 	if (dp->hpd_gpio) {
-		int hpd_irq = gpiod_to_irq(dp->hpd_gpio);
+		dp->hpd_irq = gpiod_to_irq(dp->hpd_gpio);
+		if (dp->hpd_irq < 0)
+			return dev_err_probe(dev, dp->hpd_irq,
+					     "failed to get hpd irq\n");
 
-		ret = devm_request_threaded_irq(dev, hpd_irq, NULL,
+		irq_set_status_flags(dp->hpd_irq, IRQ_NOAUTOEN);
+		ret = devm_request_threaded_irq(dev, dp->hpd_irq, NULL,
 						dw_dp_hpd_irq_handler,
 						IRQF_TRIGGER_RISING |
 						IRQF_TRIGGER_FALLING |

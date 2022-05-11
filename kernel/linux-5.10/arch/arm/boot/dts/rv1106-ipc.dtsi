@@ -8,6 +8,28 @@
 		bootargs = "earlycon=uart8250,mmio32,0xff4c0000 console=ttyFIQ0 rootwait snd_soc_core.prealloc_buffer_size_kbytes=16";
 	};
 
+	acodec_sound: acodec-sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "rv-acodec";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,cpu {
+			sound-dai = <&i2s0_8ch>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&acodec>;
+		};
+	};
+
+	cam_ircut0: cam_ircut {
+		status = "okay";
+		compatible = "rockchip,ircut";
+		ircut-open-gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+		ircut-close-gpios  = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+	};
+
 	vcc_1v8: vcc-1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_1v8";
@@ -25,6 +47,12 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 	};
+};
+
+&acodec {
+	#sound-dai-cells = <0>;
+	pa-ctl-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>;
+	status = "okay";
 };
 
 &csi2_dphy_hw {
@@ -111,6 +139,7 @@
 		pwdn-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipi_refclk_out0>;
+		lens-focus = <&cam_ircut0>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
 		rockchip,camera-module-name = "CMK-OT2117-PC1";
@@ -143,6 +172,11 @@
 			};
 		};
 	};
+};
+
+&i2s0_8ch {
+	#sound-dai-cells = <0>;
+	status = "okay";
 };
 
 &mipi0_csi2 {
@@ -216,6 +250,11 @@
 			remote-endpoint = <&mipi_lvds_sditf>;
 		};
 	};
+};
+
+&saradc {
+	status = "okay";
+	vref-supply = <&vcc_1v8>;
 };
 
 &sfc {

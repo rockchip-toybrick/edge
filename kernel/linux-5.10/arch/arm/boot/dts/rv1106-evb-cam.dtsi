@@ -3,6 +3,16 @@
  * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
  *
  */
+/ {
+	cam_ircut0: cam_ircut {
+		status = "okay";
+		compatible = "rockchip,ircut";
+		ircut-open-gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;
+		ircut-close-gpios  = <&gpio1 RK_PA3 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+	};
+};
 
 &csi2_dphy_hw {
 	status = "okay";
@@ -38,6 +48,11 @@
 			csi_dphy_input3: endpoint@3 {
 				reg = <3>;
 				remote-endpoint = <&os04a10_out>;
+				data-lanes = <1 2>;
+			};
+			csi_dphy_input4: endpoint@4 {
+				reg = <4>;
+				remote-endpoint = <&jx_k17_out>;
 				data-lanes = <1 2>;
 			};
 		};
@@ -93,7 +108,7 @@
 		pwdn-gpios = <&gpio3 RK_PD2 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipi_refclk_out0>;
-		rockchip,camera-module-index = <1>;
+		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
 		rockchip,camera-module-name = "CMK-OT2119-PC1";
 		rockchip,camera-module-lens-name = "30IRC-F16";
@@ -115,10 +130,11 @@
 		pwdn-gpios = <&gpio3 RK_PD2 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipi_refclk_out0>;
-		rockchip,camera-module-index = <2>;
+		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
 		rockchip,camera-module-name = "CMK-OT2117-PC1";
 		rockchip,camera-module-lens-name = "30IRC-F16";
+		lens-focus = <&cam_ircut0>;
 		port {
 			sc4336_out: endpoint {
 				remote-endpoint = <&csi_dphy_input2>;
@@ -137,13 +153,35 @@
 		pwdn-gpios = <&gpio3 RK_PD2 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&mipi_refclk_out0>;
-		rockchip,camera-module-index = <3>;
+		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
 		rockchip,camera-module-name = "408b170b9d8a";
 		rockchip,camera-module-lens-name = "40IRC-F10";
 		port {
 			os04a10_out: endpoint {
 				remote-endpoint = <&csi_dphy_input3>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	jx_k17: jx_k17@40 {
+		compatible = "soi,jx_k17";
+		status = "okay";
+		reg = <0x40>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xvclk";
+		reset-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pwdn-gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "T3801-A";
+		rockchip,camera-module-lens-name = "22IRC-5M-F18";
+		port {
+			jx_k17_out: endpoint {
+				remote-endpoint = <&csi_dphy_input4>;
 				data-lanes = <1 2>;
 			};
 		};

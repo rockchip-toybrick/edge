@@ -1,0 +1,23 @@
+目录结构:
+    kernel mkcombinedroot
+
+在当前目录下添加modules.ko驱动的名字，执行打包脚本会自动在kernel/drivers/下进行搜索并拷贝，生成对应的文件。
+vendor -> res/vendor_modules.load
+ramdisk -> res/ramdisk_modules.load
+
+在kernel同级目录clone此仓库后，编译内核后，目录下执行:
+默认使用arm64编译，如果要用arm，到脚本开头的变量位置修改.
+- 打包boot.img:
+```shell
+./mkvendor_boot.sh [your_dts_name] (不加参数默认使用: rk3399-evb-ind-lpddr4-android-avb)
+```
+
+- 打包vendor.img
+```
+./mkvendor.sh
+```
+
+- 打包boot.img + vendor.img
+```
+./pack.sh
+```

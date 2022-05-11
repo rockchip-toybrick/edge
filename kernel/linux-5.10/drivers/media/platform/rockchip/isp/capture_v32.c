@@ -992,6 +992,11 @@ static int mi_frame_start(struct rkisp_stream *stream, u32 mis)
 {
 	unsigned long lock_flags = 0;
 
+	if (mis && stream->streaming) {
+		rkisp_rockit_buf_done(stream, ROCKIT_DVBM_START);
+		rkisp_rockit_ctrl_fps(stream);
+	}
+
 	/* readback start to update stream buf if null */
 	spin_lock_irqsave(&stream->vbq_lock, lock_flags);
 	if (stream->streaming) {
@@ -1026,14 +1031,11 @@ static int mi_frame_start(struct rkisp_stream *stream, u32 mis)
  */
 static int mi_frame_end(struct rkisp_stream *stream)
 {
-	struct rkisp_device *dev = stream->ispdev;
 	struct capture_fmt *isp_fmt = &stream->out_isp_fmt;
 	unsigned long lock_flags = 0;
-	u64 ns = 0;
-	u32 i, seq;
+	u32 i;
 
 	set_mirror_flip(stream);
-	rkisp_dmarx_get_frame(dev, &seq, NULL, &ns, true);
 
 	if (stream->curr_buf) {
 		struct vb2_buffer *vb2_buf = &stream->curr_buf->vb.vb2_buf;
@@ -1044,21 +1046,10 @@ static int mi_frame_end(struct rkisp_stream *stream)
 			vb2_set_plane_payload(vb2_buf, i, payload_size);
 		}
 
-		stream->curr_buf->vb.sequence = seq;
-		if (!ns)
-			ns = ktime_get_ns();
-		vb2_buf->timestamp = ns;
-
-		ns = ktime_get_ns();
-		stream->dbg.interval = ns - stream->dbg.timestamp;
-		stream->dbg.timestamp = ns;
-		stream->dbg.id = seq;
-		stream->dbg.delay = ns - dev->isp_sdev.frm_timestamp;
-
 		if (vb2_buf->memory)
 			vb2_buffer_done(vb2_buf, VB2_BUF_STATE_DONE);
 		else
-			rkisp_rockit_buf_done(stream);
+			rkisp_rockit_buf_done(stream, ROCKIT_DVBM_END);
 	}
 
 	spin_lock_irqsave(&stream->vbq_lock, lock_flags);
@@ -1370,9 +1361,9 @@ static int rkisp_stream_start(struct rkisp_stream *stream)
 	if (stream->id == RKISP_STREAM_MPDS || stream->id == RKISP_STREAM_BPDS)
 		goto end;
 
-	async = (stream->id == RKISP_STREAM_MP) ?
-		dev->cap_dev.stream[RKISP_STREAM_SP].streaming :
-		dev->cap_dev.stream[RKISP_STREAM_MP].streaming;
+	async = (dev->cap_dev.stream[RKISP_STREAM_MP].streaming ||
+		 dev->cap_dev.stream[RKISP_STREAM_SP].streaming ||
+		 dev->cap_dev.stream[RKISP_STREAM_BP].streaming);
 
 	/*
 	 * can't be async now, otherwise the latter started stream fails to
@@ -1680,7 +1671,8 @@ void rkisp_unregister_stream_v32(struct rkisp_device *dev)
 void rkisp_mi_v32_isr(u32 mis_val, struct rkisp_device *dev)
 {
 	struct rkisp_stream *stream;
-	unsigned int i;
+	unsigned int i, seq;
+	u64 ns = 0;
 
 	v4l2_dbg(3, rkisp_debug, &dev->v4l2_dev,
 		 "mi isr:0x%x\n", mis_val);
@@ -1695,6 +1687,19 @@ void rkisp_mi_v32_isr(u32 mis_val, struct rkisp_device *dev)
 
 		if (i == RKISP_STREAM_MP)
 			rkisp_dvbm_event(dev, CIF_MI_MP_FRAME);
+
+		rkisp_dmarx_get_frame(dev, &seq, NULL, &ns, true);
+		if (!ns)
+			ns = ktime_get_ns();
+		if (stream->curr_buf) {
+			stream->curr_buf->vb.sequence = seq;
+			stream->curr_buf->vb.vb2_buf.timestamp = ns;
+		}
+		ns = ktime_get_ns();
+		stream->dbg.interval = ns - stream->dbg.timestamp;
+		stream->dbg.delay = ns - dev->isp_sdev.frm_timestamp;
+		stream->dbg.timestamp = ns;
+		stream->dbg.id = seq;
 
 		if (stream->stopping) {
 			/*
@@ -1716,7 +1721,8 @@ void rkisp_mi_v32_isr(u32 mis_val, struct rkisp_device *dev)
 				wake_up(&stream->done);
 			}
 		} else {
-			mi_frame_end(stream);
+			if (stream->id != RKISP_STREAM_MP || !dev->cap_dev.wrap_line)
+				mi_frame_end(stream);
 		}
 	}
 
@@ -1752,4 +1758,6 @@ void rkisp_mipi_v32_isr(unsigned int phy, unsigned int packet,
 {
 	if (state & GENMASK(19, 17))
 		v4l2_warn(&dev->v4l2_dev, "RD_SIZE_ERR:0x%08x\n", state);
+	if (state & ISP21_MIPI_DROP_FRM)
+		v4l2_warn(&dev->v4l2_dev, "MIPI drop frame\n");
 }

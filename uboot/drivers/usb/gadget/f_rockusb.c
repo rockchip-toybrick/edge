@@ -464,6 +464,16 @@ static int rkusb_do_vs_write(struct fsg_common *common)
 #else
 			if (!type) {
 #endif
+				if (vhead->id == HDCP_14_HDMI_ID ||
+				    vhead->id == HDCP_14_HDMIRX_ID ||
+				    vhead->id == HDCP_14_DP_ID) {
+					rc = vendor_handle_hdcp(vhead);
+					if (rc < 0) {
+						curlun->sense_data = SS_WRITE_ERROR;
+						return -EIO;
+					}
+				}
+
 				/* Vendor storage */
 				rc = vendor_storage_write(vhead->id,
 							  (char __user *)data,

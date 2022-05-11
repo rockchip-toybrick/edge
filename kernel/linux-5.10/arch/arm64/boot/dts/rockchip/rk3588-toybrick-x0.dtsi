@@ -576,6 +576,25 @@
 	status = "okay";
 };
 
+&rockchip_suspend {
+       rockchip,sleep-mode-config = <
+               (0
+               | RKPM_SLP_ARMOFF_DDRPD
+               | RKPM_SLP_PMU_PMUALIVE_32K
+               | RKPM_SLP_PMU_DIS_OSC
+               | RKPM_SLP_32K_EXT
+               | RKPM_SLP_PMU_DBG
+               )
+       >;
+};
+
+&vdd_log_s0 {
+	regulator-state-mem {
+		regulator-on-in-suspend;
+		regulator-suspend-microvolt = <750000>;
+	};
+};
+
 &pinctrl {
 
 	headphone {
@@ -725,15 +744,4 @@
 
 &usbhost_dwc3_0 {
 	status = "disabled";
-};
-
-&nldo5_s0 {
-	regulator-always-on;
-	regulator-boot-on;
-	regulator-min-microvolt = <750000>;
-	regulator-max-microvolt = <750000>;
-	rregulator-name = "nldo5_s0";
-	regulator-state-mem {
-		regulator-off-in-suspend;
-	};
 };

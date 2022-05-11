@@ -5,6 +5,22 @@
 
 #include <dt-bindings/display/media-bus-format.h>
 
+/ {
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			inactive;
+			reusable;
+			size = <0x1000000>;
+			linux,cma-default;
+		};
+	};
+};
+
 &display_subsystem {
 	status = "okay";
 };
@@ -76,6 +92,17 @@
 
 &rgb_in_vop {
 	status = "okay";
+};
+
+/*
+ * The pins of sdmmc1 and lcd are multiplexed
+ */
+&sdio {
+	status = "disabled";
+};
+
+&sdio_pwrseq {
+	status = "disabled";
 };
 
 &vop {

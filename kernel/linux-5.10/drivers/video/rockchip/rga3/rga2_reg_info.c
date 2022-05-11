@@ -2056,16 +2056,16 @@ static void rga_cmd_to_rga2_cmd(struct rga_scheduler_t *scheduler,
 	}
 }
 
-void rga2_soft_reset(struct rga_scheduler_t *rga_scheduler)
+void rga2_soft_reset(struct rga_scheduler_t *scheduler)
 {
 	u32 i;
 	u32 reg;
 
-	rga_write((1 << 3) | (1 << 4) | (1 << 6), RGA2_SYS_CTRL, rga_scheduler);
+	rga_write((1 << 3) | (1 << 4) | (1 << 6), RGA2_SYS_CTRL, scheduler);
 
 	for (i = 0; i < RGA_RESET_TIMEOUT; i++) {
 		/* RGA_SYS_CTRL */
-		reg = rga_read(RGA2_SYS_CTRL, rga_scheduler) & 1;
+		reg = rga_read(RGA2_SYS_CTRL, scheduler) & 1;
 
 		if (reg == 0)
 			break;
@@ -2213,10 +2213,9 @@ int rga2_init_reg(struct rga_job *job)
 {
 	struct rga2_req req;
 	int ret = 0;
-	struct rga2_mmu_info_t *tbuf = &rga2_mmu_info;
 	struct rga_scheduler_t *scheduler = NULL;
 
-	scheduler = rga_job_get_scheduler(job->core);
+	scheduler = rga_job_get_scheduler(job);
 	if (scheduler == NULL) {
 		pr_err("failed to get scheduler, %s(%d)\n", __func__,
 				__LINE__);
@@ -2245,27 +2244,24 @@ int rga2_init_reg(struct rga_job *job)
 		print_debug_info(&req);
 
 	/* RGA2 mmu set */
-	if ((req.mmu_info.src0_mmu_flag & 1) || (req.mmu_info.src1_mmu_flag & 1)
-		|| (req.mmu_info.dst_mmu_flag & 1)
-		|| (req.mmu_info.els_mmu_flag & 1)) {
-		ret = rga2_set_mmu_reg_info(&job->vir_page_table, &req, job);
+	if ((req.mmu_info.src0_mmu_flag & 1) || (req.mmu_info.src1_mmu_flag & 1) ||
+	    (req.mmu_info.dst_mmu_flag & 1) || (req.mmu_info.els_mmu_flag & 1)) {
+		if (scheduler->data->mmu != RGA_MMU) {
+			pr_err("core[%d] has no MMU, please use physically contiguous memory.\n",
+			       scheduler->core);
+			pr_err("mmu_flag[src, src1, dst, els] = [0x%x, 0x%x, 0x%x, 0x%x]\n",
+			       req.mmu_info.src0_mmu_flag, req.mmu_info.src1_mmu_flag,
+			       req.mmu_info.dst_mmu_flag, req.mmu_info.els_mmu_flag);
+			return -EINVAL;
+		}
+
+		ret = rga2_set_mmu_base(job, &req);
 		if (ret < 0) {
 			pr_err("%s, [%d] set mmu info error\n", __func__,
 				 __LINE__);
 			return -EFAULT;
 		}
 	}
-
-	mutex_lock(&rga_drvdata->lock);
-
-	if (job->vir_page_table.MMU_len && tbuf) {
-		if (tbuf->back + job->vir_page_table.MMU_len > 2 * tbuf->size)
-			tbuf->back = job->vir_page_table.MMU_len + tbuf->size;
-		else
-			tbuf->back += job->vir_page_table.MMU_len;
-	}
-
-	mutex_unlock(&rga_drvdata->lock);
 
 	if (rga2_gen_reg_info((uint8_t *)job->cmd_reg, &req) == -1) {
 		pr_err("gen reg info error\n");

@@ -22,6 +22,7 @@ static struct rk_crypto_algt *crypto_v2_algs[] = {
 	&rk_v2_cfb_sm4_alg,		/* cfb(sm4) */
 	&rk_v2_ofb_sm4_alg,		/* ofb(sm4) */
 	&rk_v2_ctr_sm4_alg,		/* ctr(sm4) */
+	&rk_v2_gcm_sm4_alg,		/* gcm(sm4) */
 
 	&rk_v2_ecb_aes_alg,		/* ecb(aes) */
 	&rk_v2_cbc_aes_alg,		/* cbc(aes) */
@@ -29,6 +30,7 @@ static struct rk_crypto_algt *crypto_v2_algs[] = {
 	&rk_v2_cfb_aes_alg,		/* cfb(aes) */
 	&rk_v2_ofb_aes_alg,		/* ofb(aes) */
 	&rk_v2_ctr_aes_alg,		/* ctr(aes) */
+	&rk_v2_gcm_aes_alg,		/* gcm(aes) */
 
 	&rk_v2_ecb_des_alg,		/* ecb(des) */
 	&rk_v2_cbc_des_alg,		/* cbc(des) */
@@ -59,21 +61,15 @@ static struct rk_crypto_algt *crypto_v2_algs[] = {
 
 int rk_hw_crypto_v2_init(struct device *dev, void *hw_info)
 {
-	int err = 0;
 	struct rk_hw_crypto_v2_info *info =
 		(struct rk_hw_crypto_v2_info *)hw_info;
 
-	info->desc = dma_alloc_coherent(dev,
-					sizeof(struct crypto_lli_desc),
-					&info->desc_dma,
-					GFP_KERNEL);
-	if (!info->desc) {
-		err = -ENOMEM;
-		goto end;
-	}
+	if (!dev || !hw_info)
+		return -EINVAL;
 
-end:
-	return err;
+	memset(info, 0x00, sizeof(*info));
+
+	return rk_crypto_hw_desc_alloc(dev, &info->hw_desc);
 }
 
 void rk_hw_crypto_v2_deinit(struct device *dev, void *hw_info)
@@ -81,9 +77,10 @@ void rk_hw_crypto_v2_deinit(struct device *dev, void *hw_info)
 	struct rk_hw_crypto_v2_info *info =
 		(struct rk_hw_crypto_v2_info *)hw_info;
 
-	if (info && info->desc)
-		dma_free_coherent(dev, sizeof(struct crypto_lli_desc),
-				  info->desc, info->desc_dma);
+	if (!dev || !hw_info)
+		return;
+
+	rk_crypto_hw_desc_free(&info->hw_desc);
 }
 
 const char * const *rk_hw_crypto_v2_get_rsts(uint32_t *num)

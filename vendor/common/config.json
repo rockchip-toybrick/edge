@@ -2,14 +2,89 @@
   "board": "not set",
   "chip": "not set",
   "arch": "not set",
+  "bootmode": "extlinux",
+   "part-fit": {
+    "uboot": [
+      "0x00002000",
+      "0x00004000"
+    ],
+    "misc": [
+      "0x00006000",
+      "0x00002000"
+    ],
+    "boot": [
+      "0x00008000",
+      "0x00020000"
+    ],
+    "recovery": [
+      "0x00028000",
+      "0x00040000"
+    ],
+    "backup": [
+      "0x00068000",
+      "0x00010000"
+    ],
+    "rootfs": [
+      "0x00078000",
+      "0x01c00000"
+    ],
+    "oem": [
+      "0x01c78000",
+      "0x00040000"
+    ],
+    "userdata:grow": [
+      "0x01cb8000",
+      "-"
+    ]
+  },
+  "part-extlinux": {
+    "uboot": [
+      "0x00002000",
+      "0x00004000"
+    ],
+    "misc": [
+      "0x00006000",
+      "0x00002000"
+    ],
+    "boot_linux:bootable": [
+      "0x00008000",
+      "0x00020000"
+    ],
+    "recovery": [
+      "0x00028000",
+      "0x00040000"
+    ],
+    "resource": [
+      "0x00068000",
+      "0x00010000"
+    ],
+    "rootfs:grow": [
+      "0x00078000",
+      "-"
+    ]
+  },
+  "part-flash": {
+    "vnvm": [
+      "0x00000500",
+      "0x00000500"
+    ],
+    "uboot": [
+      "0x00000A00",
+      "0x00001000"
+    ],
+    "boot": [
+      "0x00001A00",
+      "-"
+    ]
+  },
   "uboot": {
-    "config": "not set"
+    "config": "rk3588-edge"
   },
   "kernel": {
-    "config": "rk3588_edge.config rk3588_toybrick.config",
-    "linuxdtb": "not set",
-    "androiddtb": "not set",
-    "initrd": true,
+    "version": "5.10",
+    "config": "rk3588_edge.config",
+    "size": "64",
+    "dtbname": "not set",
     "docker": false,
     "debug": "not set"
   }

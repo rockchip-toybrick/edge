@@ -1,0 +1,7 @@
+on fs
+    write /sys/block/mmcblk0/bdi/read_ahead_kb 2048
+#    mount ext4 /dev/block/platform/emmc/by-name/system /system wait ro noatime nodiratime
+#    mount ext4 /dev/block/platform/emmc/by-name/metadata /metadata wait noatime nodiratime nosuid nodev noauto_da_alloc,discard
+#    mount ext4 /dev/block/platform/emmc/by-name/userdata /data wait noatime nodiratime nosuid nodev noauto_da_alloc,discard
+#    mount ext4 /dev/block/platform/emmc/by-name/cache /cache wait noatime nodiratime nosuid nodev noauto_da_alloc,discard
+    mount_all /vendor/etc/fstab.rk30board

@@ -389,6 +389,10 @@ function fit_gen_boot_itb()
 				echo "ERROR: No arg \"--rollback-index-boot <n>\""
 				exit 1
 			fi
+			if ! grep -q '^CONFIG_OPTEE_CLIENT=y' .config ; then
+				echo "ERROR: Don't support \"--rollback-index-boot <n>\""
+				exit 1
+			fi
 		fi
 
 		# fixup
@@ -396,7 +400,7 @@ function fit_gen_boot_itb()
 		FDT_ADDR_R=`awk /fdt_addr_r/         ${COMMON_FILE} | awk -F '=' '{ print $2 }' | awk -F '\\' '{ print $1 }'`
 		KERNEL_ADDR_R=`awk /kernel_addr_r/   ${COMMON_FILE} | awk -F '=' '{ print $2 }' | awk -F '\\' '{ print $1 }'`
 		RMADISK_ADDR_R=`awk /ramdisk_addr_r/ ${COMMON_FILE} | awk -F '=' '{ print $2 }' | awk -F '\\' '{ print $1 }'`
-		# sed -i "s/${FDT_ADDR_PLACEHOLDER}/${FDT_ADDR_R}/g"         ${ITS_BOOT}
+		sed -i "s/${FDT_ADDR_PLACEHOLDER}/${FDT_ADDR_R}/g"         ${ITS_BOOT}
 		sed -i "s/${KERNEL_ADDR_PLACEHOLDER}/${KERNEL_ADDR_R}/g"   ${ITS_BOOT}
 		sed -i "s/${RAMDISK_ADDR_PLACEHOLDER}/${RMADISK_ADDR_R}/g" ${ITS_BOOT}
 		if grep -q '^CONFIG_ARM64=y' .config ; then
@@ -469,6 +473,10 @@ function fit_gen_recovery_itb()
 			ARG_ROLLBACK_PROTECT="y"
 			if [ -z ${ARG_ROLLBACK_IDX_RECOVERY} ]; then
 				echo "ERROR: No arg \"--rollback-index-recovery <n>\""
+				exit 1
+			fi
+			if ! grep -q '^CONFIG_OPTEE_CLIENT=y' .config ; then
+				echo "ERROR: Don't support \"--rollback-index-recovery <n>\""
 				exit 1
 			fi
 		fi

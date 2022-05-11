@@ -8,7 +8,7 @@
 	.eabi_attribute 30, 4
 	.eabi_attribute 34, 0
 	.eabi_attribute 18, 2
-	.file	"spl_fit_tb_arm_v7.c"
+	.file	"spl_fit_tb_arm32.c"
 	.text
 .Ltext0:
 	.cfi_sections	.debug_frame
@@ -20,8 +20,8 @@
 	.fpu softvfp
 	.type	spl_fit_get_image_name.isra.0, %function
 spl_fit_get_image_name.isra.0:
-.LFB227:
-	.file 1 "common/spl/spl_fit_tb_arm_v7.c"
+.LFB233:
+	.file 1 "common/spl/spl_fit_tb_arm32.c"
 	.loc 1 60 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 8
@@ -165,7 +165,7 @@ spl_fit_get_image_name.isra.0:
 	.word	.LC5
 	.word	.LC6
 	.cfi_endproc
-.LFE227:
+.LFE233:
 	.size	spl_fit_get_image_name.isra.0, .-spl_fit_get_image_name.isra.0
 	.section	.text.spl_fit_get_image_node,"ax",%progbits
 	.align	1
@@ -175,7 +175,7 @@ spl_fit_get_image_name.isra.0:
 	.fpu softvfp
 	.type	spl_fit_get_image_node, %function
 spl_fit_get_image_node:
-.LFB213:
+.LFB219:
 	.loc 1 116 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 8
@@ -222,7 +222,7 @@ spl_fit_get_image_node:
 	@ sp needed
 	pop	{r4, r5, pc}
 	.cfi_endproc
-.LFE213:
+.LFE219:
 	.size	spl_fit_get_image_node, .-spl_fit_get_image_node
 	.global	__aeabi_idivmod
 	.global	__aeabi_idiv
@@ -234,7 +234,7 @@ spl_fit_get_image_node:
 	.fpu softvfp
 	.type	spl_load_fit_image, %function
 spl_load_fit_image:
-.LFB217:
+.LFB223:
 	.loc 1 194 0
 	.cfi_startproc
 	@ args = 8, pretend = 0, frame = 48
@@ -676,7 +676,7 @@ spl_load_fit_image:
 	.word	.LC11
 	.word	.LC8
 	.cfi_endproc
-.LFE217:
+.LFE223:
 	.size	spl_load_fit_image, .-spl_load_fit_image
 	.section	.text.spl_fit_append_fdt,"ax",%progbits
 	.align	1
@@ -686,7 +686,7 @@ spl_load_fit_image:
 	.fpu softvfp
 	.type	spl_fit_append_fdt, %function
 spl_fit_append_fdt:
-.LFB218:
+.LFB224:
 	.loc 1 339 0
 	.cfi_startproc
 	@ args = 8, pretend = 0, frame = 48
@@ -764,7 +764,7 @@ spl_fit_append_fdt:
 .L76:
 	.word	.LC0
 	.cfi_endproc
-.LFE218:
+.LFE224:
 	.size	spl_fit_append_fdt, .-spl_fit_append_fdt
 	.section	.text.spl_fit_load_blob,"ax",%progbits
 	.align	1
@@ -774,7 +774,7 @@ spl_fit_append_fdt:
 	.fpu softvfp
 	.type	spl_fit_load_blob, %function
 spl_fit_load_blob:
-.LFB222:
+.LFB228:
 	.loc 1 411 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -849,7 +849,7 @@ spl_fit_load_blob:
 .L81:
 	.word	6291393
 	.cfi_endproc
-.LFE222:
+.LFE228:
 	.size	spl_fit_load_blob, .-spl_fit_load_blob
 	.section	.text.fit_config_verify,"ax",%progbits
 	.align	1
@@ -860,7 +860,7 @@ spl_fit_load_blob:
 	.fpu softvfp
 	.type	fit_config_verify, %function
 fit_config_verify:
-.LFB207:
+.LFB213:
 	.loc 1 24 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -872,7 +872,7 @@ fit_config_verify:
 .LVL119:
 	bx	lr
 	.cfi_endproc
-.LFE207:
+.LFE213:
 	.size	fit_config_verify, .-fit_config_verify
 	.section	.text.mtd_part_parse,"ax",%progbits
 	.align	1
@@ -883,7 +883,7 @@ fit_config_verify:
 	.fpu softvfp
 	.type	mtd_part_parse, %function
 mtd_part_parse:
-.LFB208:
+.LFB214:
 	.loc 1 29 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -895,7 +895,7 @@ mtd_part_parse:
 .LVL121:
 	bx	lr
 	.cfi_endproc
-.LFE208:
+.LFE214:
 	.size	mtd_part_parse, .-mtd_part_parse
 	.section	.text.spl_get_current_slot,"ax",%progbits
 	.align	1
@@ -906,7 +906,7 @@ mtd_part_parse:
 	.fpu softvfp
 	.type	spl_get_current_slot, %function
 spl_get_current_slot:
-.LFB209:
+.LFB215:
 	.loc 1 34 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -918,7 +918,7 @@ spl_get_current_slot:
 .LVL123:
 	bx	lr
 	.cfi_endproc
-.LFE209:
+.LFE215:
 	.size	spl_get_current_slot, .-spl_get_current_slot
 	.section	.text.fdt_bootargs_append_ab,"ax",%progbits
 	.align	1
@@ -929,7 +929,7 @@ spl_get_current_slot:
 	.fpu softvfp
 	.type	fdt_bootargs_append_ab, %function
 fdt_bootargs_append_ab:
-.LFB229:
+.LFB235:
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
@@ -937,7 +937,7 @@ fdt_bootargs_append_ab:
 	mov	r0, #-1
 	bx	lr
 	.cfi_endproc
-.LFE229:
+.LFE235:
 	.size	fdt_bootargs_append_ab, .-fdt_bootargs_append_ab
 	.section	.text.fdt_bootargs_append,"ax",%progbits
 	.align	1
@@ -948,7 +948,7 @@ fdt_bootargs_append_ab:
 	.fpu softvfp
 	.type	fdt_bootargs_append, %function
 fdt_bootargs_append:
-.LFB211:
+.LFB217:
 	.loc 1 44 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -960,7 +960,7 @@ fdt_bootargs_append:
 .LVL125:
 	bx	lr
 	.cfi_endproc
-.LFE211:
+.LFE217:
 	.size	fdt_bootargs_append, .-fdt_bootargs_append
 	.section	.text.spl_fit_standalone_release,"ax",%progbits
 	.align	1
@@ -971,7 +971,7 @@ fdt_bootargs_append:
 	.fpu softvfp
 	.type	spl_fit_standalone_release, %function
 spl_fit_standalone_release:
-.LFB221:
+.LFB227:
 	.loc 1 404 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -983,7 +983,7 @@ spl_fit_standalone_release:
 .LVL127:
 	bx	lr
 	.cfi_endproc
-.LFE221:
+.LFE227:
 	.size	spl_fit_standalone_release, .-spl_fit_standalone_release
 	.section	.text.spl_kernel_partition,"ax",%progbits
 	.align	1
@@ -994,7 +994,7 @@ spl_fit_standalone_release:
 	.fpu softvfp
 	.type	spl_kernel_partition, %function
 spl_kernel_partition:
-.LFB223:
+.LFB229:
 	.loc 1 460 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -1010,7 +1010,7 @@ spl_kernel_partition:
 .L90:
 	.word	.LC14
 	.cfi_endproc
-.LFE223:
+.LFE229:
 	.size	spl_kernel_partition, .-spl_kernel_partition
 	.section	.text.spl_load_simple_fit,"ax",%progbits
 	.align	1
@@ -1021,8 +1021,8 @@ spl_kernel_partition:
 	.fpu softvfp
 	.type	spl_load_simple_fit, %function
 spl_load_simple_fit:
-.LFB226:
-	.loc 1 798 0
+.LFB232:
+	.loc 1 805 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 248
 	@ frame_needed = 1, uses_anonymous_args = 0
@@ -1042,7 +1042,7 @@ spl_load_simple_fit:
 	add	r7, sp, #16
 	.cfi_def_cfa 7, 280
 .LVL131:
-	.loc 1 798 0
+	.loc 1 805 0
 	mov	r6, r1
 	mov	r4, r0
 	str	r2, [r7, #28]
@@ -1051,30 +1051,31 @@ spl_load_simple_fit:
 .LVL133:
 	ldr	r3, [r3]
 .LVL134:
-	.loc 1 814 0
-	ldr	r1, .L155
+	.loc 1 821 0
+	ldr	r1, .L157
 .LVL135:
 	rev	r3, r3
 .LVL136:
 	cmp	r3, r1
 	str	r1, [r7]
 	beq	.L93
-	.loc 1 815 0
-	ldr	r0, .L155+4
+	.loc 1 822 0
+	ldr	r0, .L157+4
 .LVL137:
-.L154:
+.L156:
 .LBB84:
 .LBB85:
 	.loc 1 633 0
 	bl	printf
 .LVL138:
 	.loc 1 634 0
-	mvn	r0, #21
+	mvn	r3, #21
 .LVL139:
 .L92:
 .LBE85:
 .LBE84:
-	.loc 1 830 0
+	.loc 1 837 0
+	mov	r0, r3
 	adds	r7, r7, #248
 	.cfi_remember_state
 	.cfi_def_cfa_offset 32
@@ -1085,7 +1086,7 @@ spl_load_simple_fit:
 .LVL140:
 .L93:
 	.cfi_restore_state
-.LBB95:
+.LBB96:
 .LBB93:
 	.loc 1 607 0
 	add	r3, r7, #36
@@ -1099,7 +1100,7 @@ spl_load_simple_fit:
 	cmp	r0, #0
 	beq	.L95
 	.loc 1 614 0
-	ldr	r1, .L155+8
+	ldr	r1, .L157+8
 	bl	fdt_path_offset
 .LVL143:
 	.loc 1 615 0
@@ -1117,9 +1118,9 @@ spl_load_simple_fit:
 	subs	r1, r0, #0
 	bgt	.L96
 	.loc 1 633 0
-	ldr	r0, .L155+12
+	ldr	r0, .L157+12
 .LVL146:
-	b	.L154
+	b	.L156
 .LVL147:
 .L96:
 	.loc 1 637 0
@@ -1132,24 +1133,26 @@ spl_load_simple_fit:
 	cbz	r0, .L98
 	.loc 1 639 0
 	mov	r1, r0
-	ldr	r0, .L155+16
+	ldr	r0, .L157+16
 .LVL150:
 	bl	printf
 .LVL151:
-	mov	r0, r8
+	mov	r3, r8
 	b	.L92
+.LVL152:
 .L98:
 	.loc 1 642 0
-	ldr	r0, .L155+20
+	ldr	r0, .L157+20
+.LVL153:
 	bl	printf
-.LVL152:
+.LVL154:
 	.loc 1 670 0
 	mov	r3, r8
-	ldr	r2, .L155+24
+	ldr	r2, .L157+24
 	mov	r1, r10
 	mov	r0, r5
 	bl	spl_fit_get_image_node
-.LVL153:
+.LVL155:
 	.loc 1 672 0
 	subs	fp, r0, #0
 	ble	.L99
@@ -1160,17 +1163,17 @@ spl_load_simple_fit:
 	mov	r2, r5
 	ldr	r3, [r7, #36]
 	mov	r0, r6
-.LVL154:
+.LVL156:
 	ldr	r1, [r7, #28]
 	bl	spl_load_fit_image
-.LVL155:
+.LVL157:
 	.loc 1 676 0
 	cbnz	r0, .L101
 	.loc 1 677 0
 	ldr	r3, [r7, #104]
 	.loc 1 680 0
 	movs	r0, #0
-.LVL156:
+.LVL158:
 	.loc 1 677 0
 	adds	r3, r3, #1
 	.loc 1 678 0
@@ -1180,84 +1183,165 @@ spl_load_simple_fit:
 	.loc 1 680 0
 	ldr	r1, [r7, #104]
 	bl	spl_fit_standalone_release
-.LVL157:
+.LVL159:
 	.loc 1 681 0
 	mov	r1, r0
 	cbz	r0, .L101
 	.loc 1 682 0
-	ldr	r0, .L155+28
-.LVL158:
+	ldr	r0, .L157+28
+.LVL160:
 	bl	printf
-.LVL159:
+.LVL161:
 .L101:
 	.loc 1 697 0
 	movs	r3, #0
-	ldr	r2, .L155+32
+	ldr	r2, .L157+32
 	mov	r1, r10
 	mov	r0, r5
-	bl	spl_fit_get_image_node
-.LVL160:
-	.loc 1 703 0
-	subs	fp, r0, #0
-	bge	.L104
-	.loc 1 705 0
-	movs	r3, #0
-	ldr	r2, .L155+36
-	mov	r1, r10
-	mov	r0, r5
-.LVL161:
 	bl	spl_fit_get_image_node
 .LVL162:
-	.loc 1 712 0
+	.loc 1 703 0
 	subs	fp, r0, #0
+	bge	.L130
+	.loc 1 705 0
+	movs	r3, #0
+	ldr	r2, .L157+36
+	mov	r1, r10
+	mov	r0, r5
+.LVL163:
+	bl	spl_fit_get_image_node
+.LVL164:
+	.loc 1 713 0
+	ldr	r3, [r4, #28]
+	.loc 1 705 0
+	mov	fp, r0
+.LVL165:
+	.loc 1 713 0
+	cmp	r3, #2
+	bne	.L105
+	.loc 1 714 0
+	movs	r3, #5
+	strb	r3, [r4, #4]
+.LVL166:
+.L106:
+.LBE93:
+.LBE96:
+.LBB97:
+.LBB98:
+	.loc 1 477 0
+	ldr	r3, .L157+40
+	.loc 1 467 0
+	str	sp, [r7, #20]
+	.loc 1 477 0
+	ldm	r3, {r0, r1, r2}
+	add	r3, r7, #36
+	stm	r3, {r0, r1, r2}
+.LVL167:
+	.loc 1 479 0
+	ldr	r3, [r6, #8]
+	adds	r3, r3, #7
+	bic	r3, r3, #7
+	sub	sp, sp, r3
+.LVL168:
+	.loc 1 486 0
+	ldr	r3, [r4, #28]
+	.loc 1 479 0
+	add	r8, sp, #16
+.LVL169:
+	.loc 1 486 0
+	cmp	r3, #2
+	bne	.L128
+.LVL170:
+	.loc 1 493 0
+	mov	r1, r6
+	mov	r0, r4
+	bl	spl_kernel_partition
+.LVL171:
+	.loc 1 494 0
+	add	r2, r7, #92
+	mov	r1, r0
+	ldr	r0, [r6]
+.LVL172:
+	bl	part_get_info_by_name
+.LVL173:
+	cmp	r0, #0
+	bgt	.L118
+	.loc 1 495 0
+	ldr	r1, .L157+44
+	ldr	r0, .L157+48
+.LVL174:
+.L154:
+	.loc 1 508 0
+	bl	printf
+.LVL175:
+.L155:
+	.loc 1 509 0
+	mvn	r3, #21
+.L119:
+	ldr	sp, [r7, #20]
+.LVL176:
+.LBE98:
+.LBE97:
+	.loc 1 832 0
+	b	.L92
+.LVL177:
+.L99:
+.LBB102:
+.LBB94:
+	.loc 1 696 0
+	bne	.L101
+.LVL178:
+.L130:
+	.loc 1 703 0
+	mov	r8, #0
+	b	.L104
+.LVL179:
+.L105:
+	.loc 1 719 0
+	cmp	r0, #0
 	blt	.L95
 	.loc 1 710 0
 	mov	r8, #1
-	b	.L104
-.LVL163:
-.L99:
-	.loc 1 696 0
-	bne	.L101
-	mov	r8, fp
-.LVL164:
+.LVL180:
 .L104:
-	.loc 1 719 0
+	.loc 1 726 0
 	str	r4, [sp, #4]
 	mov	r2, r5
 	str	fp, [sp]
 	mov	r0, r6
-.LVL165:
+.LVL181:
 	ldr	r3, [r7, #36]
 	ldr	r1, [r7, #28]
 	bl	spl_load_fit_image
-.LVL166:
-	.loc 1 721 0
+.LVL182:
+	.loc 1 728 0
+	mov	r3, r0
 	cmp	r0, #0
 	bne	.L92
-.LVL167:
+.LVL183:
 .LBB86:
 .LBB87:
 	.loc 1 399 0
 	adds	r2, r4, #4
-.LVL168:
+.LVL184:
 	mov	r1, fp
 	mov	r0, r5
-.LVL169:
+.LVL185:
 	bl	fit_image_get_os
-.LVL170:
+.LVL186:
 .LBE87:
 .LBE86:
-	.loc 1 728 0
-	cbz	r0, .L105
-	.loc 1 732 0
+	.loc 1 735 0
+	cbz	r0, .L107
+	.loc 1 739 0
 	movs	r3, #17
 	strb	r3, [r4, #4]
-.L105:
-	.loc 1 739 0
+.L107:
+	.loc 1 746 0
 	ldrb	r3, [r4, #4]	@ zero_extendqisi2
 	cmp	r3, #17
-	bne	.L113
-	.loc 1 740 0
+	bne	.L115
+	.loc 1 747 0
 	ldr	r3, [r7, #36]
 	mov	r1, r6
 	str	r10, [sp]
@@ -1266,48 +1350,48 @@ spl_load_simple_fit:
 	mov	r3, r5
 	ldr	r2, [r7, #28]
 	bl	spl_fit_append_fdt
-.LVL171:
-.L113:
+.LVL187:
+.L115:
 .LBB88:
-	.loc 1 745 0
+	.loc 1 752 0
 	movs	r3, #0
-	.loc 1 747 0
-	ldr	r2, .L155+36
-	.loc 1 745 0
+	.loc 1 754 0
+	ldr	r2, .L157+36
+	.loc 1 752 0
 	strb	r3, [r7, #32]
-	.loc 1 747 0
+	.loc 1 754 0
 	mov	r1, r10
 	mov	r3, r8
 	mov	r0, r5
 	bl	spl_fit_get_image_node
-.LVL172:
-	.loc 1 748 0
+.LVL188:
+	.loc 1 755 0
 	subs	r3, r0, #0
-	blt	.L107
-.LVL173:
+	blt	.L109
+.LVL189:
 .LBB89:
 .LBB90:
 	.loc 1 399 0
 	add	r2, r7, #32
-.LVL174:
+.LVL190:
 	mov	r1, r3
 	mov	r0, r5
-.LVL175:
+.LVL191:
 	str	r3, [r7, #24]
 	bl	fit_image_get_os
-.LVL176:
+.LVL192:
 .LBE90:
 .LBE89:
-	.loc 1 755 0
+	.loc 1 762 0
 	ldr	r2, [r4, #28]
 	ldr	r3, [r7, #24]
 	cmp	r2, #2
-	bne	.L108
+	bne	.L110
 	ldrb	r2, [r7, #32]	@ zero_extendqisi2
 	cmp	r2, #17
-	beq	.L116
-.L108:
-	.loc 1 759 0
+	beq	.L117
+.L110:
+	.loc 1 766 0
 	add	fp, r7, #92
 	mov	r2, r5
 	stm	sp, {r3, fp}
@@ -1315,80 +1399,80 @@ spl_load_simple_fit:
 	ldr	r3, [r7, #36]
 	ldr	r1, [r7, #28]
 	bl	spl_load_fit_image
-.LVL177:
-	.loc 1 761 0
+.LVL193:
+	.loc 1 768 0
 	cmp	r0, #0
-	blt	.L116
-	.loc 1 764 0
+	blt	.L117
+	.loc 1 771 0
 	ldrb	r3, [r7, #32]	@ zero_extendqisi2
 	cmp	r3, #17
-	bne	.L110
-	.loc 1 765 0
+	bne	.L112
+	.loc 1 772 0
 	ldr	r3, [r7, #36]
 	mov	r1, r6
 	str	r10, [sp]
 	mov	r0, fp
-.LVL178:
+.LVL194:
 	str	r3, [sp, #4]
 	mov	r3, r5
 	ldr	r2, [r7, #28]
 	bl	spl_fit_append_fdt
-.LVL179:
-	.loc 1 767 0
+.LVL195:
+	.loc 1 774 0
 	ldr	r3, [r7, #112]
 	str	r3, [r4, #20]
-.L110:
-	.loc 1 774 0
+.L112:
+	.loc 1 781 0
 	ldr	r3, [r4, #12]
 	adds	r3, r3, #1
-	bne	.L111
-	.loc 1 775 0
+	bne	.L113
+	.loc 1 782 0
 	ldr	r3, [r7, #104]
-	.loc 1 774 0
+	.loc 1 781 0
 	adds	r2, r3, #1
-	.loc 1 776 0
+	.loc 1 783 0
 	it	ne
 	strne	r3, [r4, #12]
-.L111:
-	.loc 1 779 0
+.L113:
+	.loc 1 786 0
 	ldr	r3, [r4, #20]
 	str	r3, [r7, #24]
-.LVL180:
+.LVL196:
 	cmp	r3, #0
-	beq	.L116
-.LVL181:
+	beq	.L117
+.LVL197:
 .LBB91:
 .LBB92:
 	.loc 1 379 0
 	add	r3, r7, #48
-.LVL182:
+.LVL198:
 	mov	r2, r8
-	ldr	r1, .L155+36
+	ldr	r1, .L157+36
 	mov	r0, r5
 	bl	spl_fit_get_image_name.isra.0
-.LVL183:
+.LVL199:
 	.loc 1 381 0
 	cmp	r0, #0
-	blt	.L116
+	blt	.L117
 	.loc 1 384 0
 	mov	r3, r8
-	ldr	r2, .L155+36
+	ldr	r2, .L157+36
 	mov	r1, r10
 	mov	r0, r5
-.LVL184:
+.LVL200:
 	bl	spl_fit_get_image_node
-.LVL185:
+.LVL201:
 	.loc 1 386 0
 	ldr	r3, [r7, #48]
 	.loc 1 388 0
 	mov	r1, r0
 	.loc 1 384 0
 	mov	fp, r0
-.LVL186:
+.LVL202:
 	.loc 1 388 0
-	ldr	r2, .L155+40
+	ldr	r2, .L157+52
 	mov	r0, r5
-.LVL187:
+.LVL203:
 	.loc 1 386 0
 	str	r3, [r7, #20]
 	ldr	r3, [r7, #100]
@@ -1400,17 +1484,17 @@ spl_load_simple_fit:
 	.loc 1 388 0
 	movs	r3, #0
 	bl	fdt_getprop
-.LVL188:
+.LVL204:
 	.loc 1 389 0
 	movs	r3, #0
 	.loc 1 388 0
 	str	r0, [r7, #4]
 	.loc 1 389 0
-	ldr	r2, .L155+44
+	ldr	r2, .L157+56
 	mov	r1, fp
 	mov	r0, r5
 	bl	fdt_getprop
-.LVL189:
+.LVL205:
 	.loc 1 386 0
 	str	r0, [sp, #12]
 	mov	r1, r8
@@ -1424,94 +1508,30 @@ spl_load_simple_fit:
 	ldr	r2, [r7, #20]
 	ldr	r0, [r7, #24]
 	bl	fdt_record_loadable
-.LVL190:
-.L116:
+.LVL206:
+.L117:
 .LBE92:
 .LBE91:
 .LBE88:
-	.loc 1 744 0
+	.loc 1 751 0
 	add	r8, r8, #1
-.LVL191:
-	b	.L113
-.LVL192:
-.L107:
-	.loc 1 790 0
+.LVL207:
+	b	.L115
+.LVL208:
+.L109:
+	.loc 1 797 0
 	ldr	r3, [r4, #12]
 	subs	r3, r3, #1
 	adds	r3, r3, #3
-	bls	.L115
-	.loc 1 791 0
+	bls	.L106
+	.loc 1 798 0
 	ldr	r3, [r4, #8]
 	str	r3, [r4, #12]
-.L115:
-.LVL193:
-.LBE93:
-.LBE95:
-.LBB96:
-.LBB97:
-	.loc 1 477 0
-	ldr	r3, .L155+48
-	.loc 1 467 0
-	str	sp, [r7, #20]
-	.loc 1 477 0
-	ldm	r3, {r0, r1, r2}
-	add	r3, r7, #36
-	stm	r3, {r0, r1, r2}
-.LVL194:
-	.loc 1 479 0
-	ldr	r3, [r6, #8]
-	adds	r3, r3, #7
-	bic	r3, r3, #7
-	sub	sp, sp, r3
-.LVL195:
-	.loc 1 486 0
-	ldr	r3, [r4, #28]
-	.loc 1 479 0
-	add	r8, sp, #16
-.LVL196:
-	.loc 1 486 0
-	cmp	r3, #2
-	bne	.L127
-.LVL197:
-	.loc 1 493 0
-	mov	r1, r6
-	mov	r0, r4
-	bl	spl_kernel_partition
-.LVL198:
-	.loc 1 494 0
-	add	r2, r7, #92
-	mov	r1, r0
-	ldr	r0, [r6]
-.LVL199:
-	bl	part_get_info_by_name
-.LVL200:
-	cmp	r0, #0
-	bgt	.L117
-	.loc 1 495 0
-	ldr	r1, .L155+52
-	ldr	r0, .L155+56
-.LVL201:
-.L152:
-	.loc 1 508 0
-	bl	printf
-.LVL202:
-.L153:
-	.loc 1 509 0
-	mvn	r3, #21
+	b	.L106
+.LVL209:
 .L118:
-.LBE97:
-.LBE96:
-	.loc 1 825 0
-	mov	r0, r3
-.LBB102:
-.LBB100:
-	ldr	sp, [r7, #20]
-.LVL203:
-.LBE100:
+.LBE94:
 .LBE102:
-	b	.L92
-.LVL204:
-.L117:
 .LBB103:
 .LBB101:
 	.loc 1 498 0
@@ -1522,75 +1542,56 @@ spl_load_simple_fit:
 	mov	r0, r6
 	.loc 1 498 0
 	str	r3, [r7, #28]
-.LVL205:
+.LVL210:
 	.loc 1 502 0
 	mov	r3, r8
-.LVL206:
+.LVL211:
 	ldr	r1, [r7, #28]
 	blx	r5
-.LVL207:
+.LVL212:
 	cmp	r0, #1
-	bne	.L129
-.LVL208:
+	bne	.L131
+.LVL213:
 	ldr	r3, [r8]
 	.loc 1 507 0
 	ldr	r2, [r7]
 	rev	r3, r3
-.LVL209:
+.LVL214:
 	cmp	r3, r2
-	beq	.L119
+	beq	.L120
 	.loc 1 508 0
-	ldr	r1, .L155+52
-	ldr	r0, .L155+60
-	b	.L152
-.L119:
+	ldr	r1, .L157+44
+	ldr	r0, .L157+60
+	b	.L154
+.L120:
 	.loc 1 512 0
 	mov	r2, r8
 	add	r3, r7, #32
 	ldr	r1, [r7, #28]
 	mov	r0, r6
 	bl	spl_fit_load_blob
-.LVL210:
+.LVL215:
 	.loc 1 513 0
 	mov	r8, r0
-.LVL211:
+.LVL216:
 	cmp	r0, #0
-	beq	.L130
+	beq	.L132
 	.loc 1 522 0
 	movs	r1, #0
 	bl	fit_conf_get_node
-.LVL212:
+.LVL217:
 	.loc 1 523 0
 	subs	r1, r0, #0
-	bgt	.L120
+	bgt	.L121
 	.loc 1 524 0
-	ldr	r0, .L155+12
-.LVL213:
-	bl	printf
-.LVL214:
-	b	.L153
-.LVL215:
-.L120:
-	.loc 1 528 0
-	mov	r0, r8
-.LVL216:
-	bl	fit_config_verify
-.LVL217:
-	.loc 1 529 0
-	cbz	r0, .L121
-	.loc 1 530 0
-	mov	r1, r0
-	str	r0, [r7, #28]
+	ldr	r0, .L157+12
 .LVL218:
-	ldr	r0, .L155+16
-.LVL219:
 	bl	printf
-.LVL220:
-	ldr	r3, [r7, #28]
-	b	.L118
-.L156:
+.LVL219:
+	b	.L155
+.L158:
 	.align	2
-.L155:
+.L157:
 	.word	-804389139
 	.word	.LC15
 	.word	.LC16
@@ -1601,34 +1602,53 @@ spl_load_simple_fit:
 	.word	.LC21
 	.word	.LC22
 	.word	.LC23
-	.word	.LC24
-	.word	.LC25
 	.word	.LANCHOR1
 	.word	.LANCHOR0
 	.word	.LC26
+	.word	.LC24
+	.word	.LC25
 	.word	.LC27
-.LVL221:
+.LVL220:
 .L121:
+	.loc 1 528 0
+	mov	r0, r8
+.LVL221:
+	bl	fit_config_verify
+.LVL222:
+	.loc 1 529 0
+	cbz	r0, .L122
+	.loc 1 530 0
+	mov	r1, r0
+	str	r0, [r7, #28]
+.LVL223:
+	ldr	r0, .L159
+.LVL224:
+	bl	printf
+.LVL225:
+	ldr	r3, [r7, #28]
+	b	.L119
+.LVL226:
+.L122:
 	str	r0, [r7, #16]
 	.loc 1 533 0
-	ldr	r0, .L157
-.LVL222:
+	ldr	r0, .L159+4
+.LVL227:
 	bl	printf
-.LVL223:
+.LVL228:
 	.loc 1 535 0
-	ldr	r1, .L157+4
+	ldr	r1, .L159+8
 	mov	r0, r8
 	bl	fdt_path_offset
-.LVL224:
+.LVL229:
 	.loc 1 536 0
 	subs	r3, r0, #0
 	str	r3, [r7, #24]
-	blt	.L131
+	blt	.L133
 	ldr	r3, [r7, #16]
 	mov	r5, r3
-.LVL225:
-.L126:
-.LBB98:
+.LVL230:
+.L127:
+.LBB99:
 	.loc 1 543 0
 	add	r3, r7, #36
 	ldr	r1, [r7, #24]
@@ -1637,10 +1657,10 @@ spl_load_simple_fit:
 	movs	r3, #0
 	mov	r2, r10
 	bl	spl_fit_get_image_node
-.LVL226:
+.LVL231:
 	.loc 1 548 0
 	cmp	r0, #0
-	blt	.L123
+	blt	.L124
 	.loc 1 553 0
 	add	r3, r7, #48
 	.loc 1 546 0
@@ -1649,22 +1669,22 @@ spl_load_simple_fit:
 	mov	r2, r8
 	stm	sp, {r0, r3}
 	mov	r0, r6
-.LVL227:
+.LVL232:
 	ldr	r3, [r7, #32]
 	ldr	r1, [r7, #28]
 	bl	spl_load_fit_image
-.LVL228:
+.LVL233:
 	.loc 1 555 0
 	mov	r3, r0
 	cmp	r0, #0
-	bne	.L118
+	bne	.L119
 	.loc 1 559 0
-	ldr	r1, .L157+8
+	ldr	r1, .L159+12
 	mov	r0, r10
-.LVL229:
+.LVL234:
 	bl	strcmp
-.LVL230:
-	cbnz	r0, .L124
+.LVL235:
+	cbnz	r0, .L125
 	.loc 1 569 0
 	ldr	r3, [fp, #4]
 	.loc 1 560 0
@@ -1674,78 +1694,79 @@ spl_load_simple_fit:
 	.loc 1 560 0
 	str	r10, [r4, #20]
 	.loc 1 569 0
-	bne	.L123
+	bne	.L124
 	.loc 1 570 0
 	mov	r0, fp
 	bl	mtd_part_parse
-.LVL231:
+.LVL236:
 	mov	r1, r0
 	mov	r0, r10
 	bl	fdt_bootargs_append
-.LVL232:
-.L123:
-.LBE98:
+.LVL237:
+.L124:
+.LBE99:
 	.loc 1 542 0
 	adds	r5, r5, #1
-.LVL233:
+.LVL238:
 	cmp	r5, #3
-	bne	.L126
-.LVL234:
-.L127:
+	bne	.L127
+.LVL239:
+.L128:
 	.loc 1 592 0
 	movs	r3, #0
-	b	.L118
-.LVL235:
-.L124:
-.LBB99:
+	b	.L119
+.LVL240:
+.L125:
+.LBB100:
 	.loc 1 572 0
-	ldr	r1, .L157+12
+	ldr	r1, .L159+16
 	mov	r0, r10
 	bl	strcmp
-.LVL236:
+.LVL241:
 	cmp	r0, #0
-	bne	.L123
+	bne	.L124
 	.loc 1 574 0
 	ldr	r3, [r7, #56]
 	str	r3, [r4, #16]
-	b	.L123
-.LVL237:
-.L129:
-.LBE99:
+	b	.L124
+.LVL242:
+.L131:
+.LBE100:
 	.loc 1 504 0
 	mvn	r3, #4
-	b	.L118
-.LVL238:
-.L130:
+	b	.L119
+.LVL243:
+.L132:
 	.loc 1 515 0
 	mvn	r3, #18
-	b	.L118
-.LVL239:
-.L131:
+	b	.L119
+.LVL244:
+.L133:
 	.loc 1 536 0
 	ldr	r3, [r7, #24]
-	b	.L118
-.LVL240:
+	b	.L119
+.LVL245:
 .L95:
 .LBE101:
 .LBE103:
 .LBB104:
-.LBB94:
+.LBB95:
 	.loc 1 610 0
-	mov	r0, #-1
-.LVL241:
+	mov	r3, #-1
+.LVL246:
 	b	.L92
-.L158:
+.L160:
 	.align	2
-.L157:
+.L159:
+	.word	.LC18
 	.word	.LC19
 	.word	.LC16
 	.word	.LC0
 	.word	.LC1
-.LBE94:
+.LBE95:
 .LBE104:
 	.cfi_endproc
-.LFE226:
+.LFE232:
 	.size	spl_load_simple_fit, .-spl_load_simple_fit
 	.section	.rodata
 	.align	2
@@ -1754,11 +1775,11 @@ spl_load_simple_fit:
 	.word	.LC0
 	.word	.LC1
 	.word	.LC2
-	.section	.rodata.__func__.9395,"a",%progbits
+	.section	.rodata.__func__.9717,"a",%progbits
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9395, %object
-	.size	__func__.9395, 20
-__func__.9395:
+	.type	__func__.9717, %object
+	.size	__func__.9717, 20
+__func__.9717:
 	.ascii	"spl_load_kernel_fit\000"
 	.section	.rodata.spl_fit_get_image_name.isra.0.str1.1,"aMS",%progbits,1
 .LC4:
@@ -2362,54 +2383,54 @@ __func__.9395:
 	.4byte	.LASF76
 	.byte	0x9c
 	.byte	0xc
-	.byte	0x3c
+	.byte	0x3e
 	.4byte	0x48c
 	.uleb128 0x15
 	.4byte	.LASF77
 	.byte	0xc
-	.byte	0x3d
+	.byte	0x3f
 	.4byte	0x1c4
 	.byte	0
 	.uleb128 0x15
 	.4byte	.LASF78
 	.byte	0xc
-	.byte	0x3e
+	.byte	0x40
 	.4byte	0x1c4
 	.byte	0x4
 	.uleb128 0x15
 	.4byte	.LASF65
 	.byte	0xc
-	.byte	0x3f
+	.byte	0x41
 	.4byte	0x122
 	.byte	0x8
 	.uleb128 0x15
 	.4byte	.LASF74
 	.byte	0xc
-	.byte	0x40
+	.byte	0x42
 	.4byte	0x48c
 	.byte	0xc
 	.uleb128 0x15
 	.4byte	.LASF62
 	.byte	0xc
-	.byte	0x41
+	.byte	0x43
 	.4byte	0x48c
 	.byte	0x2c
 	.uleb128 0x15
 	.4byte	.LASF79
 	.byte	0xc
-	.byte	0x42
+	.byte	0x44
 	.4byte	0x50
 	.byte	0x4c
 	.uleb128 0x15
 	.4byte	.LASF80
 	.byte	0xc
-	.byte	0x44
+	.byte	0x46
 	.4byte	0x49c
 	.byte	0x50
 	.uleb128 0x15
 	.4byte	.LASF81
 	.byte	0xc
-	.byte	0x47
+	.byte	0x49
 	.4byte	0x49c
 	.byte	0x75
 	.byte	0
@@ -2430,7 +2451,7 @@ __func__.9395:
 	.uleb128 0x2
 	.4byte	.LASF82
 	.byte	0xc
-	.byte	0x4c
+	.byte	0x4e
 	.4byte	0x41f
 	.uleb128 0xc
 	.4byte	0x400
@@ -2442,7 +2463,7 @@ __func__.9395:
 	.uleb128 0x4
 	.4byte	.LASF73
 	.byte	0xc
-	.byte	0xdf
+	.byte	0xe1
 	.4byte	0x4c2
 	.uleb128 0x8
 	.byte	0x4
@@ -3884,72 +3905,72 @@ __func__.9395:
 	.4byte	.LASF315
 	.byte	0x2c
 	.byte	0x19
-	.byte	0x1b
+	.byte	0x1c
 	.4byte	0x1146
 	.uleb128 0x15
 	.4byte	.LASF74
 	.byte	0x19
-	.byte	0x1c
+	.byte	0x1d
 	.4byte	0xd7
 	.byte	0
 	.uleb128 0xb
 	.ascii	"os\000"
 	.byte	0x19
-	.byte	0x1d
+	.byte	0x1e
 	.4byte	0x90
 	.byte	0x4
 	.uleb128 0x15
 	.4byte	.LASF265
 	.byte	0x19
-	.byte	0x1e
+	.byte	0x1f
 	.4byte	0x101
 	.byte	0x8
 	.uleb128 0x15
 	.4byte	.LASF316
 	.byte	0x19
-	.byte	0x1f
+	.byte	0x20
 	.4byte	0x101
 	.byte	0xc
 	.uleb128 0x15
 	.4byte	.LASF317
 	.byte	0x19
-	.byte	0x25
+	.byte	0x26
 	.4byte	0x101
 	.byte	0x10
 	.uleb128 0x15
 	.4byte	.LASF318
 	.byte	0x19
-	.byte	0x27
+	.byte	0x28
 	.4byte	0x153
 	.byte	0x14
 	.uleb128 0x15
 	.4byte	.LASF319
 	.byte	0x19
-	.byte	0x28
+	.byte	0x29
 	.4byte	0x9f
 	.byte	0x18
 	.uleb128 0x15
 	.4byte	.LASF320
 	.byte	0x19
-	.byte	0x29
+	.byte	0x2a
 	.4byte	0x9f
 	.byte	0x1c
 	.uleb128 0x15
 	.4byte	.LASF78
 	.byte	0x19
-	.byte	0x2a
+	.byte	0x2b
 	.4byte	0x9f
 	.byte	0x20
 	.uleb128 0x15
 	.4byte	.LASF321
 	.byte	0x19
-	.byte	0x2b
+	.byte	0x2c
 	.4byte	0x9f
 	.byte	0x24
 	.uleb128 0xb
 	.ascii	"arg\000"
 	.byte	0x19
-	.byte	0x2c
+	.byte	0x2d
 	.4byte	0x153
 	.byte	0x28
 	.byte	0
@@ -3957,36 +3978,36 @@ __func__.9395:
 	.4byte	.LASF322
 	.byte	0x14
 	.byte	0x19
-	.byte	0x38
+	.byte	0x39
 	.4byte	0x118f
 	.uleb128 0xb
 	.ascii	"dev\000"
 	.byte	0x19
-	.byte	0x39
+	.byte	0x3a
 	.4byte	0x153
 	.byte	0
 	.uleb128 0x15
 	.4byte	.LASF280
 	.byte	0x19
-	.byte	0x3a
+	.byte	0x3b
 	.4byte	0x153
 	.byte	0x4
 	.uleb128 0x15
 	.4byte	.LASF323
 	.byte	0x19
-	.byte	0x3b
+	.byte	0x3c
 	.4byte	0x50
 	.byte	0x8
 	.uleb128 0x15
 	.4byte	.LASF324
 	.byte	0x19
-	.byte	0x3c
+	.byte	0x3d
 	.4byte	0xd7
 	.byte	0xc
 	.uleb128 0x15
 	.4byte	.LASF325
 	.byte	0x19
-	.byte	0x3d
+	.byte	0x3e
 	.4byte	0x11b3
 	.byte	0x10
 	.byte	0
@@ -4014,53 +4035,53 @@ __func__.9395:
 	.uleb128 0x2a
 	.4byte	.LASF342
 	.byte	0x1
-	.2byte	0x31c
+	.2byte	0x323
 	.4byte	0x50
-	.4byte	.LFB226
-	.4byte	.LFE226-.LFB226
+	.4byte	.LFB232
+	.4byte	.LFE232-.LFB232
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x19c7
 	.uleb128 0x2b
 	.4byte	.LASF326
 	.byte	0x1
-	.2byte	0x31c
+	.2byte	0x323
 	.4byte	0x11b9
 	.4byte	.LLST63
 	.uleb128 0x2b
 	.4byte	.LASF327
 	.byte	0x1
-	.2byte	0x31d
+	.2byte	0x324
 	.4byte	0x11ad
 	.4byte	.LLST64
 	.uleb128 0x2b
 	.4byte	.LASF328
 	.byte	0x1
-	.2byte	0x31d
+	.2byte	0x324
 	.4byte	0x122
 	.4byte	.LLST65
 	.uleb128 0x2c
 	.ascii	"fit\000"
 	.byte	0x1
-	.2byte	0x31d
+	.2byte	0x324
 	.4byte	0x153
 	.4byte	.LLST66
 	.uleb128 0x2d
 	.4byte	.LASF329
 	.byte	0x1
-	.2byte	0x31f
+	.2byte	0x326
 	.4byte	0x122
 	.4byte	.LLST67
 	.uleb128 0x2e
 	.ascii	"ret\000"
 	.byte	0x1
-	.2byte	0x320
+	.2byte	0x327
 	.4byte	0x50
 	.4byte	.LLST68
 	.uleb128 0x2f
 	.ascii	"i\000"
 	.byte	0x1
-	.2byte	0x321
+	.2byte	0x328
 	.4byte	0x50
 	.byte	0
 	.uleb128 0x30
@@ -4068,7 +4089,7 @@ __func__.9395:
 	.4byte	.LBB84
 	.4byte	.Ldebug_ranges0+0x58
 	.byte	0x1
-	.2byte	0x333
+	.2byte	0x33a
 	.4byte	0x173a
 	.uleb128 0x31
 	.4byte	0x19fc
@@ -4119,7 +4140,7 @@ __func__.9395:
 	.4byte	.LBB86
 	.4byte	.LBE86-.LBB86
 	.byte	0x1
-	.2byte	0x2d8
+	.2byte	0x2df
 	.4byte	0x131a
 	.uleb128 0x31
 	.4byte	0x1d3b
@@ -4131,7 +4152,7 @@ __func__.9395:
 	.4byte	0x1d23
 	.4byte	.LLST81
 	.uleb128 0x37
-	.4byte	.LVL170
+	.4byte	.LVL186
 	.4byte	0x285a
 	.uleb128 0x38
 	.uleb128 0x1
@@ -4167,7 +4188,7 @@ __func__.9395:
 	.4byte	.LBB89
 	.4byte	.LBE89-.LBB89
 	.byte	0x1
-	.2byte	0x2ef
+	.2byte	0x2f6
 	.4byte	0x137f
 	.uleb128 0x31
 	.4byte	0x1d3b
@@ -4179,7 +4200,7 @@ __func__.9395:
 	.4byte	0x1d23
 	.4byte	.LLST84
 	.uleb128 0x37
-	.4byte	.LVL176
+	.4byte	.LVL192
 	.4byte	0x285a
 	.uleb128 0x38
 	.uleb128 0x1
@@ -4207,7 +4228,7 @@ __func__.9395:
 	.4byte	.LBB91
 	.4byte	.LBE91-.LBB91
 	.byte	0x1
-	.2byte	0x30c
+	.2byte	0x313
 	.4byte	0x14c8
 	.uleb128 0x31
 	.4byte	0x1d88
@@ -4238,7 +4259,7 @@ __func__.9395:
 	.4byte	0x1dac
 	.4byte	.LLST90
 	.uleb128 0x3c
-	.4byte	.LVL183
+	.4byte	.LVL199
 	.4byte	0x26dc
 	.4byte	0x140a
 	.uleb128 0x38
@@ -4267,7 +4288,7 @@ __func__.9395:
 	.sleb128 120
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL185
+	.4byte	.LVL201
 	.4byte	0x2423
 	.4byte	0x1433
 	.uleb128 0x38
@@ -4296,7 +4317,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL188
+	.4byte	.LVL204
 	.4byte	0x2866
 	.4byte	0x145b
 	.uleb128 0x38
@@ -4324,7 +4345,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL189
+	.4byte	.LVL205
 	.4byte	0x2866
 	.4byte	0x1483
 	.uleb128 0x38
@@ -4352,7 +4373,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x37
-	.4byte	.LVL190
+	.4byte	.LVL206
 	.4byte	0x2872
 	.uleb128 0x38
 	.uleb128 0x1
@@ -4409,7 +4430,7 @@ __func__.9395:
 	.byte	0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL172
+	.4byte	.LVL188
 	.4byte	0x2423
 	.4byte	0x14f1
 	.uleb128 0x38
@@ -4438,7 +4459,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL177
+	.4byte	.LVL193
 	.4byte	0x1eeb
 	.4byte	0x1523
 	.uleb128 0x38
@@ -4477,7 +4498,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x37
-	.4byte	.LVL179
+	.4byte	.LVL195
 	.4byte	0x1db9
 	.uleb128 0x38
 	.uleb128 0x1
@@ -4612,7 +4633,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL152
+	.4byte	.LVL154
 	.4byte	0x287d
 	.4byte	0x1609
 	.uleb128 0x38
@@ -4623,7 +4644,7 @@ __func__.9395:
 	.4byte	.LC19
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL153
+	.4byte	.LVL155
 	.4byte	0x2423
 	.4byte	0x1632
 	.uleb128 0x38
@@ -4652,7 +4673,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL155
+	.4byte	.LVL157
 	.4byte	0x1eeb
 	.4byte	0x1663
 	.uleb128 0x38
@@ -4690,7 +4711,7 @@ __func__.9395:
 	.sleb128 164
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL157
+	.4byte	.LVL159
 	.4byte	0x1cda
 	.4byte	0x1676
 	.uleb128 0x38
@@ -4700,7 +4721,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL159
+	.4byte	.LVL161
 	.4byte	0x287d
 	.4byte	0x168d
 	.uleb128 0x38
@@ -4711,7 +4732,7 @@ __func__.9395:
 	.4byte	.LC21
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL160
+	.4byte	.LVL162
 	.4byte	0x2423
 	.4byte	0x16b5
 	.uleb128 0x38
@@ -4739,7 +4760,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL162
+	.4byte	.LVL164
 	.4byte	0x2423
 	.4byte	0x16dd
 	.uleb128 0x38
@@ -4767,7 +4788,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL166
+	.4byte	.LVL182
 	.4byte	0x1eeb
 	.4byte	0x170d
 	.uleb128 0x38
@@ -4805,7 +4826,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x37
-	.4byte	.LVL171
+	.4byte	.LVL187
 	.4byte	0x1db9
 	.uleb128 0x38
 	.uleb128 0x1
@@ -4844,10 +4865,10 @@ __func__.9395:
 	.byte	0
 	.uleb128 0x30
 	.4byte	0x1a99
-	.4byte	.LBB96
-	.4byte	.Ldebug_ranges0+0x78
+	.4byte	.LBB97
+	.4byte	.Ldebug_ranges0+0x80
 	.byte	0x1
-	.2byte	0x337
+	.2byte	0x33e
 	.4byte	0x19bd
 	.uleb128 0x31
 	.4byte	0x1ab6
@@ -4856,7 +4877,7 @@ __func__.9395:
 	.4byte	0x1aaa
 	.4byte	.LLST92
 	.uleb128 0x32
-	.4byte	.Ldebug_ranges0+0x78
+	.4byte	.Ldebug_ranges0+0x80
 	.uleb128 0x33
 	.4byte	0x1ac2
 	.uleb128 0x3
@@ -4913,7 +4934,7 @@ __func__.9395:
 	.uleb128 0x35
 	.4byte	0x1b6a
 	.uleb128 0x3c
-	.4byte	.LVL226
+	.4byte	.LVL231
 	.4byte	0x2423
 	.4byte	0x1818
 	.uleb128 0x38
@@ -4942,7 +4963,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL228
+	.4byte	.LVL233
 	.4byte	0x1eeb
 	.4byte	0x1842
 	.uleb128 0x38
@@ -4973,7 +4994,7 @@ __func__.9395:
 	.sleb128 104
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL230
+	.4byte	.LVL235
 	.4byte	0x28ac
 	.4byte	0x185f
 	.uleb128 0x38
@@ -4990,7 +5011,7 @@ __func__.9395:
 	.4byte	.LC0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL231
+	.4byte	.LVL236
 	.4byte	0x2609
 	.4byte	0x1873
 	.uleb128 0x38
@@ -5001,7 +5022,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL232
+	.4byte	.LVL237
 	.4byte	0x2579
 	.4byte	0x1887
 	.uleb128 0x38
@@ -5012,7 +5033,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x37
-	.4byte	.LVL236
+	.4byte	.LVL241
 	.4byte	0x28ac
 	.uleb128 0x38
 	.uleb128 0x1
@@ -5029,7 +5050,7 @@ __func__.9395:
 	.byte	0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL198
+	.4byte	.LVL171
 	.4byte	0x1bac
 	.4byte	0x18bb
 	.uleb128 0x38
@@ -5046,7 +5067,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL200
+	.4byte	.LVL173
 	.4byte	0x28b7
 	.4byte	0x18d0
 	.uleb128 0x38
@@ -5057,10 +5078,10 @@ __func__.9395:
 	.sleb128 148
 	.byte	0
 	.uleb128 0x3d
-	.4byte	.LVL202
+	.4byte	.LVL175
 	.4byte	0x287d
 	.uleb128 0x40
-	.4byte	.LVL207
+	.4byte	.LVL212
 	.uleb128 0x2
 	.byte	0x75
 	.sleb128 0
@@ -5091,7 +5112,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL210
+	.4byte	.LVL215
 	.4byte	0x1be5
 	.4byte	0x1928
 	.uleb128 0x38
@@ -5121,7 +5142,7 @@ __func__.9395:
 	.sleb128 88
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL212
+	.4byte	.LVL217
 	.4byte	0x28a0
 	.4byte	0x1941
 	.uleb128 0x38
@@ -5137,7 +5158,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL214
+	.4byte	.LVL219
 	.4byte	0x287d
 	.4byte	0x1958
 	.uleb128 0x38
@@ -5148,7 +5169,7 @@ __func__.9395:
 	.4byte	.LC17
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL217
+	.4byte	.LVL222
 	.4byte	0x2632
 	.4byte	0x196c
 	.uleb128 0x38
@@ -5159,7 +5180,7 @@ __func__.9395:
 	.sleb128 0
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL220
+	.4byte	.LVL225
 	.4byte	0x287d
 	.4byte	0x198b
 	.uleb128 0x38
@@ -5177,7 +5198,7 @@ __func__.9395:
 	.byte	0x6
 	.byte	0
 	.uleb128 0x3c
-	.4byte	.LVL223
+	.4byte	.LVL228
 	.4byte	0x287d
 	.4byte	0x19a2
 	.uleb128 0x38
@@ -5188,7 +5209,7 @@ __func__.9395:
 	.4byte	.LC19
 	.byte	0
 	.uleb128 0x37
-	.4byte	.LVL224
+	.4byte	.LVL229
 	.4byte	0x2888
 	.uleb128 0x38
 	.uleb128 0x1
@@ -5284,7 +5305,7 @@ __func__.9395:
 	.uleb128 0x44
 	.4byte	.LASF335
 	.byte	0x1
-	.2byte	0x2e9
+	.2byte	0x2f0
 	.4byte	0x12d
 	.byte	0
 	.byte	0
@@ -5418,8 +5439,8 @@ __func__.9395:
 	.byte	0x1
 	.2byte	0x1ca
 	.4byte	0xd7
-	.4byte	.LFB223
-	.4byte	.LFE223-.LFB223
+	.4byte	.LFB229
+	.4byte	.LFE229-.LFB229
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x1be5
@@ -5442,8 +5463,8 @@ __func__.9395:
 	.byte	0x1
 	.2byte	0x198
 	.4byte	0x153
-	.4byte	.LFB222
-	.4byte	.LFE222-.LFB222
+	.4byte	.LFB228
+	.4byte	.LFE228-.LFB228
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x1cd4
@@ -5550,8 +5571,8 @@ __func__.9395:
 	.byte	0x1
 	.2byte	0x193
 	.4byte	0x50
-	.4byte	.LFB221
-	.4byte	.LFE221-.LFB221
+	.4byte	.LFB227
+	.4byte	.LFE227-.LFB227
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x1d12
@@ -5645,8 +5666,8 @@ __func__.9395:
 	.byte	0x1
 	.2byte	0x150
 	.4byte	0x50
-	.4byte	.LFB218
-	.4byte	.LFE218-.LFB218
+	.4byte	.LFB224
+	.4byte	.LFE224-.LFB224
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x1ed6
@@ -5800,8 +5821,8 @@ __func__.9395:
 	.byte	0x1
 	.byte	0xbf
 	.4byte	0x50
-	.4byte	.LFB217
-	.4byte	.LFE217-.LFB217
+	.4byte	.LFB223
+	.4byte	.LFE223-.LFB223
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x23a3
@@ -6527,8 +6548,8 @@ __func__.9395:
 	.byte	0x1
 	.byte	0x72
 	.4byte	0x50
-	.4byte	.LFB213
-	.4byte	.LFE213-.LFB213
+	.4byte	.LFB219
+	.4byte	.LFE219-.LFB219
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x24eb
@@ -6735,8 +6756,8 @@ __func__.9395:
 	.byte	0x1
 	.byte	0x21
 	.4byte	0x50
-	.4byte	.LFB209
-	.4byte	.LFE209-.LFB209
+	.4byte	.LFB215
+	.4byte	.LFE215-.LFB215
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x2609
@@ -6766,8 +6787,8 @@ __func__.9395:
 	.byte	0x1
 	.byte	0x1c
 	.4byte	0xfb
-	.4byte	.LFB208
-	.4byte	.LFE208-.LFB208
+	.4byte	.LFB214
+	.4byte	.LFE214-.LFB214
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x2632
@@ -6783,8 +6804,8 @@ __func__.9395:
 	.byte	0x1
 	.byte	0x17
 	.4byte	0x50
-	.4byte	.LFB207
-	.4byte	.LFE207-.LFB207
+	.4byte	.LFB213
+	.4byte	.LFE213-.LFB213
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x2668
@@ -6856,8 +6877,8 @@ __func__.9395:
 	.byte	0
 	.uleb128 0x67
 	.4byte	0x24eb
-	.4byte	.LFB227
-	.4byte	.LFE227-.LFB227
+	.4byte	.LFB233
+	.4byte	.LFE233-.LFB233
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x2823
@@ -7036,8 +7057,8 @@ __func__.9395:
 	.byte	0
 	.uleb128 0x67
 	.4byte	0x2579
-	.4byte	.LFB211
-	.4byte	.LFE211-.LFB211
+	.4byte	.LFB217
+	.4byte	.LFE217-.LFB217
 	.uleb128 0x1
 	.byte	0x9c
 	.4byte	0x2847
@@ -7100,7 +7121,7 @@ __func__.9395:
 	.4byte	.LASF392
 	.4byte	.LASF392
 	.byte	0xc
-	.byte	0xc0
+	.byte	0xc2
 	.uleb128 0x6b
 	.4byte	.LASF393
 	.4byte	.LASF393
@@ -8657,7 +8678,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL141
-	.4byte	.LFE226
+	.4byte	.LFE232
 	.2byte	0x1
 	.byte	0x54
 	.4byte	0
@@ -8668,7 +8689,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x51
 	.4byte	.LVL135
-	.4byte	.LFE226
+	.4byte	.LFE232
 	.2byte	0x1
 	.byte	0x56
 	.4byte	0
@@ -8691,36 +8712,41 @@ __func__.9395:
 	.byte	0x52
 	.byte	0x9f
 	.4byte	.LVL140
-	.4byte	.LVL195
+	.4byte	.LVL168
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 100
-	.4byte	.LVL195
-	.4byte	.LVL201
+	.4byte	.LVL168
+	.4byte	.LVL174
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
-	.4byte	.LVL201
-	.4byte	.LVL204
+	.4byte	.LVL174
+	.4byte	.LVL177
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
 	.byte	0x52
 	.byte	0x9f
-	.4byte	.LVL204
-	.4byte	.LVL205
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x3
+	.byte	0x7d
+	.sleb128 100
+	.4byte	.LVL209
+	.4byte	.LVL210
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
-	.4byte	.LVL205
-	.4byte	.LVL240
+	.4byte	.LVL210
+	.4byte	.LVL245
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
 	.byte	0x52
 	.byte	0x9f
-	.4byte	.LVL240
-	.4byte	.LFE226
+	.4byte	.LVL245
+	.4byte	.LFE232
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 100
@@ -8747,7 +8773,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x52
 	.4byte	.LVL142-1
-	.4byte	.LFE226
+	.4byte	.LFE232
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -8771,13 +8797,19 @@ __func__.9395:
 	.byte	0xea
 	.byte	0x9f
 	.4byte	.LVL140
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x3
 	.byte	0x9
 	.byte	0xea
 	.byte	0x9f
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x3
+	.byte	0x9
+	.byte	0xea
+	.byte	0x9f
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x3
 	.byte	0x9
 	.byte	0xea
@@ -8790,14 +8822,21 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x52
 	.4byte	.LVL142-1
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
 	.byte	0x53
 	.byte	0x9f
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x4
+	.byte	0xf3
+	.uleb128 0x1
+	.byte	0x53
+	.byte	0x9f
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -8807,12 +8846,17 @@ __func__.9395:
 	.4byte	0
 .LLST70:
 	.4byte	.LVL140
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 100
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x3
+	.byte	0x7d
+	.sleb128 100
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 100
@@ -8820,11 +8864,15 @@ __func__.9395:
 	.4byte	0
 .LLST71:
 	.4byte	.LVL140
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x1
 	.byte	0x56
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x1
+	.byte	0x56
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x1
 	.byte	0x56
 	.4byte	0
@@ -8835,11 +8883,15 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL141
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x1
 	.byte	0x54
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x1
+	.byte	0x54
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x1
 	.byte	0x54
 	.4byte	0
@@ -8850,7 +8902,11 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL144-1
-	.4byte	.LVL193
+	.4byte	.LVL166
+	.2byte	0x1
+	.byte	0x5a
+	.4byte	.LVL177
+	.4byte	.LVL209
 	.2byte	0x1
 	.byte	0x5a
 	.4byte	0
@@ -8865,108 +8921,129 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x51
 	.4byte	.LVL151-1
-	.4byte	.LVL155
+	.4byte	.LVL152
 	.2byte	0x1
 	.byte	0x58
-	.4byte	.LVL155
-	.4byte	.LVL156
+	.4byte	.LVL152
+	.4byte	.LVL153
 	.2byte	0x1
 	.byte	0x50
+	.4byte	.LVL153
+	.4byte	.LVL157
+	.2byte	0x1
+	.byte	0x58
 	.4byte	.LVL157
 	.4byte	.LVL158
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL158
-	.4byte	.LVL159-1
-	.2byte	0x1
-	.byte	0x51
-	.4byte	.LVL163
-	.4byte	.LVL164
-	.2byte	0x1
-	.byte	0x58
-	.4byte	.LVL166
-	.4byte	.LVL169
+	.4byte	.LVL159
+	.4byte	.LVL160
 	.2byte	0x1
 	.byte	0x50
+	.4byte	.LVL160
+	.4byte	.LVL161-1
+	.2byte	0x1
+	.byte	0x51
 	.4byte	.LVL177
 	.4byte	.LVL178
+	.2byte	0x1
+	.byte	0x58
+	.4byte	.LVL182
+	.4byte	.LVL185
+	.2byte	0x1
+	.byte	0x50
+	.4byte	.LVL185
+	.4byte	.LVL186-1
+	.2byte	0x1
+	.byte	0x53
+	.4byte	.LVL193
+	.4byte	.LVL194
 	.2byte	0x1
 	.byte	0x50
 	.4byte	0
 	.4byte	0
 .LLST75:
 	.4byte	.LVL140
-	.4byte	.LVL162
+	.4byte	.LVL165
 	.2byte	0x2
 	.byte	0x30
 	.byte	0x9f
-	.4byte	.LVL162
-	.4byte	.LVL163
+	.4byte	.LVL165
+	.4byte	.LVL166
 	.2byte	0x2
 	.byte	0x31
 	.byte	0x9f
-	.4byte	.LVL163
-	.4byte	.LVL164
+	.4byte	.LVL177
+	.4byte	.LVL179
 	.2byte	0x2
 	.byte	0x30
 	.byte	0x9f
-	.4byte	.LVL164
-	.4byte	.LVL193
+	.4byte	.LVL179
+	.4byte	.LVL180
+	.2byte	0x2
+	.byte	0x31
+	.byte	0x9f
+	.4byte	.LVL180
+	.4byte	.LVL209
 	.2byte	0x1
 	.byte	0x58
 	.4byte	0
 	.4byte	0
 .LLST76:
 	.4byte	.LVL140
-	.4byte	.LVL153
+	.4byte	.LVL155
 	.2byte	0x3
 	.byte	0x9
 	.byte	0xff
 	.byte	0x9f
-	.4byte	.LVL153
-	.4byte	.LVL154
+	.4byte	.LVL155
+	.4byte	.LVL156
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL154
-	.4byte	.LVL159
-	.2byte	0x1
-	.byte	0x5b
-	.4byte	.LVL160
+	.4byte	.LVL156
 	.4byte	.LVL161
-	.2byte	0x1
-	.byte	0x50
-	.4byte	.LVL161
-	.4byte	.LVL162
 	.2byte	0x1
 	.byte	0x5b
 	.4byte	.LVL162
-	.4byte	.LVL165
+	.4byte	.LVL163
 	.2byte	0x1
 	.byte	0x50
+	.4byte	.LVL163
 	.4byte	.LVL165
-	.4byte	.LVL166-1
+	.2byte	0x1
+	.byte	0x5b
+	.4byte	.LVL165
+	.4byte	.LVL166
+	.2byte	0x1
+	.byte	0x50
+	.4byte	.LVL177
+	.4byte	.LVL181
+	.2byte	0x1
+	.byte	0x50
+	.4byte	.LVL181
+	.4byte	.LVL182-1
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 0
-	.4byte	.LVL166-1
-	.4byte	.LVL171
+	.4byte	.LVL182-1
+	.4byte	.LVL187
 	.2byte	0x1
 	.byte	0x5b
-	.4byte	.LVL172
-	.4byte	.LVL175
+	.4byte	.LVL188
+	.4byte	.LVL191
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL175
-	.4byte	.LVL176-1
+	.4byte	.LVL191
+	.4byte	.LVL192-1
 	.2byte	0x1
 	.byte	0x51
-	.4byte	.LVL176-1
-	.4byte	.LVL180
+	.4byte	.LVL192-1
+	.4byte	.LVL196
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 96
-	.4byte	.LVL192
-	.4byte	.LVL193
+	.4byte	.LVL208
+	.4byte	.LVL209
 	.2byte	0x1
 	.byte	0x50
 	.4byte	0
@@ -8977,11 +9054,15 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL143-1
-	.4byte	.LVL193
+	.4byte	.LVL166
 	.2byte	0x1
 	.byte	0x55
-	.4byte	.LVL240
-	.4byte	.LVL241
+	.4byte	.LVL177
+	.4byte	.LVL209
+	.2byte	0x1
+	.byte	0x55
+	.4byte	.LVL245
+	.4byte	.LVL246
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
@@ -9006,18 +9087,18 @@ __func__.9395:
 	.4byte	0
 	.4byte	0
 .LLST79:
-	.4byte	.LVL167
-	.4byte	.LVL168
+	.4byte	.LVL183
+	.4byte	.LVL184
 	.2byte	0x3
 	.byte	0x74
 	.sleb128 4
 	.byte	0x9f
-	.4byte	.LVL168
-	.4byte	.LVL170-1
+	.4byte	.LVL184
+	.4byte	.LVL186-1
 	.2byte	0x1
 	.byte	0x52
-	.4byte	.LVL170-1
-	.4byte	.LVL170
+	.4byte	.LVL186-1
+	.4byte	.LVL186
 	.2byte	0x3
 	.byte	0x74
 	.sleb128 4
@@ -9025,32 +9106,32 @@ __func__.9395:
 	.4byte	0
 	.4byte	0
 .LLST80:
-	.4byte	.LVL167
-	.4byte	.LVL170
+	.4byte	.LVL183
+	.4byte	.LVL186
 	.2byte	0x1
 	.byte	0x5b
 	.4byte	0
 	.4byte	0
 .LLST81:
-	.4byte	.LVL167
-	.4byte	.LVL170
+	.4byte	.LVL183
+	.4byte	.LVL186
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
 	.4byte	0
 .LLST82:
-	.4byte	.LVL173
-	.4byte	.LVL174
+	.4byte	.LVL189
+	.4byte	.LVL190
 	.2byte	0x4
 	.byte	0x7d
 	.sleb128 104
 	.byte	0x9f
-	.4byte	.LVL174
-	.4byte	.LVL176-1
+	.4byte	.LVL190
+	.4byte	.LVL192-1
 	.2byte	0x1
 	.byte	0x52
-	.4byte	.LVL176-1
-	.4byte	.LVL176
+	.4byte	.LVL192-1
+	.4byte	.LVL192
 	.2byte	0x4
 	.byte	0x7d
 	.sleb128 104
@@ -9058,35 +9139,35 @@ __func__.9395:
 	.4byte	0
 	.4byte	0
 .LLST83:
-	.4byte	.LVL173
-	.4byte	.LVL175
+	.4byte	.LVL189
+	.4byte	.LVL191
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL175
-	.4byte	.LVL176-1
+	.4byte	.LVL191
+	.4byte	.LVL192-1
 	.2byte	0x1
 	.byte	0x51
-	.4byte	.LVL176-1
-	.4byte	.LVL176
+	.4byte	.LVL192-1
+	.4byte	.LVL192
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 96
 	.4byte	0
 	.4byte	0
 .LLST84:
-	.4byte	.LVL173
-	.4byte	.LVL176
+	.4byte	.LVL189
+	.4byte	.LVL192
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
 	.4byte	0
 .LLST85:
-	.4byte	.LVL181
-	.4byte	.LVL186
+	.4byte	.LVL197
+	.4byte	.LVL202
 	.2byte	0x1
 	.byte	0x5b
-	.4byte	.LVL186
-	.4byte	.LVL190
+	.4byte	.LVL202
+	.4byte	.LVL206
 	.2byte	0x4
 	.byte	0x7d
 	.sleb128 164
@@ -9094,269 +9175,269 @@ __func__.9395:
 	.4byte	0
 	.4byte	0
 .LLST86:
-	.4byte	.LVL181
-	.4byte	.LVL182
+	.4byte	.LVL197
+	.4byte	.LVL198
 	.2byte	0x1
 	.byte	0x53
-	.4byte	.LVL182
-	.4byte	.LVL190
+	.4byte	.LVL198
+	.4byte	.LVL206
 	.2byte	0x3
 	.byte	0x7d
 	.sleb128 96
 	.4byte	0
 	.4byte	0
 .LLST87:
-	.4byte	.LVL181
-	.4byte	.LVL190
+	.4byte	.LVL197
+	.4byte	.LVL206
 	.2byte	0x1
 	.byte	0x58
 	.4byte	0
 	.4byte	0
 .LLST88:
-	.4byte	.LVL181
-	.4byte	.LVL190
+	.4byte	.LVL197
+	.4byte	.LVL206
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
 	.4byte	0
 .LLST89:
-	.4byte	.LVL181
-	.4byte	.LVL183
+	.4byte	.LVL197
+	.4byte	.LVL199
 	.2byte	0x2
 	.byte	0x30
 	.byte	0x9f
-	.4byte	.LVL183
-	.4byte	.LVL184
+	.4byte	.LVL199
+	.4byte	.LVL200
 	.2byte	0x1
 	.byte	0x50
 	.4byte	0
 	.4byte	0
 .LLST90:
-	.4byte	.LVL186
-	.4byte	.LVL187
+	.4byte	.LVL202
+	.4byte	.LVL203
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL187
-	.4byte	.LVL188-1
+	.4byte	.LVL203
+	.4byte	.LVL204-1
 	.2byte	0x1
 	.byte	0x51
-	.4byte	.LVL188-1
-	.4byte	.LVL190
+	.4byte	.LVL204-1
+	.4byte	.LVL206
 	.2byte	0x1
 	.byte	0x5b
 	.4byte	0
 	.4byte	0
 .LLST91:
-	.4byte	.LVL193
-	.4byte	.LVL203
+	.4byte	.LVL166
+	.4byte	.LVL176
 	.2byte	0x1
 	.byte	0x56
-	.4byte	.LVL204
-	.4byte	.LVL240
+	.4byte	.LVL209
+	.4byte	.LVL245
 	.2byte	0x1
 	.byte	0x56
 	.4byte	0
 	.4byte	0
 .LLST92:
-	.4byte	.LVL193
-	.4byte	.LVL203
+	.4byte	.LVL166
+	.4byte	.LVL176
 	.2byte	0x1
 	.byte	0x54
-	.4byte	.LVL204
-	.4byte	.LVL240
+	.4byte	.LVL209
+	.4byte	.LVL245
 	.2byte	0x1
 	.byte	0x54
 	.4byte	0
 	.4byte	0
 .LLST94:
-	.4byte	.LVL196
-	.4byte	.LVL202
+	.4byte	.LVL169
+	.4byte	.LVL175
 	.2byte	0x2
 	.byte	0x78
 	.sleb128 0
-	.4byte	.LVL202
-	.4byte	.LVL203
+	.4byte	.LVL175
+	.4byte	.LVL176
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 16
-	.4byte	.LVL204
-	.4byte	.LVL211
+	.4byte	.LVL209
+	.4byte	.LVL216
 	.2byte	0x2
 	.byte	0x78
 	.sleb128 0
-	.4byte	.LVL211
-	.4byte	.LVL237
+	.4byte	.LVL216
+	.4byte	.LVL242
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 16
-	.4byte	.LVL237
-	.4byte	.LVL238
+	.4byte	.LVL242
+	.4byte	.LVL243
 	.2byte	0x2
 	.byte	0x78
 	.sleb128 0
-	.4byte	.LVL238
-	.4byte	.LVL240
+	.4byte	.LVL243
+	.4byte	.LVL245
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 16
 	.4byte	0
 	.4byte	0
 .LLST95:
-	.4byte	.LVL224
-	.4byte	.LVL225
+	.4byte	.LVL229
+	.4byte	.LVL230
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL239
-	.4byte	.LVL240
+	.4byte	.LVL244
+	.4byte	.LVL245
 	.2byte	0x1
 	.byte	0x50
 	.4byte	0
 	.4byte	0
 .LLST96:
-	.4byte	.LVL205
-	.4byte	.LVL206
+	.4byte	.LVL210
+	.4byte	.LVL211
 	.2byte	0x1
 	.byte	0x53
-	.4byte	.LVL206
-	.4byte	.LVL218
+	.4byte	.LVL211
+	.4byte	.LVL223
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
-	.4byte	.LVL221
-	.4byte	.LVL225
+	.4byte	.LVL226
+	.4byte	.LVL230
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
-	.4byte	.LVL237
-	.4byte	.LVL240
+	.4byte	.LVL242
+	.4byte	.LVL245
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
 	.4byte	0
 	.4byte	0
 .LLST97:
-	.4byte	.LVL226
-	.4byte	.LVL227
+	.4byte	.LVL231
+	.4byte	.LVL232
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL227
-	.4byte	.LVL228-1
+	.4byte	.LVL232
+	.4byte	.LVL233-1
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 0
 	.4byte	0
 	.4byte	0
 .LLST98:
-	.4byte	.LVL217
-	.4byte	.LVL219
+	.4byte	.LVL222
+	.4byte	.LVL224
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL219
-	.4byte	.LVL220-1
+	.4byte	.LVL224
+	.4byte	.LVL225-1
 	.2byte	0x1
 	.byte	0x51
-	.4byte	.LVL220-1
-	.4byte	.LVL221
+	.4byte	.LVL225-1
+	.4byte	.LVL226
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 84
-	.4byte	.LVL221
-	.4byte	.LVL222
+	.4byte	.LVL226
+	.4byte	.LVL227
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL222
-	.4byte	.LVL225
+	.4byte	.LVL227
+	.4byte	.LVL230
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 72
-	.4byte	.LVL228
-	.4byte	.LVL229
+	.4byte	.LVL233
+	.4byte	.LVL234
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL229
-	.4byte	.LVL230-1
+	.4byte	.LVL234
+	.4byte	.LVL235-1
 	.2byte	0x1
 	.byte	0x53
-	.4byte	.LVL239
-	.4byte	.LVL240
+	.4byte	.LVL244
+	.4byte	.LVL245
 	.2byte	0x3
 	.byte	0x77
 	.sleb128 72
 	.4byte	0
 	.4byte	0
 .LLST99:
-	.4byte	.LVL225
-	.4byte	.LVL234
+	.4byte	.LVL230
+	.4byte	.LVL239
 	.2byte	0x1
 	.byte	0x55
-	.4byte	.LVL235
-	.4byte	.LVL237
+	.4byte	.LVL240
+	.4byte	.LVL242
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
 	.4byte	0
 .LLST100:
-	.4byte	.LVL210
-	.4byte	.LVL212-1
+	.4byte	.LVL215
+	.4byte	.LVL217-1
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL212-1
-	.4byte	.LVL234
-	.2byte	0x1
-	.byte	0x58
-	.4byte	.LVL235
-	.4byte	.LVL237
-	.2byte	0x1
-	.byte	0x58
-	.4byte	.LVL238
+	.4byte	.LVL217-1
 	.4byte	.LVL239
 	.2byte	0x1
-	.byte	0x50
-	.4byte	.LVL239
+	.byte	0x58
 	.4byte	.LVL240
+	.4byte	.LVL242
+	.2byte	0x1
+	.byte	0x58
+	.4byte	.LVL243
+	.4byte	.LVL244
+	.2byte	0x1
+	.byte	0x50
+	.4byte	.LVL244
+	.4byte	.LVL245
 	.2byte	0x1
 	.byte	0x58
 	.4byte	0
 	.4byte	0
 .LLST101:
-	.4byte	.LVL197
-	.4byte	.LVL198
+	.4byte	.LVL170
+	.4byte	.LVL171
 	.2byte	0x6
 	.byte	0x3
 	.4byte	.LC14
 	.byte	0x9f
-	.4byte	.LVL198
-	.4byte	.LVL199
+	.4byte	.LVL171
+	.4byte	.LVL172
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL199
-	.4byte	.LVL200-1
+	.4byte	.LVL172
+	.4byte	.LVL173-1
 	.2byte	0x1
 	.byte	0x51
 	.4byte	0
 	.4byte	0
 .LLST102:
-	.4byte	.LVL212
-	.4byte	.LVL213
+	.4byte	.LVL217
+	.4byte	.LVL218
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL213
-	.4byte	.LVL214-1
+	.4byte	.LVL218
+	.4byte	.LVL219-1
 	.2byte	0x1
 	.byte	0x51
-	.4byte	.LVL215
-	.4byte	.LVL216
+	.4byte	.LVL220
+	.4byte	.LVL221
 	.2byte	0x1
 	.byte	0x50
-	.4byte	.LVL216
-	.4byte	.LVL217-1
+	.4byte	.LVL221
+	.4byte	.LVL222-1
 	.2byte	0x1
 	.byte	0x51
 	.4byte	0
 	.4byte	0
 .LLST93:
-	.4byte	.LVL194
-	.4byte	.LVL198-1
+	.4byte	.LVL167
+	.4byte	.LVL171-1
 	.2byte	0x6
 	.byte	0x76
 	.sleb128 8
@@ -9372,7 +9453,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL129
-	.4byte	.LFE223
+	.4byte	.LFE229
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9390,7 +9471,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x54
 	.4byte	.LVL117
-	.4byte	.LFE222
+	.4byte	.LFE228
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9408,7 +9489,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x55
 	.4byte	.LVL117
-	.4byte	.LFE222
+	.4byte	.LFE228
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9422,7 +9503,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x52
 	.4byte	.LVL106
-	.4byte	.LFE222
+	.4byte	.LFE228
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9436,7 +9517,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x53
 	.4byte	.LVL110
-	.4byte	.LFE222
+	.4byte	.LFE228
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9554,7 +9635,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL127
-	.4byte	.LFE221
+	.4byte	.LFE227
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9572,7 +9653,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x54
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9590,7 +9671,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x56
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9608,7 +9689,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x57
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9626,7 +9707,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x55
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9641,7 +9722,7 @@ __func__.9395:
 	.byte	0x91
 	.sleb128 0
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 0
@@ -9654,7 +9735,7 @@ __func__.9395:
 	.byte	0x91
 	.sleb128 4
 	.4byte	.LVL104
-	.4byte	.LFE218
+	.4byte	.LFE224
 	.2byte	0x2
 	.byte	0x7d
 	.sleb128 4
@@ -9685,7 +9766,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL43
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x1
 	.byte	0x58
 	.4byte	0
@@ -9696,7 +9777,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x51
 	.4byte	.LVL42
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x3
 	.byte	0x91
 	.sleb128 -68
@@ -9724,7 +9805,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL86-1
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x1
 	.byte	0x54
 	.4byte	0
@@ -9772,7 +9853,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x57
 	.4byte	.LVL92
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -9787,7 +9868,7 @@ __func__.9395:
 	.byte	0x91
 	.sleb128 0
 	.4byte	.LVL68
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x2
 	.byte	0x91
 	.sleb128 0
@@ -9800,7 +9881,7 @@ __func__.9395:
 	.byte	0x91
 	.sleb128 4
 	.4byte	.LVL68
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x2
 	.byte	0x91
 	.sleb128 4
@@ -9917,7 +9998,7 @@ __func__.9395:
 	.byte	0x30
 	.byte	0x9f
 	.4byte	.LVL90
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x2
 	.byte	0x30
 	.byte	0x9f
@@ -9929,7 +10010,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x53
 	.4byte	.LVL45-1
-	.4byte	.LFE217
+	.4byte	.LFE223
 	.2byte	0x3
 	.byte	0x91
 	.sleb128 -76
@@ -10059,7 +10140,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL34-1
-	.4byte	.LFE213
+	.4byte	.LFE219
 	.2byte	0x1
 	.byte	0x54
 	.4byte	0
@@ -10070,7 +10151,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x51
 	.4byte	.LVL31
-	.4byte	.LFE213
+	.4byte	.LFE219
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
@@ -10085,7 +10166,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x51
 	.4byte	.LVL34-1
-	.4byte	.LFE213
+	.4byte	.LFE219
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10103,7 +10184,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x52
 	.4byte	.LVL34-1
-	.4byte	.LFE213
+	.4byte	.LFE219
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10131,7 +10212,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL123
-	.4byte	.LFE209
+	.4byte	.LFE215
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10145,7 +10226,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL121
-	.4byte	.LFE208
+	.4byte	.LFE214
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10159,7 +10240,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL119
-	.4byte	.LFE207
+	.4byte	.LFE213
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10188,7 +10269,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x55
 	.4byte	.LVL19
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10213,7 +10294,7 @@ __func__.9395:
 	.byte	0x51
 	.byte	0x9f
 	.4byte	.LVL16
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x1
 	.byte	0x58
 	.4byte	0
@@ -10235,7 +10316,7 @@ __func__.9395:
 	.byte	0x52
 	.byte	0x9f
 	.4byte	.LVL16
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x1
 	.byte	0x57
 	.4byte	0
@@ -10257,7 +10338,7 @@ __func__.9395:
 	.byte	0x53
 	.byte	0x9f
 	.4byte	.LVL16
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x1
 	.byte	0x56
 	.4byte	0
@@ -10284,7 +10365,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL28
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x1
 	.byte	0x55
 	.4byte	0
@@ -10305,7 +10386,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL28
-	.4byte	.LFE227
+	.4byte	.LFE233
 	.2byte	0x1
 	.byte	0x50
 	.4byte	0
@@ -10377,7 +10458,7 @@ __func__.9395:
 	.2byte	0x1
 	.byte	0x50
 	.4byte	.LVL125
-	.4byte	.LFE211
+	.4byte	.LFE217
 	.2byte	0x4
 	.byte	0xf3
 	.uleb128 0x1
@@ -10393,30 +10474,30 @@ __func__.9395:
 	.byte	0
 	.2byte	0
 	.2byte	0
-	.4byte	.LFB227
-	.4byte	.LFE227-.LFB227
-	.4byte	.LFB213
-	.4byte	.LFE213-.LFB213
-	.4byte	.LFB217
-	.4byte	.LFE217-.LFB217
-	.4byte	.LFB218
-	.4byte	.LFE218-.LFB218
-	.4byte	.LFB222
-	.4byte	.LFE222-.LFB222
-	.4byte	.LFB207
-	.4byte	.LFE207-.LFB207
-	.4byte	.LFB208
-	.4byte	.LFE208-.LFB208
-	.4byte	.LFB209
-	.4byte	.LFE209-.LFB209
-	.4byte	.LFB211
-	.4byte	.LFE211-.LFB211
-	.4byte	.LFB221
-	.4byte	.LFE221-.LFB221
+	.4byte	.LFB233
+	.4byte	.LFE233-.LFB233
+	.4byte	.LFB219
+	.4byte	.LFE219-.LFB219
 	.4byte	.LFB223
 	.4byte	.LFE223-.LFB223
-	.4byte	.LFB226
-	.4byte	.LFE226-.LFB226
+	.4byte	.LFB224
+	.4byte	.LFE224-.LFB224
+	.4byte	.LFB228
+	.4byte	.LFE228-.LFB228
+	.4byte	.LFB213
+	.4byte	.LFE213-.LFB213
+	.4byte	.LFB214
+	.4byte	.LFE214-.LFB214
+	.4byte	.LFB215
+	.4byte	.LFE215-.LFB215
+	.4byte	.LFB217
+	.4byte	.LFE217-.LFB217
+	.4byte	.LFB227
+	.4byte	.LFE227-.LFB227
+	.4byte	.LFB229
+	.4byte	.LFE229-.LFB229
+	.4byte	.LFB232
+	.4byte	.LFE232-.LFB232
 	.4byte	0
 	.4byte	0
 	.section	.debug_ranges,"",%progbits
@@ -10445,805 +10526,163 @@ __func__.9395:
 	.4byte	0
 	.4byte	.LBB84
 	.4byte	.LBE84
-	.4byte	.LBB95
-	.4byte	.LBE95
-	.4byte	.LBB104
-	.4byte	.LBE104
-	.4byte	0
-	.4byte	0
 	.4byte	.LBB96
 	.4byte	.LBE96
 	.4byte	.LBB102
 	.4byte	.LBE102
+	.4byte	.LBB104
+	.4byte	.LBE104
+	.4byte	0
+	.4byte	0
+	.4byte	.LBB97
+	.4byte	.LBE97
 	.4byte	.LBB103
 	.4byte	.LBE103
 	.4byte	0
 	.4byte	0
-	.4byte	.LBB98
-	.4byte	.LBE98
 	.4byte	.LBB99
 	.4byte	.LBE99
+	.4byte	.LBB100
+	.4byte	.LBE100
 	.4byte	0
 	.4byte	0
-	.4byte	.LFB227
-	.4byte	.LFE227
-	.4byte	.LFB213
-	.4byte	.LFE213
-	.4byte	.LFB217
-	.4byte	.LFE217
-	.4byte	.LFB218
-	.4byte	.LFE218
-	.4byte	.LFB222
-	.4byte	.LFE222
-	.4byte	.LFB207
-	.4byte	.LFE207
-	.4byte	.LFB208
-	.4byte	.LFE208
-	.4byte	.LFB209
-	.4byte	.LFE209
-	.4byte	.LFB211
-	.4byte	.LFE211
-	.4byte	.LFB221
-	.4byte	.LFE221
+	.4byte	.LFB233
+	.4byte	.LFE233
+	.4byte	.LFB219
+	.4byte	.LFE219
 	.4byte	.LFB223
 	.4byte	.LFE223
-	.4byte	.LFB226
-	.4byte	.LFE226
+	.4byte	.LFB224
+	.4byte	.LFE224
+	.4byte	.LFB228
+	.4byte	.LFE228
+	.4byte	.LFB213
+	.4byte	.LFE213
+	.4byte	.LFB214
+	.4byte	.LFE214
+	.4byte	.LFB215
+	.4byte	.LFE215
+	.4byte	.LFB217
+	.4byte	.LFE217
+	.4byte	.LFB227
+	.4byte	.LFE227
+	.4byte	.LFB229
+	.4byte	.LFE229
+	.4byte	.LFB232
+	.4byte	.LFE232
 	.4byte	0
 	.4byte	0
 	.section	.debug_line,"",%progbits
 .Ldebug_line0:
 	.section	.debug_str,"MS",%progbits,1
-.LASF401:
-	.ascii	"memalign_simple\000"
-.LASF351:
-	.ascii	"blob\000"
-.LASF132:
-	.ascii	"off_mem_rsvmap\000"
-.LASF203:
-	.ascii	"IH_COMP_GZIP\000"
-.LASF18:
-	.ascii	"size_t\000"
-.LASF252:
-	.ascii	"initrd_start\000"
-.LASF13:
-	.ascii	"sizetype\000"
-.LASF286:
-	.ascii	"net_hostname\000"
-.LASF77:
-	.ascii	"start\000"
-.LASF158:
-	.ascii	"IH_OS_ARTOS\000"
-.LASF306:
-	.ascii	"NETLOOP_RESTART\000"
-.LASF48:
-	.ascii	"IF_TYPE_MTD\000"
-.LASF418:
-	.ascii	"fdt_bootargs_append_ab\000"
-.LASF393:
-	.ascii	"fdt_shrink_to_minimum\000"
-.LASF380:
-	.ascii	"fit_get_name\000"
-.LASF211:
-	.ascii	"ih_magic\000"
-.LASF333:
-	.ascii	"__func__\000"
-.LASF37:
-	.ascii	"IF_TYPE_DOC\000"
-.LASF59:
-	.ascii	"part_type\000"
-.LASF112:
-	.ascii	"bi_intfreq\000"
-.LASF185:
-	.ascii	"IH_TYPE_ATMELIMAGE\000"
-.LASF11:
-	.ascii	"phys_addr_t\000"
-.LASF262:
-	.ascii	"monitor_flash_len\000"
-.LASF5:
-	.ascii	"__u8\000"
-.LASF67:
-	.ascii	"vendor\000"
-.LASF305:
-	.ascii	"NETLOOP_CONTINUE\000"
-.LASF88:
-	.ascii	"flash_info_t\000"
-.LASF228:
-	.ascii	"comp\000"
-.LASF223:
-	.ascii	"image_header_t\000"
-.LASF257:
-	.ascii	"state\000"
-.LASF344:
-	.ascii	"align_len\000"
-.LASF106:
-	.ascii	"bi_dsp_freq\000"
-.LASF225:
-	.ascii	"image_start\000"
-.LASF339:
-	.ascii	"part_name\000"
-.LASF336:
-	.ascii	"spl_internal_load_simple_fit\000"
-.LASF204:
-	.ascii	"IH_COMP_BZIP2\000"
-.LASF142:
-	.ascii	"IH_OS_FREEBSD\000"
-.LASF62:
-	.ascii	"type\000"
-.LASF50:
-	.ascii	"if_type\000"
-.LASF215:
-	.ascii	"ih_load\000"
-.LASF176:
-	.ascii	"IH_TYPE_KWBIMAGE\000"
-.LASF26:
-	.ascii	"efi_guid_t\000"
-.LASF264:
-	.ascii	"__dtb_dt_spl_begin\000"
-.LASF334:
-	.ascii	"conf_noffset\000"
-.LASF145:
-	.ascii	"IH_OS_SVR4\000"
-.LASF7:
-	.ascii	"__u32\000"
-.LASF280:
-	.ascii	"priv\000"
-.LASF184:
-	.ascii	"IH_TYPE_GPIMAGE\000"
-.LASF70:
-	.ascii	"bdev\000"
-.LASF291:
-	.ascii	"net_server_ip\000"
-.LASF209:
-	.ascii	"IH_COMP_COUNT\000"
-.LASF299:
-	.ascii	"net_native_vlan\000"
-.LASF63:
-	.ascii	"removable\000"
-.LASF385:
-	.ascii	"fdt_getprop\000"
-.LASF24:
-	.ascii	"errno\000"
 .LASF15:
 	.ascii	"long int\000"
-.LASF101:
-	.ascii	"bi_flashsize\000"
-.LASF146:
-	.ascii	"IH_OS_ESIX\000"
-.LASF172:
-	.ascii	"IH_TYPE_FIRMWARE\000"
-.LASF413:
-	.ascii	"strchr\000"
-.LASF253:
-	.ascii	"initrd_end\000"
-.LASF125:
-	.ascii	"IRQ_STACK_START_IN\000"
-.LASF136:
-	.ascii	"size_dt_strings\000"
-.LASF406:
-	.ascii	"puts\000"
-.LASF382:
-	.ascii	"image_get_magic\000"
-.LASF383:
-	.ascii	"__fswab32\000"
 .LASF416:
 	.ascii	"/home/zzz/code/u-boot\000"
-.LASF302:
-	.ascii	"net_boot_file_size\000"
-.LASF363:
-	.ascii	"data\000"
-.LASF292:
-	.ascii	"net_tx_packet\000"
-.LASF167:
-	.ascii	"IH_TYPE_INVALID\000"
-.LASF217:
-	.ascii	"ih_dcrc\000"
-.LASF111:
-	.ascii	"bi_ethspeed\000"
-.LASF66:
-	.ascii	"log2blksz\000"
-.LASF41:
-	.ascii	"IF_TYPE_HOST\000"
-.LASF71:
-	.ascii	"ide_bus_offset\000"
-.LASF370:
-	.ascii	"spl_fit_get_image_node\000"
-.LASF289:
-	.ascii	"net_server_ethaddr\000"
-.LASF114:
-	.ascii	"bi_arch_number\000"
-.LASF268:
-	.ascii	"in_addr\000"
-.LASF3:
-	.ascii	"signed char\000"
-.LASF21:
-	.ascii	"uint8_t\000"
-.LASF400:
-	.ascii	"fit_image_get_data_size\000"
-.LASF86:
-	.ascii	"udevice\000"
-.LASF404:
-	.ascii	"fit_image_verify_with_data\000"
-.LASF219:
-	.ascii	"ih_arch\000"
-.LASF129:
-	.ascii	"totalsize\000"
-.LASF212:
-	.ascii	"ih_hcrc\000"
-.LASF318:
-	.ascii	"fdt_addr\000"
-.LASF193:
-	.ascii	"IH_TYPE_ZYNQIMAGE\000"
-.LASF91:
-	.ascii	"lmb_property\000"
-.LASF134:
-	.ascii	"last_comp_version\000"
-.LASF0:
-	.ascii	"unsigned char\000"
-.LASF116:
-	.ascii	"bi_andr_version\000"
-.LASF45:
-	.ascii	"IF_TYPE_SPINAND\000"
-.LASF259:
-	.ascii	"images\000"
-.LASF381:
-	.ascii	"fit_hdr\000"
-.LASF179:
-	.ascii	"IH_TYPE_OMAPIMAGE\000"
-.LASF53:
-	.ascii	"SIG_TYPE_MBR\000"
-.LASF107:
-	.ascii	"bi_ddr_freq\000"
-.LASF214:
-	.ascii	"ih_size\000"
-.LASF377:
-	.ascii	"partition\000"
-.LASF330:
-	.ascii	"fit_header\000"
-.LASF27:
-	.ascii	"_Bool\000"
-.LASF52:
-	.ascii	"SIG_TYPE_NONE\000"
-.LASF190:
-	.ascii	"IH_TYPE_RKIMAGE\000"
-.LASF195:
-	.ascii	"IH_TYPE_FPGA\000"
-.LASF14:
-	.ascii	"char\000"
-.LASF29:
-	.ascii	"_binary_u_boot_bin_start\000"
-.LASF307:
-	.ascii	"NETLOOP_SUCCESS\000"
-.LASF141:
-	.ascii	"IH_OS_NETBSD\000"
-.LASF74:
-	.ascii	"name\000"
-.LASF304:
-	.ascii	"net_loop_state\000"
-.LASF97:
-	.ascii	"bd_info\000"
-.LASF58:
-	.ascii	"devnum\000"
-.LASF198:
-	.ascii	"IH_TYPE_FIRMWARE_IVT\000"
-.LASF271:
-	.ascii	"enetaddr\000"
-.LASF412:
-	.ascii	"fdt_next_subnode\000"
-.LASF324:
-	.ascii	"filename\000"
-.LASF242:
-	.ascii	"fit_hdr_fdt\000"
-.LASF300:
-	.ascii	"net_restart_wrap\000"
-.LASF329:
-	.ascii	"sector_offs\000"
-.LASF288:
-	.ascii	"net_ethaddr\000"
-.LASF51:
-	.ascii	"sig_type\000"
-.LASF319:
-	.ascii	"boot_device\000"
-.LASF157:
-	.ascii	"IH_OS_RTEMS\000"
-.LASF321:
-	.ascii	"flags\000"
-.LASF220:
-	.ascii	"ih_type\000"
-.LASF189:
-	.ascii	"IH_TYPE_LOADABLE\000"
-.LASF130:
-	.ascii	"off_dt_struct\000"
-.LASF102:
-	.ascii	"bi_flashoffset\000"
-.LASF301:
-	.ascii	"net_boot_file_name\000"
-.LASF391:
-	.ascii	"strcmp\000"
-.LASF213:
-	.ascii	"ih_time\000"
-.LASF332:
-	.ascii	"node\000"
-.LASF34:
-	.ascii	"IF_TYPE_SCSI\000"
-.LASF378:
-	.ascii	"mtd_part_parse\000"
-.LASF314:
-	.ascii	"__bss_end\000"
-.LASF229:
-	.ascii	"arch\000"
-.LASF65:
-	.ascii	"blksz\000"
-.LASF75:
-	.ascii	"select_hwpart\000"
-.LASF293:
-	.ascii	"net_rx_packets\000"
-.LASF310:
-	.ascii	"mem_malloc_start\000"
-.LASF372:
-	.ascii	"outname\000"
-.LASF124:
-	.ascii	"_datarelro_start_ofs\000"
-.LASF20:
-	.ascii	"ulong\000"
-.LASF216:
-	.ascii	"ih_ep\000"
-.LASF93:
-	.ascii	"lmb_region\000"
-.LASF369:
-	.ascii	"get_aligned_image_offset\000"
-.LASF173:
-	.ascii	"IH_TYPE_SCRIPT\000"
-.LASF387:
-	.ascii	"printf\000"
-.LASF182:
-	.ascii	"IH_TYPE_PBLIMAGE\000"
-.LASF237:
-	.ascii	"fit_uname_os\000"
-.LASF108:
-	.ascii	"bi_bootflags\000"
-.LASF290:
-	.ascii	"net_ip\000"
-.LASF47:
-	.ascii	"IF_TYPE_RAMDISK\000"
-.LASF166:
-	.ascii	"IH_OS_COUNT\000"
-.LASF284:
-	.ascii	"net_dns_server\000"
-.LASF313:
-	.ascii	"__bss_start\000"
-.LASF39:
-	.ascii	"IF_TYPE_SD\000"
-.LASF95:
-	.ascii	"memory\000"
-.LASF181:
-	.ascii	"IH_TYPE_KERNEL_NOLOAD\000"
-.LASF127:
-	.ascii	"fdt_header\000"
-.LASF403:
-	.ascii	"fdt_getprop_u32\000"
-.LASF311:
-	.ascii	"mem_malloc_end\000"
-.LASF410:
-	.ascii	"fit_find_config_node\000"
-.LASF249:
-	.ascii	"rd_end\000"
-.LASF347:
-	.ascii	"spl_fit_standalone_release\000"
-.LASF254:
-	.ascii	"cmdline_start\000"
-.LASF279:
-	.ascii	"index\000"
-.LASF361:
-	.ascii	"nr_sectors\000"
-.LASF235:
-	.ascii	"fit_uname_cfg\000"
-.LASF79:
-	.ascii	"bootable\000"
-.LASF1:
-	.ascii	"long unsigned int\000"
-.LASF174:
-	.ascii	"IH_TYPE_FILESYSTEM\000"
-.LASF285:
-	.ascii	"net_nis_domain\000"
-.LASF244:
-	.ascii	"fit_noffset_fdt\000"
-.LASF323:
-	.ascii	"bl_len\000"
-.LASF60:
-	.ascii	"target\000"
-.LASF161:
-	.ascii	"IH_OS_OSE\000"
-.LASF350:
-	.ascii	"spl_fit_record_loadable\000"
-.LASF389:
-	.ascii	"fit_board_verify_required_sigs\000"
-.LASF308:
-	.ascii	"NETLOOP_FAIL\000"
-.LASF43:
-	.ascii	"IF_TYPE_NVME\000"
-.LASF320:
-	.ascii	"next_stage\000"
-.LASF103:
-	.ascii	"bi_sramstart\000"
-.LASF30:
-	.ascii	"_binary_u_boot_bin_end\000"
-.LASF135:
-	.ascii	"boot_cpuid_phys\000"
-.LASF240:
-	.ascii	"fit_uname_rd\000"
-.LASF17:
-	.ascii	"uintptr_t\000"
-.LASF208:
-	.ascii	"IH_COMP_ZIMAGE\000"
-.LASF349:
-	.ascii	"noffset\000"
-.LASF298:
-	.ascii	"net_our_vlan\000"
-.LASF384:
-	.ascii	"fit_image_get_os\000"
-.LASF230:
-	.ascii	"image_info_t\000"
-.LASF171:
-	.ascii	"IH_TYPE_MULTI\000"
-.LASF180:
-	.ascii	"IH_TYPE_AISIMAGE\000"
-.LASF346:
-	.ascii	"sectors\000"
-.LASF226:
-	.ascii	"image_len\000"
-.LASF109:
-	.ascii	"bi_ip_addr\000"
-.LASF139:
-	.ascii	"IH_OS_INVALID\000"
-.LASF202:
-	.ascii	"IH_COMP_NONE\000"
-.LASF143:
-	.ascii	"IH_OS_4_4BSD\000"
-.LASF188:
-	.ascii	"IH_TYPE_LPC32XXIMAGE\000"
-.LASF233:
-	.ascii	"legacy_hdr_os_copy\000"
-.LASF394:
-	.ascii	"fdt_get_name\000"
-.LASF261:
-	.ascii	"sha256_der_prefix\000"
-.LASF9:
-	.ascii	"long long int\000"
-.LASF200:
-	.ascii	"IH_TYPE_RKNAND\000"
-.LASF25:
-	.ascii	"___strtok\000"
-.LASF303:
-	.ascii	"net_boot_file_expected_size_in_blocks\000"
-.LASF16:
-	.ascii	"__kernel_size_t\000"
-.LASF231:
-	.ascii	"bootm_headers\000"
-.LASF85:
-	.ascii	"protect\000"
-.LASF82:
-	.ascii	"disk_partition_t\000"
-.LASF417:
-	.ascii	"fdt_bootargs_append\000"
-.LASF390:
-	.ascii	"fit_conf_get_node\000"
-.LASF297:
-	.ascii	"net_null_ethaddr\000"
-.LASF402:
-	.ascii	"fit_image_is_preload\000"
-.LASF371:
-	.ascii	"spl_fit_get_image_name\000"
-.LASF265:
-	.ascii	"load_addr\000"
-.LASF178:
-	.ascii	"IH_TYPE_UBLIMAGE\000"
-.LASF236:
-	.ascii	"fit_hdr_os\000"
-.LASF122:
-	.ascii	"_datarelrolocal_start_ofs\000"
-.LASF345:
-	.ascii	"count\000"
-.LASF186:
-	.ascii	"IH_TYPE_SOCFPGAIMAGE\000"
-.LASF388:
-	.ascii	"fdt_path_offset\000"
-.LASF325:
-	.ascii	"read\000"
-.LASF80:
-	.ascii	"uuid\000"
-.LASF8:
-	.ascii	"unsigned int\000"
-.LASF328:
-	.ascii	"sector\000"
-.LASF19:
-	.ascii	"ushort\000"
-.LASF270:
-	.ascii	"eth_device\000"
-.LASF309:
-	.ascii	"net_state\000"
-.LASF232:
-	.ascii	"legacy_hdr_os\000"
-.LASF131:
-	.ascii	"off_dt_strings\000"
-.LASF197:
-	.ascii	"IH_TYPE_TEE\000"
-.LASF187:
-	.ascii	"IH_TYPE_X86_SETUP\000"
-.LASF99:
-	.ascii	"bi_memsize\000"
-.LASF352:
-	.ascii	"image\000"
-.LASF358:
-	.ascii	"comp_addr\000"
-.LASF28:
-	.ascii	"image_base\000"
-.LASF36:
-	.ascii	"IF_TYPE_USB\000"
-.LASF277:
-	.ascii	"write_hwaddr\000"
-.LASF201:
-	.ascii	"IH_TYPE_COUNT\000"
-.LASF356:
-	.ascii	"offset\000"
-.LASF35:
-	.ascii	"IF_TYPE_ATAPI\000"
-.LASF386:
-	.ascii	"fdt_record_loadable\000"
-.LASF46:
-	.ascii	"IF_TYPE_SPINOR\000"
-.LASF156:
-	.ascii	"IH_OS_U_BOOT\000"
-.LASF81:
-	.ascii	"type_guid\000"
-.LASF258:
-	.ascii	"bootm_headers_t\000"
-.LASF105:
-	.ascii	"bi_arm_freq\000"
-.LASF275:
-	.ascii	"recv\000"
-.LASF239:
-	.ascii	"fit_hdr_rd\000"
-.LASF44:
-	.ascii	"IF_TYPE_RKNAND\000"
-.LASF104:
-	.ascii	"bi_sramsize\000"
-.LASF360:
-	.ascii	"overhead\000"
-.LASF90:
-	.ascii	"long double\000"
-.LASF248:
-	.ascii	"rd_start\000"
-.LASF64:
-	.ascii	"op_flag\000"
-.LASF68:
-	.ascii	"product\000"
-.LASF205:
-	.ascii	"IH_COMP_LZMA\000"
-.LASF267:
-	.ascii	"save_size\000"
-.LASF367:
-	.ascii	"data_size\000"
-.LASF327:
-	.ascii	"info\000"
-.LASF272:
-	.ascii	"iobase\000"
-.LASF121:
-	.ascii	"_datarel_start_ofs\000"
-.LASF57:
-	.ascii	"guid_sig\000"
-.LASF222:
-	.ascii	"ih_name\000"
-.LASF196:
-	.ascii	"IH_TYPE_VYBRIDIMAGE\000"
-.LASF218:
-	.ascii	"ih_os\000"
-.LASF255:
-	.ascii	"cmdline_end\000"
-.LASF294:
-	.ascii	"net_rx_packet\000"
-.LASF147:
-	.ascii	"IH_OS_SOLARIS\000"
-.LASF78:
-	.ascii	"size\000"
-.LASF69:
-	.ascii	"revision\000"
-.LASF10:
-	.ascii	"long long unsigned int\000"
-.LASF33:
-	.ascii	"IF_TYPE_IDE\000"
-.LASF210:
-	.ascii	"image_header\000"
-.LASF31:
-	.ascii	"lbaint_t\000"
-.LASF357:
-	.ascii	"length\000"
-.LASF23:
-	.ascii	"__be32\000"
-.LASF100:
-	.ascii	"bi_flashstart\000"
-.LASF238:
-	.ascii	"fit_noffset_os\000"
-.LASF151:
-	.ascii	"IH_OS_NCR\000"
-.LASF224:
-	.ascii	"image_info\000"
-.LASF405:
-	.ascii	"board_fit_image_post_process\000"
-.LASF163:
-	.ascii	"IH_OS_OPENRTOS\000"
-.LASF149:
-	.ascii	"IH_OS_SCO\000"
-.LASF191:
-	.ascii	"IH_TYPE_RKSD\000"
-.LASF315:
-	.ascii	"spl_image_info\000"
-.LASF338:
-	.ascii	"images_noffset\000"
-.LASF366:
-	.ascii	"get_aligned_image_size\000"
-.LASF362:
-	.ascii	"image_comp\000"
-.LASF42:
-	.ascii	"IF_TYPE_SYSTEMACE\000"
-.LASF322:
-	.ascii	"spl_load_info\000"
-.LASF415:
-	.ascii	"common/spl/spl_fit_tb_arm_v7.c\000"
-.LASF411:
-	.ascii	"fdt_first_subnode\000"
-.LASF49:
-	.ascii	"IF_TYPE_COUNT\000"
-.LASF89:
-	.ascii	"flash_info\000"
-.LASF133:
-	.ascii	"version\000"
-.LASF276:
-	.ascii	"halt\000"
-.LASF94:
-	.ascii	"region\000"
-.LASF137:
-	.ascii	"size_dt_struct\000"
-.LASF376:
-	.ascii	"dev_desc\000"
-.LASF335:
-	.ascii	"os_type\000"
-.LASF341:
-	.ascii	"desc\000"
-.LASF126:
-	.ascii	"fdt32_t\000"
-.LASF144:
-	.ascii	"IH_OS_LINUX\000"
-.LASF72:
-	.ascii	"blk_desc\000"
-.LASF331:
-	.ascii	"base_offset\000"
-.LASF110:
-	.ascii	"bi_enetaddr\000"
-.LASF87:
-	.ascii	"mtd_info\000"
-.LASF353:
-	.ascii	"spl_fit_load_blob\000"
-.LASF54:
-	.ascii	"SIG_TYPE_GUID\000"
-.LASF295:
-	.ascii	"net_rx_packet_len\000"
-.LASF273:
-	.ascii	"init\000"
-.LASF76:
-	.ascii	"disk_partition\000"
-.LASF153:
-	.ascii	"IH_OS_VXWORKS\000"
-.LASF398:
-	.ascii	"fit_image_get_data_position\000"
-.LASF263:
-	.ascii	"__dtb_dt_begin\000"
-.LASF162:
-	.ascii	"IH_OS_PLAN9\000"
-.LASF169:
-	.ascii	"IH_TYPE_KERNEL\000"
-.LASF38:
-	.ascii	"IF_TYPE_MMC\000"
-.LASF241:
-	.ascii	"fit_noffset_rd\000"
-.LASF12:
-	.ascii	"phys_size_t\000"
-.LASF120:
-	.ascii	"FIQ_STACK_START\000"
-.LASF256:
-	.ascii	"verify\000"
-.LASF337:
-	.ascii	"spl_load_kernel_fit\000"
-.LASF207:
-	.ascii	"IH_COMP_LZ4\000"
-.LASF177:
-	.ascii	"IH_TYPE_IMXIMAGE\000"
-.LASF113:
-	.ascii	"bi_busfreq\000"
-.LASF6:
-	.ascii	"short int\000"
-.LASF359:
-	.ascii	"load_ptr\000"
-.LASF194:
-	.ascii	"IH_TYPE_ZYNQMPIMAGE\000"
-.LASF206:
-	.ascii	"IH_COMP_LZO\000"
-.LASF395:
-	.ascii	"fit_image_get_comp\000"
-.LASF183:
-	.ascii	"IH_TYPE_MXSIMAGE\000"
-.LASF399:
-	.ascii	"fit_image_get_data_offset\000"
-.LASF56:
-	.ascii	"mbr_sig\000"
-.LASF266:
-	.ascii	"save_addr\000"
-.LASF396:
-	.ascii	"fit_image_get_load\000"
-.LASF159:
-	.ascii	"IH_OS_UNITY\000"
-.LASF348:
-	.ascii	"spl_fit_image_get_os\000"
-.LASF140:
-	.ascii	"IH_OS_OPENBSD\000"
-.LASF373:
-	.ascii	"conf_node\000"
-.LASF164:
-	.ascii	"IH_OS_ARM_TRUSTED_FIRMWARE\000"
-.LASF227:
-	.ascii	"load\000"
-.LASF61:
-	.ascii	"hwpart\000"
-.LASF123:
-	.ascii	"_datarellocal_start_ofs\000"
-.LASF155:
-	.ascii	"IH_OS_QNX\000"
-.LASF375:
-	.ascii	"spl_get_current_slot\000"
-.LASF326:
-	.ascii	"spl_image\000"
-.LASF260:
-	.ascii	"sha1_der_prefix\000"
-.LASF73:
-	.ascii	"block_drvr\000"
-.LASF407:
-	.ascii	"memcpy\000"
-.LASF342:
-	.ascii	"spl_load_simple_fit\000"
 .LASF84:
 	.ascii	"flash_id\000"
-.LASF247:
-	.ascii	"fit_noffset_setup\000"
-.LASF138:
-	.ascii	"working_fdt\000"
+.LASF310:
+	.ascii	"mem_malloc_start\000"
+.LASF411:
+	.ascii	"fdt_first_subnode\000"
+.LASF286:
+	.ascii	"net_hostname\000"
+.LASF74:
+	.ascii	"name\000"
+.LASF415:
+	.ascii	"common/spl/spl_fit_tb_arm32.c\000"
+.LASF44:
+	.ascii	"IF_TYPE_RKNAND\000"
+.LASF306:
+	.ascii	"NETLOOP_RESTART\000"
+.LASF302:
+	.ascii	"net_boot_file_size\000"
+.LASF315:
+	.ascii	"spl_image_info\000"
+.LASF173:
+	.ascii	"IH_TYPE_SCRIPT\000"
+.LASF123:
+	.ascii	"_datarellocal_start_ofs\000"
+.LASF126:
+	.ascii	"fdt32_t\000"
+.LASF374:
+	.ascii	"slot\000"
+.LASF393:
+	.ascii	"fdt_shrink_to_minimum\000"
+.LASF340:
+	.ascii	"part_info\000"
+.LASF316:
+	.ascii	"entry_point\000"
+.LASF110:
+	.ascii	"bi_enetaddr\000"
+.LASF344:
+	.ascii	"align_len\000"
+.LASF343:
+	.ascii	"spl_kernel_partition\000"
+.LASF321:
+	.ascii	"flags\000"
+.LASF390:
+	.ascii	"fit_conf_get_node\000"
 .LASF368:
 	.ascii	"get_aligned_image_overhead\000"
-.LASF287:
-	.ascii	"net_root_path\000"
+.LASF241:
+	.ascii	"fit_noffset_rd\000"
+.LASF378:
+	.ascii	"mtd_part_parse\000"
+.LASF288:
+	.ascii	"net_ethaddr\000"
+.LASF24:
+	.ascii	"errno\000"
+.LASF240:
+	.ascii	"fit_uname_rd\000"
+.LASF383:
+	.ascii	"__fswab32\000"
+.LASF8:
+	.ascii	"unsigned int\000"
+.LASF278:
+	.ascii	"next\000"
+.LASF133:
+	.ascii	"version\000"
+.LASF233:
+	.ascii	"legacy_hdr_os_copy\000"
+.LASF186:
+	.ascii	"IH_TYPE_SOCFPGAIMAGE\000"
+.LASF177:
+	.ascii	"IH_TYPE_IMXIMAGE\000"
+.LASF326:
+	.ascii	"spl_image\000"
+.LASF222:
+	.ascii	"ih_name\000"
+.LASF294:
+	.ascii	"net_rx_packet\000"
+.LASF364:
+	.ascii	"external_data\000"
+.LASF244:
+	.ascii	"fit_noffset_fdt\000"
+.LASF50:
+	.ascii	"if_type\000"
+.LASF89:
+	.ascii	"flash_info\000"
+.LASF184:
+	.ascii	"IH_TYPE_GPIMAGE\000"
+.LASF25:
+	.ascii	"___strtok\000"
+.LASF99:
+	.ascii	"bi_memsize\000"
+.LASF35:
+	.ascii	"IF_TYPE_ATAPI\000"
+.LASF224:
+	.ascii	"image_info\000"
+.LASF347:
+	.ascii	"spl_fit_standalone_release\000"
+.LASF258:
+	.ascii	"bootm_headers_t\000"
+.LASF207:
+	.ascii	"IH_COMP_LZ4\000"
+.LASF386:
+	.ascii	"fdt_record_loadable\000"
 .LASF118:
 	.ascii	"bd_t\000"
-.LASF269:
-	.ascii	"s_addr\000"
-.LASF175:
-	.ascii	"IH_TYPE_FLATDT\000"
-.LASF296:
-	.ascii	"net_bcast_ethaddr\000"
-.LASF115:
-	.ascii	"bi_boot_params\000"
-.LASF22:
-	.ascii	"uint32_t\000"
-.LASF312:
-	.ascii	"mem_malloc_brk\000"
-.LASF282:
-	.ascii	"net_gateway\000"
-.LASF154:
-	.ascii	"IH_OS_PSOS\000"
-.LASF152:
-	.ascii	"IH_OS_LYNXOS\000"
-.LASF397:
-	.ascii	"fit_image_get_comp_addr\000"
-.LASF409:
-	.ascii	"fdt_subnode_offset\000"
 .LASF414:
 	.ascii	"GNU C11 6.3.1 20170404 -mthumb -mthumb-interwork -m"
 	.ascii	"abi=aapcs-linux -mno-unaligned-access -mfloat-abi=s"
@@ -11252,91 +10691,733 @@ __func__.9395:
 	.ascii	"ng -fshort-wchar -fno-stack-protector -fno-delete-n"
 	.ascii	"ull-pointer-checks -fstack-usage -ffunction-section"
 	.ascii	"s -fdata-sections -fno-common -ffixed-r9\000"
-.LASF32:
-	.ascii	"IF_TYPE_UNKNOWN\000"
-.LASF98:
-	.ascii	"bi_memstart\000"
-.LASF199:
-	.ascii	"IH_TYPE_PMMC\000"
-.LASF192:
-	.ascii	"IH_TYPE_RKSPI\000"
-.LASF165:
-	.ascii	"IH_OS_OP_TEE\000"
-.LASF281:
-	.ascii	"eth_current\000"
-.LASF150:
-	.ascii	"IH_OS_DELL\000"
-.LASF96:
-	.ascii	"reserved\000"
-.LASF354:
-	.ascii	"spl_fit_append_fdt\000"
-.LASF316:
-	.ascii	"entry_point\000"
-.LASF168:
-	.ascii	"IH_TYPE_STANDALONE\000"
-.LASF117:
-	.ascii	"bi_dram\000"
-.LASF2:
-	.ascii	"short unsigned int\000"
-.LASF128:
-	.ascii	"magic\000"
-.LASF343:
-	.ascii	"spl_kernel_partition\000"
-.LASF245:
-	.ascii	"fit_hdr_setup\000"
-.LASF234:
-	.ascii	"legacy_hdr_valid\000"
-.LASF92:
-	.ascii	"base\000"
-.LASF160:
-	.ascii	"IH_OS_INTEGRITY\000"
-.LASF374:
-	.ascii	"slot\000"
-.LASF83:
-	.ascii	"sector_count\000"
-.LASF379:
-	.ascii	"fit_config_verify\000"
-.LASF221:
-	.ascii	"ih_comp\000"
-.LASF364:
-	.ascii	"external_data\000"
-.LASF340:
-	.ascii	"part_info\000"
-.LASF40:
-	.ascii	"IF_TYPE_SATA\000"
+.LASF191:
+	.ascii	"IH_TYPE_RKSD\000"
+.LASF264:
+	.ascii	"__dtb_dt_spl_begin\000"
+.LASF311:
+	.ascii	"mem_malloc_end\000"
+.LASF38:
+	.ascii	"IF_TYPE_MMC\000"
+.LASF404:
+	.ascii	"fit_image_verify_with_data\000"
+.LASF155:
+	.ascii	"IH_OS_QNX\000"
+.LASF104:
+	.ascii	"bi_sramsize\000"
+.LASF124:
+	.ascii	"_datarelro_start_ofs\000"
+.LASF53:
+	.ascii	"SIG_TYPE_MBR\000"
+.LASF301:
+	.ascii	"net_boot_file_name\000"
 .LASF55:
 	.ascii	"SIG_TYPE_COUNT\000"
-.LASF250:
-	.ascii	"ft_addr\000"
-.LASF365:
-	.ascii	"preload\000"
-.LASF4:
-	.ascii	"uchar\000"
-.LASF392:
-	.ascii	"part_get_info_by_name\000"
-.LASF148:
-	.ascii	"IH_OS_IRIX\000"
-.LASF251:
-	.ascii	"ft_len\000"
-.LASF278:
-	.ascii	"next\000"
-.LASF170:
-	.ascii	"IH_TYPE_RAMDISK\000"
-.LASF246:
-	.ascii	"fit_uname_setup\000"
-.LASF283:
-	.ascii	"net_netmask\000"
+.LASF234:
+	.ascii	"legacy_hdr_valid\000"
+.LASF79:
+	.ascii	"bootable\000"
+.LASF265:
+	.ascii	"load_addr\000"
+.LASF56:
+	.ascii	"mbr_sig\000"
+.LASF282:
+	.ascii	"net_gateway\000"
+.LASF248:
+	.ascii	"rd_start\000"
+.LASF314:
+	.ascii	"__bss_end\000"
+.LASF403:
+	.ascii	"fdt_getprop_u32\000"
+.LASF214:
+	.ascii	"ih_size\000"
+.LASF43:
+	.ascii	"IF_TYPE_NVME\000"
+.LASF303:
+	.ascii	"net_boot_file_expected_size_in_blocks\000"
+.LASF172:
+	.ascii	"IH_TYPE_FIRMWARE\000"
+.LASF352:
+	.ascii	"image\000"
+.LASF194:
+	.ascii	"IH_TYPE_ZYNQMPIMAGE\000"
+.LASF40:
+	.ascii	"IF_TYPE_SATA\000"
 .LASF274:
 	.ascii	"send\000"
-.LASF355:
-	.ascii	"spl_load_fit_image\000"
+.LASF3:
+	.ascii	"signed char\000"
+.LASF132:
+	.ascii	"off_mem_rsvmap\000"
+.LASF319:
+	.ascii	"boot_device\000"
+.LASF261:
+	.ascii	"sha256_der_prefix\000"
+.LASF251:
+	.ascii	"ft_len\000"
+.LASF22:
+	.ascii	"uint32_t\000"
+.LASF149:
+	.ascii	"IH_OS_SCO\000"
+.LASF267:
+	.ascii	"save_size\000"
+.LASF166:
+	.ascii	"IH_OS_COUNT\000"
+.LASF312:
+	.ascii	"mem_malloc_brk\000"
+.LASF245:
+	.ascii	"fit_hdr_setup\000"
+.LASF65:
+	.ascii	"blksz\000"
 .LASF119:
 	.ascii	"IRQ_STACK_START\000"
-.LASF317:
-	.ascii	"entry_point_os\000"
-.LASF243:
-	.ascii	"fit_uname_fdt\000"
+.LASF151:
+	.ascii	"IH_OS_NCR\000"
+.LASF16:
+	.ascii	"__kernel_size_t\000"
+.LASF181:
+	.ascii	"IH_TYPE_KERNEL_NOLOAD\000"
+.LASF190:
+	.ascii	"IH_TYPE_RKIMAGE\000"
+.LASF400:
+	.ascii	"fit_image_get_data_size\000"
+.LASF339:
+	.ascii	"part_name\000"
+.LASF410:
+	.ascii	"fit_find_config_node\000"
+.LASF92:
+	.ascii	"base\000"
+.LASF64:
+	.ascii	"op_flag\000"
+.LASF279:
+	.ascii	"index\000"
+.LASF373:
+	.ascii	"conf_node\000"
+.LASF276:
+	.ascii	"halt\000"
+.LASF10:
+	.ascii	"long long unsigned int\000"
+.LASF208:
+	.ascii	"IH_COMP_ZIMAGE\000"
+.LASF335:
+	.ascii	"os_type\000"
+.LASF67:
+	.ascii	"vendor\000"
+.LASF369:
+	.ascii	"get_aligned_image_offset\000"
+.LASF31:
+	.ascii	"lbaint_t\000"
+.LASF381:
+	.ascii	"fit_hdr\000"
+.LASF382:
+	.ascii	"image_get_magic\000"
+.LASF220:
+	.ascii	"ih_type\000"
+.LASF66:
+	.ascii	"log2blksz\000"
+.LASF46:
+	.ascii	"IF_TYPE_SPINOR\000"
+.LASF111:
+	.ascii	"bi_ethspeed\000"
+.LASF76:
+	.ascii	"disk_partition\000"
+.LASF392:
+	.ascii	"part_get_info_by_name\000"
+.LASF396:
+	.ascii	"fit_image_get_load\000"
+.LASF91:
+	.ascii	"lmb_property\000"
+.LASF196:
+	.ascii	"IH_TYPE_VYBRIDIMAGE\000"
+.LASF144:
+	.ascii	"IH_OS_LINUX\000"
+.LASF204:
+	.ascii	"IH_COMP_BZIP2\000"
+.LASF154:
+	.ascii	"IH_OS_PSOS\000"
+.LASF158:
+	.ascii	"IH_OS_ARTOS\000"
+.LASF135:
+	.ascii	"boot_cpuid_phys\000"
+.LASF235:
+	.ascii	"fit_uname_cfg\000"
+.LASF138:
+	.ascii	"working_fdt\000"
+.LASF221:
+	.ascii	"ih_comp\000"
+.LASF113:
+	.ascii	"bi_busfreq\000"
+.LASF398:
+	.ascii	"fit_image_get_data_position\000"
+.LASF269:
+	.ascii	"s_addr\000"
+.LASF229:
+	.ascii	"arch\000"
+.LASF367:
+	.ascii	"data_size\000"
+.LASF60:
+	.ascii	"target\000"
+.LASF127:
+	.ascii	"fdt_header\000"
+.LASF351:
+	.ascii	"blob\000"
+.LASF304:
+	.ascii	"net_loop_state\000"
+.LASF395:
+	.ascii	"fit_image_get_comp\000"
+.LASF356:
+	.ascii	"offset\000"
+.LASF103:
+	.ascii	"bi_sramstart\000"
+.LASF179:
+	.ascii	"IH_TYPE_OMAPIMAGE\000"
+.LASF27:
+	.ascii	"_Bool\000"
+.LASF49:
+	.ascii	"IF_TYPE_COUNT\000"
+.LASF313:
+	.ascii	"__bss_start\000"
+.LASF12:
+	.ascii	"phys_size_t\000"
+.LASF291:
+	.ascii	"net_server_ip\000"
+.LASF41:
+	.ascii	"IF_TYPE_HOST\000"
+.LASF170:
+	.ascii	"IH_TYPE_RAMDISK\000"
+.LASF372:
+	.ascii	"outname\000"
+.LASF226:
+	.ascii	"image_len\000"
+.LASF165:
+	.ascii	"IH_OS_OP_TEE\000"
+.LASF284:
+	.ascii	"net_dns_server\000"
+.LASF80:
+	.ascii	"uuid\000"
 .LASF408:
 	.ascii	"fit_image_get_data\000"
+.LASF331:
+	.ascii	"base_offset\000"
+.LASF211:
+	.ascii	"ih_magic\000"
+.LASF359:
+	.ascii	"load_ptr\000"
+.LASF58:
+	.ascii	"devnum\000"
+.LASF227:
+	.ascii	"load\000"
+.LASF199:
+	.ascii	"IH_TYPE_PMMC\000"
+.LASF243:
+	.ascii	"fit_uname_fdt\000"
+.LASF337:
+	.ascii	"spl_load_kernel_fit\000"
+.LASF409:
+	.ascii	"fdt_subnode_offset\000"
+.LASF145:
+	.ascii	"IH_OS_SVR4\000"
+.LASF72:
+	.ascii	"blk_desc\000"
+.LASF180:
+	.ascii	"IH_TYPE_AISIMAGE\000"
+.LASF287:
+	.ascii	"net_root_path\000"
+.LASF73:
+	.ascii	"block_drvr\000"
+.LASF195:
+	.ascii	"IH_TYPE_FPGA\000"
+.LASF345:
+	.ascii	"count\000"
+.LASF384:
+	.ascii	"fit_image_get_os\000"
+.LASF353:
+	.ascii	"spl_fit_load_blob\000"
+.LASF59:
+	.ascii	"part_type\000"
+.LASF236:
+	.ascii	"fit_hdr_os\000"
+.LASF266:
+	.ascii	"save_addr\000"
+.LASF280:
+	.ascii	"priv\000"
+.LASF417:
+	.ascii	"fdt_bootargs_append\000"
+.LASF14:
+	.ascii	"char\000"
+.LASF402:
+	.ascii	"fit_image_is_preload\000"
+.LASF61:
+	.ascii	"hwpart\000"
+.LASF185:
+	.ascii	"IH_TYPE_ATMELIMAGE\000"
+.LASF71:
+	.ascii	"ide_bus_offset\000"
+.LASF375:
+	.ascii	"spl_get_current_slot\000"
+.LASF153:
+	.ascii	"IH_OS_VXWORKS\000"
+.LASF83:
+	.ascii	"sector_count\000"
+.LASF324:
+	.ascii	"filename\000"
+.LASF225:
+	.ascii	"image_start\000"
+.LASF209:
+	.ascii	"IH_COMP_COUNT\000"
+.LASF88:
+	.ascii	"flash_info_t\000"
+.LASF69:
+	.ascii	"revision\000"
+.LASF329:
+	.ascii	"sector_offs\000"
+.LASF217:
+	.ascii	"ih_dcrc\000"
+.LASF290:
+	.ascii	"net_ip\000"
+.LASF363:
+	.ascii	"data\000"
+.LASF157:
+	.ascii	"IH_OS_RTEMS\000"
+.LASF9:
+	.ascii	"long long int\000"
+.LASF131:
+	.ascii	"off_dt_strings\000"
+.LASF328:
+	.ascii	"sector\000"
+.LASF48:
+	.ascii	"IF_TYPE_MTD\000"
+.LASF309:
+	.ascii	"net_state\000"
+.LASF391:
+	.ascii	"strcmp\000"
+.LASF237:
+	.ascii	"fit_uname_os\000"
+.LASF21:
+	.ascii	"uint8_t\000"
+.LASF7:
+	.ascii	"__u32\000"
+.LASF308:
+	.ascii	"NETLOOP_FAIL\000"
+.LASF360:
+	.ascii	"overhead\000"
+.LASF200:
+	.ascii	"IH_TYPE_RKNAND\000"
+.LASF188:
+	.ascii	"IH_TYPE_LPC32XXIMAGE\000"
+.LASF87:
+	.ascii	"mtd_info\000"
+.LASF82:
+	.ascii	"disk_partition_t\000"
+.LASF148:
+	.ascii	"IH_OS_IRIX\000"
+.LASF169:
+	.ascii	"IH_TYPE_KERNEL\000"
+.LASF388:
+	.ascii	"fdt_path_offset\000"
+.LASF231:
+	.ascii	"bootm_headers\000"
+.LASF358:
+	.ascii	"comp_addr\000"
+.LASF198:
+	.ascii	"IH_TYPE_FIRMWARE_IVT\000"
+.LASF120:
+	.ascii	"FIQ_STACK_START\000"
+.LASF164:
+	.ascii	"IH_OS_ARM_TRUSTED_FIRMWARE\000"
+.LASF271:
+	.ascii	"enetaddr\000"
+.LASF262:
+	.ascii	"monitor_flash_len\000"
+.LASF54:
+	.ascii	"SIG_TYPE_GUID\000"
+.LASF387:
+	.ascii	"printf\000"
+.LASF342:
+	.ascii	"spl_load_simple_fit\000"
+.LASF114:
+	.ascii	"bi_arch_number\000"
+.LASF163:
+	.ascii	"IH_OS_OPENRTOS\000"
+.LASF81:
+	.ascii	"type_guid\000"
+.LASF377:
+	.ascii	"partition\000"
+.LASF70:
+	.ascii	"bdev\000"
+.LASF365:
+	.ascii	"preload\000"
+.LASF399:
+	.ascii	"fit_image_get_data_offset\000"
+.LASF129:
+	.ascii	"totalsize\000"
+.LASF105:
+	.ascii	"bi_arm_freq\000"
+.LASF223:
+	.ascii	"image_header_t\000"
+.LASF100:
+	.ascii	"bi_flashstart\000"
+.LASF323:
+	.ascii	"bl_len\000"
+.LASF300:
+	.ascii	"net_restart_wrap\000"
+.LASF57:
+	.ascii	"guid_sig\000"
+.LASF140:
+	.ascii	"IH_OS_OPENBSD\000"
+.LASF297:
+	.ascii	"net_null_ethaddr\000"
+.LASF142:
+	.ascii	"IH_OS_FREEBSD\000"
+.LASF380:
+	.ascii	"fit_get_name\000"
+.LASF218:
+	.ascii	"ih_os\000"
+.LASF63:
+	.ascii	"removable\000"
+.LASF78:
+	.ascii	"size\000"
+.LASF146:
+	.ascii	"IH_OS_ESIX\000"
+.LASF202:
+	.ascii	"IH_COMP_NONE\000"
+.LASF317:
+	.ascii	"entry_point_os\000"
+.LASF412:
+	.ascii	"fdt_next_subnode\000"
+.LASF203:
+	.ascii	"IH_COMP_GZIP\000"
+.LASF193:
+	.ascii	"IH_TYPE_ZYNQIMAGE\000"
+.LASF389:
+	.ascii	"fit_board_verify_required_sigs\000"
+.LASF85:
+	.ascii	"protect\000"
+.LASF327:
+	.ascii	"info\000"
+.LASF1:
+	.ascii	"long unsigned int\000"
+.LASF174:
+	.ascii	"IH_TYPE_FILESYSTEM\000"
+.LASF210:
+	.ascii	"image_header\000"
+.LASF134:
+	.ascii	"last_comp_version\000"
+.LASF263:
+	.ascii	"__dtb_dt_begin\000"
+.LASF183:
+	.ascii	"IH_TYPE_MXSIMAGE\000"
+.LASF206:
+	.ascii	"IH_COMP_LZO\000"
+.LASF255:
+	.ascii	"cmdline_end\000"
+.LASF281:
+	.ascii	"eth_current\000"
+.LASF47:
+	.ascii	"IF_TYPE_RAMDISK\000"
+.LASF130:
+	.ascii	"off_dt_struct\000"
+.LASF176:
+	.ascii	"IH_TYPE_KWBIMAGE\000"
+.LASF283:
+	.ascii	"net_netmask\000"
+.LASF150:
+	.ascii	"IH_OS_DELL\000"
+.LASF97:
+	.ascii	"bd_info\000"
+.LASF254:
+	.ascii	"cmdline_start\000"
+.LASF259:
+	.ascii	"images\000"
+.LASF354:
+	.ascii	"spl_fit_append_fdt\000"
+.LASF90:
+	.ascii	"long double\000"
+.LASF232:
+	.ascii	"legacy_hdr_os\000"
+.LASF406:
+	.ascii	"puts\000"
+.LASF349:
+	.ascii	"noffset\000"
+.LASF18:
+	.ascii	"size_t\000"
+.LASF109:
+	.ascii	"bi_ip_addr\000"
+.LASF376:
+	.ascii	"dev_desc\000"
+.LASF39:
+	.ascii	"IF_TYPE_SD\000"
+.LASF112:
+	.ascii	"bi_intfreq\000"
+.LASF161:
+	.ascii	"IH_OS_OSE\000"
+.LASF11:
+	.ascii	"phys_addr_t\000"
+.LASF156:
+	.ascii	"IH_OS_U_BOOT\000"
+.LASF292:
+	.ascii	"net_tx_packet\000"
+.LASF252:
+	.ascii	"initrd_start\000"
+.LASF413:
+	.ascii	"strchr\000"
+.LASF6:
+	.ascii	"short int\000"
+.LASF187:
+	.ascii	"IH_TYPE_X86_SETUP\000"
+.LASF216:
+	.ascii	"ih_ep\000"
+.LASF219:
+	.ascii	"ih_arch\000"
+.LASF32:
+	.ascii	"IF_TYPE_UNKNOWN\000"
+.LASF355:
+	.ascii	"spl_load_fit_image\000"
+.LASF37:
+	.ascii	"IF_TYPE_DOC\000"
+.LASF29:
+	.ascii	"_binary_u_boot_bin_start\000"
+.LASF330:
+	.ascii	"fit_header\000"
+.LASF357:
+	.ascii	"length\000"
+.LASF36:
+	.ascii	"IF_TYPE_USB\000"
+.LASF143:
+	.ascii	"IH_OS_4_4BSD\000"
+.LASF285:
+	.ascii	"net_nis_domain\000"
+.LASF215:
+	.ascii	"ih_load\000"
+.LASF379:
+	.ascii	"fit_config_verify\000"
+.LASF307:
+	.ascii	"NETLOOP_SUCCESS\000"
+.LASF318:
+	.ascii	"fdt_addr\000"
+.LASF205:
+	.ascii	"IH_COMP_LZMA\000"
+.LASF370:
+	.ascii	"spl_fit_get_image_node\000"
+.LASF332:
+	.ascii	"node\000"
+.LASF334:
+	.ascii	"conf_noffset\000"
+.LASF20:
+	.ascii	"ulong\000"
+.LASF213:
+	.ascii	"ih_time\000"
+.LASF102:
+	.ascii	"bi_flashoffset\000"
+.LASF168:
+	.ascii	"IH_TYPE_STANDALONE\000"
+.LASF272:
+	.ascii	"iobase\000"
+.LASF305:
+	.ascii	"NETLOOP_CONTINUE\000"
+.LASF201:
+	.ascii	"IH_TYPE_COUNT\000"
+.LASF293:
+	.ascii	"net_rx_packets\000"
+.LASF212:
+	.ascii	"ih_hcrc\000"
+.LASF94:
+	.ascii	"region\000"
+.LASF250:
+	.ascii	"ft_addr\000"
+.LASF371:
+	.ascii	"spl_fit_get_image_name\000"
+.LASF394:
+	.ascii	"fdt_get_name\000"
+.LASF325:
+	.ascii	"read\000"
+.LASF77:
+	.ascii	"start\000"
+.LASF246:
+	.ascii	"fit_uname_setup\000"
+.LASF28:
+	.ascii	"image_base\000"
+.LASF26:
+	.ascii	"efi_guid_t\000"
+.LASF128:
+	.ascii	"magic\000"
+.LASF239:
+	.ascii	"fit_hdr_rd\000"
+.LASF242:
+	.ascii	"fit_hdr_fdt\000"
+.LASF17:
+	.ascii	"uintptr_t\000"
+.LASF346:
+	.ascii	"sectors\000"
+.LASF277:
+	.ascii	"write_hwaddr\000"
+.LASF350:
+	.ascii	"spl_fit_record_loadable\000"
+.LASF273:
+	.ascii	"init\000"
+.LASF115:
+	.ascii	"bi_boot_params\000"
+.LASF13:
+	.ascii	"sizetype\000"
+.LASF171:
+	.ascii	"IH_TYPE_MULTI\000"
+.LASF175:
+	.ascii	"IH_TYPE_FLATDT\000"
+.LASF192:
+	.ascii	"IH_TYPE_RKSPI\000"
+.LASF5:
+	.ascii	"__u8\000"
+.LASF121:
+	.ascii	"_datarel_start_ofs\000"
+.LASF98:
+	.ascii	"bi_memstart\000"
+.LASF136:
+	.ascii	"size_dt_strings\000"
+.LASF182:
+	.ascii	"IH_TYPE_PBLIMAGE\000"
+.LASF230:
+	.ascii	"image_info_t\000"
+.LASF95:
+	.ascii	"memory\000"
+.LASF137:
+	.ascii	"size_dt_struct\000"
+.LASF249:
+	.ascii	"rd_end\000"
+.LASF268:
+	.ascii	"in_addr\000"
+.LASF253:
+	.ascii	"initrd_end\000"
+.LASF23:
+	.ascii	"__be32\000"
+.LASF125:
+	.ascii	"IRQ_STACK_START_IN\000"
+.LASF116:
+	.ascii	"bi_andr_version\000"
+.LASF62:
+	.ascii	"type\000"
+.LASF338:
+	.ascii	"images_noffset\000"
+.LASF295:
+	.ascii	"net_rx_packet_len\000"
+.LASF0:
+	.ascii	"unsigned char\000"
+.LASF19:
+	.ascii	"ushort\000"
+.LASF197:
+	.ascii	"IH_TYPE_TEE\000"
+.LASF361:
+	.ascii	"nr_sectors\000"
+.LASF107:
+	.ascii	"bi_ddr_freq\000"
+.LASF362:
+	.ascii	"image_comp\000"
+.LASF247:
+	.ascii	"fit_noffset_setup\000"
+.LASF152:
+	.ascii	"IH_OS_LYNXOS\000"
+.LASF52:
+	.ascii	"SIG_TYPE_NONE\000"
+.LASF260:
+	.ascii	"sha1_der_prefix\000"
+.LASF139:
+	.ascii	"IH_OS_INVALID\000"
+.LASF257:
+	.ascii	"state\000"
+.LASF401:
+	.ascii	"memalign_simple\000"
+.LASF45:
+	.ascii	"IF_TYPE_SPINAND\000"
+.LASF296:
+	.ascii	"net_bcast_ethaddr\000"
+.LASF238:
+	.ascii	"fit_noffset_os\000"
+.LASF289:
+	.ascii	"net_server_ethaddr\000"
+.LASF405:
+	.ascii	"board_fit_image_post_process\000"
+.LASF160:
+	.ascii	"IH_OS_INTEGRITY\000"
+.LASF178:
+	.ascii	"IH_TYPE_UBLIMAGE\000"
+.LASF270:
+	.ascii	"eth_device\000"
+.LASF275:
+	.ascii	"recv\000"
+.LASF75:
+	.ascii	"select_hwpart\000"
+.LASF418:
+	.ascii	"fdt_bootargs_append_ab\000"
+.LASF4:
+	.ascii	"uchar\000"
+.LASF101:
+	.ascii	"bi_flashsize\000"
+.LASF298:
+	.ascii	"net_our_vlan\000"
+.LASF2:
+	.ascii	"short unsigned int\000"
+.LASF34:
+	.ascii	"IF_TYPE_SCSI\000"
+.LASF106:
+	.ascii	"bi_dsp_freq\000"
+.LASF86:
+	.ascii	"udevice\000"
+.LASF407:
+	.ascii	"memcpy\000"
+.LASF320:
+	.ascii	"next_stage\000"
+.LASF147:
+	.ascii	"IH_OS_SOLARIS\000"
+.LASF42:
+	.ascii	"IF_TYPE_SYSTEMACE\000"
+.LASF333:
+	.ascii	"__func__\000"
+.LASF96:
+	.ascii	"reserved\000"
+.LASF189:
+	.ascii	"IH_TYPE_LOADABLE\000"
+.LASF51:
+	.ascii	"sig_type\000"
+.LASF68:
+	.ascii	"product\000"
+.LASF122:
+	.ascii	"_datarelrolocal_start_ofs\000"
+.LASF33:
+	.ascii	"IF_TYPE_IDE\000"
+.LASF366:
+	.ascii	"get_aligned_image_size\000"
+.LASF256:
+	.ascii	"verify\000"
+.LASF341:
+	.ascii	"desc\000"
+.LASF348:
+	.ascii	"spl_fit_image_get_os\000"
+.LASF108:
+	.ascii	"bi_bootflags\000"
+.LASF117:
+	.ascii	"bi_dram\000"
+.LASF228:
+	.ascii	"comp\000"
+.LASF299:
+	.ascii	"net_native_vlan\000"
+.LASF162:
+	.ascii	"IH_OS_PLAN9\000"
+.LASF141:
+	.ascii	"IH_OS_NETBSD\000"
+.LASF322:
+	.ascii	"spl_load_info\000"
+.LASF397:
+	.ascii	"fit_image_get_comp_addr\000"
+.LASF336:
+	.ascii	"spl_internal_load_simple_fit\000"
+.LASF159:
+	.ascii	"IH_OS_UNITY\000"
+.LASF167:
+	.ascii	"IH_TYPE_INVALID\000"
+.LASF30:
+	.ascii	"_binary_u_boot_bin_end\000"
+.LASF385:
+	.ascii	"fdt_getprop\000"
+.LASF93:
+	.ascii	"lmb_region\000"
 	.ident	"GCC: (Linaro GCC 6.3-2017.05) 6.3.1 20170404"
 	.section	.note.GNU-stack,"",%progbits

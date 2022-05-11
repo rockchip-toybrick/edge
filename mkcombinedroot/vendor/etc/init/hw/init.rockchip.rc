@@ -1,0 +1,158 @@
+import /vendor/etc/init/hw/init.${ro.hardware}.usb.rc
+import /vendor/etc/init/hw/init.${ro.hardware}.environment.rc
+import /vendor/etc/init/hw/init.debug.rc
+import /vendor/etc/init/hw/init.mount_all.rc
+
+on early-init
+    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
+    mount tracefs /sys/kernel/debug/tracing /sys/kernel/debug/tracing mode=755
+    chown system root /sys/kernel/debug/tracing
+
+    # Set up kernel tracing, but disable it by default
+    chmod 0222 /sys/kernel/debug/tracing/trace_marker
+    write /sys/kernel/debug/tracing/tracing_on 0
+    restorecon /sys/kernel/debug/tracing/trace_marker
+    restorecon_recursive /sys/kernel/debug/tracing/
+
+    chown system system /sys/kernel/debug/sync/sw_sync
+    chmod 0666 /sys/kernel/debug/sync/sw_sync
+
+    # Loading kernel modules in background
+    start vendor.insmod_sh
+
+on init
+    # start watchdogd
+
+    # for adobe reader mobile
+    export RK_ADOBE_DE_MOBILE 1
+    export EBOOK_PAGE_VISIBLE_NUMBER 2　
+    export RK_ADEPT_DEVICE_TYPE mobile
+    export RK_ADOBE_DE_DOC_FOLDER "/mnt/sdcard/Digital Editions"
+    export RK_ADEPT_ACTIVATION_FILE /mnt/sdcard/.adobe-digital-editions/activation.xml
+    export RK_ADEPT_DEVICE_FILE /mnt/sdcard/.adobe-digital-editions/device.xml
+    export RK_ADEPT_DEVICE_SALT_FILE /mnt/sdcard/.adobe-digital-editions/devicesalt
+    export ADOBE_FONTS_DIR  /system/fonts/adobefonts/
+
+    # See storage config details at http://source.android.com/tech/storage/
+    mkdir /mnt/shell/emulated 0700 shell shell
+    symlink /sdcard /mnt/sdcard
+
+on post-fs
+    # Swap in only 1 page at a time
+    write /proc/sys/vm/page-cluster 0
+
+    # set RLIMIT_MEMLOCK to 64MB
+    setrlimit 8 67108864 67108864
+
+on post-fs-data
+    setprop vold.post_fs_data_done 1
+
+#on early-boot
+#    # wait for insmod_sh to finish all modules
+#    wait_for_prop vendor.all.modules.ready 1
+
+on boot
+    setprop UserVolumeLabel "RockChips"
+
+service charger /charger
+    class charger
+    seclabel u:r:healthd:s0
+
+# Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
+service watchdogd /sbin/watchdogd 10 20
+    class core
+    disabled
+    seclabel u:r:watchdogd:s0
+
+
+# bugreport is triggered by holding down volume down, volume up and power
+service bugreport /system/bin/dumpstate -d -p -B -z \
+        -o /data/user_de/0/com.android.shell/files/bugreports/bugreport
+    class late_start
+    disabled
+    oneshot
+    keycodes 114 115 116
+
+service wfd /system/bin/wfd
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_wlan0 /system/bin/dhcpcd -aABDKL
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_p2p /system/bin/dhcpcd -aABKL
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_bt-pan /system/bin/dhcpcd -aABDKL
+    class main
+    disabled
+    oneshot
+
+service dhcpcd_eth0 /system/bin/dhcpcd -aABDKL
+    class late_start
+    disabled
+    oneshot
+
+service iprenew_wlan0 /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+service iprenew_eth0 /system/bin/dhcpcd -n
+    class late_start
+    disabled
+    oneshot
+
+service iprenew_p2p /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+service iprenew_bt-pan /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
+on property:ro.boot.charger.emmc=1
+    start console
+    start charger
+
+on property:ro.boot.charger.emmc=0
+    mount ext4 mtd@system /system wait ro noatime nodiratime noauto_da_alloc
+    start console
+    mount ext4 mtd@metadata /metadata wait noatime nodiratime nosuid nodev noauto_da_alloc
+    start charger
+
+on charger
+    setprop ro.boot.charger.emmc 0
+    export PATH /sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
+    export LD_LIBRARY_PATH /vendor/lib:/system/lib
+    setprop sys.usb.config adb
+    chmod 0666 /sys/power/state
+    chmod 0666 /sys/power/wakeup_count
+
+service vendor.insmod_sh /vendor/bin/init.insmod.sh
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+#on property:ro.rk.btchip=broadcom.bplus
+#    start gpsd
+
+service gpsd  /system/bin/glgps -c /system/etc/gps/gpsconfig.xml
+    class main
+    disabled
+    user gps
+    group system
+
+#stresstest
+service getbootmode /system/bin/getbootmode.sh
+    disabled
+        oneshot

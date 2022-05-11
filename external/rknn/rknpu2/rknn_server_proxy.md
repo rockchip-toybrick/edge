@@ -3,7 +3,7 @@ RKNN Toolkit2的连板功能一般需要更新板端的 rknn_server 和 librknnr
 rknn_server: 是一个运行在板子上的后台代理服务，用于接收PC通过USB传输过来的协议，然后执行板端runtime对应的接口，并返回结果给PC。  
 librknnrt.so: 是一个板端的runtime库。
 
-有些固件默认已经集成了rknn_server，如果已经集成，可以忽略下面的启动步骤。
+有些固件默认已经集成了rknn_server，如果已经集成，可以忽略下面的启动步骤。（注意：RV1103/RV1106暂不支持连板调试）
 
 
 ## rknn_server存放目录
@@ -13,13 +13,9 @@ RK356X和RK3588上的rknn_server分别对应存放在runtime/RK356X/和runtime/R
 Android
 └── rknn_server
     ├── arm64
-    │   └── vendor
-    │       └── bin
-    │           └── rknn_server
+    │   └── rknn_server
     └── arm
-        └── vendor
-            └── bin
-                └── rknn_server
+        └── rknn_server
 ```
 
 ### Linux平台
@@ -46,7 +42,7 @@ Linux
 ### Android平台
 BOARD_ARCH在64位安卓系统中，对应arm64目录，在32位系统，对应arm目录
 1. adb root && adb remount
-2. adb push Android/rknn_server/${BOARD_ARCH}/vendor/bin/rknn_server到板子/vendor/bin/目录
+2. adb push Android/rknn_server/${BOARD_ARCH}/rknn_server到板子/vendor/bin/目录
 3. adb push Android/librknn_api/${BOARD_ARCH}/librknnrt.so到/vendor/lib64（64位系统特有）和/vendor/lib目录
 4. 进入板子的串口终端，执行：
 ```
@@ -55,7 +51,7 @@ chmod +x /vendor/bin/rknn_server
 sync
 reboot
 ```
-5. 重新进入板子的串口终端，执行 `pgrep rknn_server`, 查看是否有 rknn_server的进程id（较新的固件开机会自动启动rknn_server），如果不存在，则手动执行: 
+5. 重新进入板子的串口终端，执行 `ps |grep rknn_server`, 查看是否有 rknn_server的进程id（较新的固件开机会自动启动rknn_server），如果不存在，则手动执行: 
 ```
 su
 setenforce 0

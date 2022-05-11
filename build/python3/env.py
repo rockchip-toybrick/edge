@@ -48,5 +48,4 @@ class Env:
         edge_cmd('mkdir -p %s' % out_path, None)
         edge_cmd('rm -rf %s/out/Images' % root_path, None)
         edge_cmd('ln -s %s %s/out/Images' % (out_path, root_path), None)
-        edge_cmd('cp %s/build/parameter.txt %s/out/Images/' % (root_path, root_path), None)
 

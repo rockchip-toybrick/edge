@@ -9,6 +9,9 @@ import json
 import subprocess
 import glob
 
+EDGE_NAME = 'edge'
+VERSION = '0.1.0'
+
 def EDGE_DBG(msg):
     level = 'debug'
     for line in str(msg).splitlines():
@@ -74,4 +77,40 @@ def edge_cmd_result(cmd):
     r = os.popen(cmd)
     text = r.read()
     r.close()
-    return text
+    return text.strip('\n')
+
+def _edge_apply_patch(source_path, patch_path):
+    if os.path.exists(patch_path) == False:
+        return
+    no_patch = True
+    files = os.listdir(patch_path)
+    for f in files:
+        if '.patch' in f:
+            no_patch = False
+            break
+
+    if no_patch:
+        return
+
+    cmd = 'git am %s/*.patch' % patch_path
+    if edge_cmd(cmd, source_path):
+        cmd = 'git am --abort'
+        edge_cmd(cmd, source_path)
+        EDGE_ERR('git am %s/*.patch failed' % patch_path)
+        sys.exit(1)
+
+def edge_apply_patch(source_path, patch_path, chip):
+    path = patch_path
+    _edge_apply_patch(source_path, path)
+
+    path = '%s/%s' % (patch_path, chip)
+    if os.path.isdir(path):
+        _edge_apply_patch(source_path, path)
+
+def edge_undo_patch(source_path):
+    commit_id = edge_cmd_result('cd %s; git rev-parse remotes/m/master; cd -' % source_path) 
+    cmd = 'git reset --hard %s' % commit_id.split()[0]
+    if edge_cmd(cmd, source_path):
+        EDGE_ERR('git reset failed, source_path %s' % source_path)
+        sys.exit(1)
+

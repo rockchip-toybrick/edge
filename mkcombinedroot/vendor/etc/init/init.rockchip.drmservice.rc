@@ -1,0 +1,3 @@
+service rockchip.drmservice /vendor/bin/rockchip.drmservice
+        class main
+        oneshot

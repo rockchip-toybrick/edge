@@ -7,11 +7,10 @@
 
 #include <linux/platform_device.h>
 
-#include "rk_crypto_v2.h"
+#include "rk_crypto_utils.h"
 
 struct rk_hw_crypto_v3_info {
-	struct crypto_lli_desc		*desc;
-	dma_addr_t			desc_dma;
+	struct rk_hw_desc		hw_desc;
 };
 
 #define RK_CRYPTO_V3_SOC_DATA_INIT(names) {\
@@ -26,6 +25,7 @@ struct rk_hw_crypto_v3_info {
 	.hw_is_algo_valid	= rk_hw_crypto_v3_algo_valid,\
 	.hw_info_size		= sizeof(struct rk_hw_crypto_v3_info),\
 	.default_pka_offset	= 0x0480,\
+	.use_lli_chain          = true,\
 }
 
 #if IS_ENABLED(CONFIG_CRYPTO_DEV_ROCKCHIP_V3)
@@ -36,6 +36,7 @@ extern struct rk_crypto_algt rk_v3_xts_sm4_alg;
 extern struct rk_crypto_algt rk_v3_cfb_sm4_alg;
 extern struct rk_crypto_algt rk_v3_ofb_sm4_alg;
 extern struct rk_crypto_algt rk_v3_ctr_sm4_alg;
+extern struct rk_crypto_algt rk_v3_gcm_sm4_alg;
 
 extern struct rk_crypto_algt rk_v3_ecb_aes_alg;
 extern struct rk_crypto_algt rk_v3_cbc_aes_alg;
@@ -43,6 +44,7 @@ extern struct rk_crypto_algt rk_v3_xts_aes_alg;
 extern struct rk_crypto_algt rk_v3_cfb_aes_alg;
 extern struct rk_crypto_algt rk_v3_ofb_aes_alg;
 extern struct rk_crypto_algt rk_v3_ctr_aes_alg;
+extern struct rk_crypto_algt rk_v3_gcm_aes_alg;
 
 extern struct rk_crypto_algt rk_v3_ecb_des_alg;
 extern struct rk_crypto_algt rk_v3_cbc_des_alg;
