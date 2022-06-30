@@ -3527,7 +3527,7 @@ static void
 isp_csm_config(struct rkisp_isp_params_vdev *params_vdev,
 	       const struct isp21_csm_cfg *arg)
 {
-	u32 i, val, eff_ctrl, cproc_ctrl;
+	u32 i, val;
 
 	for (i = 0; i < ISP32_CSM_COEFF_NUM; i++) {
 		if (i == 0)
@@ -3540,33 +3540,8 @@ isp_csm_config(struct rkisp_isp_params_vdev *params_vdev,
 	}
 
 	val = isp3_param_read_cache(params_vdev, ISP3X_ISP_CTRL0);
-	if (arg->csm_full_range) {
-		params_vdev->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-		val |= CIF_ISP_CTRL_ISP_CSM_Y_FULL_ENA | CIF_ISP_CTRL_ISP_CSM_C_FULL_ENA;
-	} else {
-		params_vdev->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-		val &= ~(CIF_ISP_CTRL_ISP_CSM_Y_FULL_ENA | CIF_ISP_CTRL_ISP_CSM_C_FULL_ENA);
-	}
+	val |= CIF_ISP_CTRL_ISP_CSM_Y_FULL_ENA | CIF_ISP_CTRL_ISP_CSM_C_FULL_ENA;
 	isp3_param_write(params_vdev, val, ISP3X_ISP_CTRL0);
-
-	eff_ctrl = isp3_param_read(params_vdev, ISP3X_IMG_EFF_CTRL);
-	if (eff_ctrl & CIF_IMG_EFF_CTRL_ENABLE) {
-		if (arg->csm_full_range)
-			eff_ctrl |= CIF_IMG_EFF_CTRL_YCBCR_FULL;
-		else
-			eff_ctrl &= ~CIF_IMG_EFF_CTRL_YCBCR_FULL;
-		isp3_param_write(params_vdev, eff_ctrl, ISP3X_IMG_EFF_CTRL);
-	}
-
-	cproc_ctrl = isp3_param_read(params_vdev, ISP3X_CPROC_CTRL);
-	if (cproc_ctrl & CIF_C_PROC_CTR_ENABLE) {
-		val = CIF_C_PROC_YOUT_FULL | CIF_C_PROC_YIN_FULL | CIF_C_PROC_COUT_FULL;
-		if (eff_ctrl & CIF_IMG_EFF_CTRL_ENABLE || !arg->csm_full_range)
-			cproc_ctrl &= ~val;
-		else
-			cproc_ctrl |= val;
-		isp3_param_write(params_vdev, cproc_ctrl, ISP3X_CPROC_CTRL);
-	}
 }
 
 static void
@@ -3574,13 +3549,36 @@ isp_cgc_config(struct rkisp_isp_params_vdev *params_vdev,
 	       const struct isp21_cgc_cfg *arg)
 {
 	u32 val = isp3_param_read_cache(params_vdev, ISP3X_ISP_CTRL0);
+	u32 eff_ctrl, cproc_ctrl;
 
+	params_vdev->quantization = V4L2_QUANTIZATION_FULL_RANGE;
 	val &= ~(ISP3X_SW_CGC_YUV_LIMIT | ISP3X_SW_CGC_RATIO_EN);
-	if (arg->yuv_limit)
+	if (arg->yuv_limit) {
 		val |= ISP3X_SW_CGC_YUV_LIMIT;
+		params_vdev->quantization = V4L2_QUANTIZATION_LIM_RANGE;
+	}
 	if (arg->ratio_en)
 		val |= ISP3X_SW_CGC_RATIO_EN;
 	isp3_param_write(params_vdev, val, ISP3X_ISP_CTRL0);
+
+	cproc_ctrl = isp3_param_read(params_vdev, ISP3X_CPROC_CTRL);
+	if (cproc_ctrl & CIF_C_PROC_CTR_ENABLE) {
+		val = CIF_C_PROC_YOUT_FULL | CIF_C_PROC_YIN_FULL | CIF_C_PROC_COUT_FULL;
+		if (arg->yuv_limit)
+			cproc_ctrl &= ~val;
+		else
+			cproc_ctrl |= val;
+		isp3_param_write(params_vdev, cproc_ctrl, ISP3X_CPROC_CTRL);
+	}
+
+	eff_ctrl = isp3_param_read(params_vdev, ISP3X_IMG_EFF_CTRL);
+	if (eff_ctrl & CIF_IMG_EFF_CTRL_ENABLE) {
+		if (arg->yuv_limit)
+			eff_ctrl &= ~CIF_IMG_EFF_CTRL_YCBCR_FULL;
+		else
+			eff_ctrl |= CIF_IMG_EFF_CTRL_YCBCR_FULL;
+		isp3_param_write(params_vdev, eff_ctrl, ISP3X_IMG_EFF_CTRL);
+	}
 }
 
 static void
@@ -3747,11 +3745,12 @@ void __isp_isr_other_config(struct rkisp_isp_params_vdev *params_vdev,
 	if (module_cfg_update & ISP32_MODULE_GOC)
 		ops->goc_config(params_vdev, &new_params->others.gammaout_cfg);
 
-	if (module_cfg_update & ISP3X_MODULE_CGC)
-		ops->cgc_config(params_vdev, &new_params->others.cgc_cfg);
-
+	/* range csm->cgc->cproc->ie */
 	if (module_cfg_update & ISP3X_MODULE_CSM)
 		ops->csm_config(params_vdev, &new_params->others.csm_cfg);
+
+	if (module_cfg_update & ISP3X_MODULE_CGC)
+		ops->cgc_config(params_vdev, &new_params->others.cgc_cfg);
 
 	if (module_cfg_update & ISP32_MODULE_CPROC)
 		ops->cproc_config(params_vdev, &new_params->others.cproc_cfg);
@@ -4468,15 +4467,8 @@ rkisp_params_info2ddr_cfg_v32(struct rkisp_isp_params_vdev *params_vdev, void *a
 	size = wsize * vsize;
 	for (i = 0; i < cfg->buf_cnt; i++) {
 		buf = &priv_val->buf_info[i];
-		if (buf->mem_priv) {
-			if (buf->size < size) {
-				rkisp_free_buffer(dev, buf);
-			} else {
-				*(u32 *)buf->vaddr = RKISP_INFO2DDR_BUF_INIT;
-				cfg->buf_fd[i] = buf->dma_fd;
-				continue;
-			}
-		}
+		if (buf->mem_priv)
+			rkisp_free_buffer(dev, buf);
 		buf->size = size;
 		buf->is_need_dbuf = true;
 		buf->is_need_dmafd = true;
@@ -4534,7 +4526,7 @@ rkisp_params_stream_stop_v32(struct rkisp_isp_params_vdev *params_vdev)
 	priv_val->buf_info_owner = 0;
 	priv_val->buf_info_cnt = 0;
 	priv_val->buf_info_idx = -1;
-	for (i = 0; i < priv_val->buf_info_cnt; i++)
+	for (i = 0; i < RKISP_INFO2DDR_BUF_MAX; i++)
 		rkisp_free_buffer(ispdev, &priv_val->buf_info[i]);
 }
 

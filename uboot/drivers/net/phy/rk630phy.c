@@ -16,11 +16,14 @@
 
 #include <config.h>
 #include <common.h>
+#include <misc.h>
 #include <phy.h>
 
 #define RK630_PHY_ID				0x00441400
 
 /* PAGE 0 */
+#define REG_MMD_ACCESS_CONTROL			0x0d
+#define REG_MMD_ACCESS_DATA_ADDRESS		0x0e
 #define REG_INTERRUPT_STATUS			0X10
 #define REG_INTERRUPT_MASK			0X11
 #define REG_GLOBAL_CONFIGURATION		0X13
@@ -61,6 +64,60 @@
 #define PHY_ADDR_S40 1
 #define PHY_ADDR_T22 2
 
+#define T22_TX_LEVEL_100M			0x2d
+#define T22_TX_LEVEL_10M			0x32
+
+static int rk630_phy_t22_get_txlevel_from_efuse(unsigned char *txlevel_100,
+						unsigned char *txlevel_10)
+{
+#if defined(CONFIG_ROCKCHIP_EFUSE) || defined(CONFIG_ROCKCHIP_OTP)
+	unsigned char tx_level[2];
+	struct udevice *dev;
+	u32 regs[2] = {0};
+	ofnode node;
+	int ret;
+
+	/* retrieve the device */
+	if (IS_ENABLED(CONFIG_ROCKCHIP_EFUSE))
+		ret = uclass_get_device_by_driver(UCLASS_MISC,
+						  DM_GET_DRIVER(rockchip_efuse),
+						  &dev);
+	else
+		ret = uclass_get_device_by_driver(UCLASS_MISC,
+						  DM_GET_DRIVER(rockchip_otp),
+						  &dev);
+
+	if (ret) {
+		printf("%s: could not find efuse/otp device\n", __func__);
+		return ret;
+	}
+
+	node = dev_read_subnode(dev, "macphy-txlevel");
+	if (!ofnode_valid(node))
+		return -EINVAL;
+
+	ret = ofnode_read_u32_array(node, "reg", regs, 2);
+	if (ret) {
+		printf("Cannot get efuse reg\n");
+		return -EINVAL;
+	}
+
+	/* read the txlevel from the efuses */
+	ret = misc_read(dev, regs[0], &tx_level, 2);
+	if (ret) {
+		printf("%s: read txlevel from efuse/otp failed, ret=%d\n",
+		       __func__, ret);
+		return ret;
+	}
+	*txlevel_100 = tx_level[0];
+	*txlevel_10 = tx_level[1];
+
+	return 0;
+#else
+	return -EINVAL;
+#endif
+}
+
 static int rk630_phy_startup(struct phy_device *phydev)
 {
 	int ret;
@@ -69,6 +126,7 @@ static int rk630_phy_startup(struct phy_device *phydev)
 	ret = genphy_update_link(phydev);
 	if (ret)
 		return ret;
+
 	/* Read the Status (2x to make sure link is right) */
 	phy_read(phydev, MDIO_DEVAD_NONE, MII_BMSR);
 
@@ -107,6 +165,9 @@ static void rk630_phy_s40_config_init(struct phy_device *phydev)
 
 static void rk630_phy_t22_config_init(struct phy_device *phydev)
 {
+	unsigned char tx_level_100M = T22_TX_LEVEL_100M;
+	unsigned char tx_level_10M = T22_TX_LEVEL_10M;
+
 	/* Switch to page 1 */
 	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE_SEL, 0x0100);
 	/* Disable APS */
@@ -123,8 +184,15 @@ static void rk630_phy_t22_config_init(struct phy_device *phydev)
 	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE6_GAIN_ANONTROL, 0x0400);
 	/* PHYAFE EQ optimization */
 	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE6_AFE_TX_CTRL, 0x1088);
+
+	if (rk630_phy_t22_get_txlevel_from_efuse(&tx_level_100M, &tx_level_10M)) {
+		tx_level_100M = T22_TX_LEVEL_100M;
+		tx_level_10M = T22_TX_LEVEL_10M;
+	}
 	/* PHYAFE TX optimization */
-	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE6_AFE_DRIVER2, 0x3030);
+	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE6_AFE_DRIVER2,
+		  (tx_level_100M << 8) | tx_level_10M);
+
 	/* PHYAFE CP current optimization */
 	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE6_CP_CURRENT, 0x0575);
 	/* ADC OP BIAS optimization */
@@ -141,6 +209,12 @@ static void rk630_phy_t22_config_init(struct phy_device *phydev)
 
 	/* Switch to page 0 */
 	phy_write(phydev, MDIO_DEVAD_NONE, REG_PAGE_SEL, 0x0000);
+
+	/* Disable eee mode advertised */
+	phy_write(phydev, MDIO_DEVAD_NONE, REG_MMD_ACCESS_CONTROL, 0x0007);
+	phy_write(phydev, MDIO_DEVAD_NONE, REG_MMD_ACCESS_DATA_ADDRESS, 0x003c);
+	phy_write(phydev, MDIO_DEVAD_NONE, REG_MMD_ACCESS_CONTROL, 0x4007);
+	phy_write(phydev, MDIO_DEVAD_NONE, REG_MMD_ACCESS_DATA_ADDRESS, 0x0000);
 }
 static int rk630_phy_config_init(struct phy_device *phydev)
 {
@@ -157,6 +231,7 @@ static int rk630_phy_config_init(struct phy_device *phydev)
 		return -EINVAL;
 	}
 
+	genphy_config_aneg(phydev);
 	return 0;
 }
 

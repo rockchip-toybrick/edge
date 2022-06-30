@@ -907,6 +907,28 @@ config VIDEO_GC2385
 	  To compile this driver as a module, choose M here: the
 	  module will be called gc2385.
 
+config VIDEO_GC4023
+	tristate "GalaxyCore GC4023 sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	select V4L2_FWNODE
+	help
+	  Support for the GalaxyCore GC4023 sensor.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called gc4023
+
+config VIDEO_GC4653
+	tristate "GalaxyCore GC4653 sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	select V4L2_FWNODE
+	help
+	  Support for the GalaxyCore GC4663 sensor.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called gc4653
+
 config VIDEO_GC4663
 	tristate "GalaxyCore GC4663 sensor support"
 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
@@ -1198,6 +1220,15 @@ config VIDEO_OS02G10
 	help
 	  This is a Video4Linux2 sensor driver for the OmniVision
 	  OS02G10 camera.
+
+config VIDEO_OS03B10
+	tristate "OmniVision OS03B10 sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the OmniVision
+	  OS03B10 camera.
 
 config VIDEO_OS04A10
 	tristate "OmniVision OS04A10 sensor support"
@@ -1682,6 +1713,26 @@ config VIDEO_MT9V111
 	  To compile this driver as a module, choose M here: the
 	  module will be called mt9v111.
 
+config VIDEO_SC230AI
+	tristate "SmartSens SC230AI sensor support"
+	depends on I2C && VIDEO_V4L2
+	select MEDIA_CONTROLLER
+	select VIDEO_V4L2_SUBDEV_API
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the SmartSens
+	  SC230AI camera.
+
+config VIDEO_SC301IOT
+    tristate "SmartSens SC301IOT sensor support"
+	depends on I2C && VIDEO_V4L2
+	select MEDIA_CONTROLLER
+	select VIDEO_V4L2_SUBDEV_API
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the SmartSens
+	  SC301IOT camera.
+
 config VIDEO_SC3336
 	tristate "SmartSens SC3336 sensor support"
 	depends on I2C && VIDEO_V4L2
@@ -1943,6 +1994,14 @@ config VIDEO_ADP1653
 	  This is a driver for the ADP1653 flash controller. It is used for
 	  example in Nokia N900.
 
+config VIDEO_AW36518
+	tristate "AW36518 flash driver support"
+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+	depends on VIDEO_V4L2_SUBDEV_API
+	help
+	  This is a driver for the aw36518 flash controllers. It controls
+	  flash, torch LEDs.
+
 config VIDEO_LM3560
 	tristate "LM3560 dual flash driver support"
 	depends on I2C && VIDEO_V4L2
@@ -1959,6 +2018,14 @@ config VIDEO_LM3646
 	select REGMAP_I2C
 	help
 	  This is a driver for the lm3646 dual flash controllers. It controls
+	  flash, torch LEDs.
+
+config VIDEO_SGM3784
+	tristate "SGM3784 dual flash driver support"
+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+	depends on VIDEO_V4L2_SUBDEV_API
+	help
+	  This is a driver for the sgm3784 dual flash controllers. It controls
 	  flash, torch LEDs.
 endmenu
 

@@ -3670,7 +3670,7 @@ static int vop2_clk_set_parent_extend(struct vop2_video_port *vp,
 
 			hdmi1_phy_pll->vp_mask |= BIT(vp->id);
 		} else if (output_if_is_dp(vcstate->output_if)) {
-			if (adjusted_mode->crtc_clock > VOP2_MAX_DCLK_RATE || vp->id == 2) {
+			if (vp->id == 2) {
 				vop2_clk_set_parent(vp->dclk, vp->dclk_parent);
 				return 0;
 			}
@@ -3794,8 +3794,10 @@ static void vop2_crtc_atomic_disable(struct drm_crtc *crtc,
 
 	spin_lock(&vop2->reg_lock);
 
-	if (vcstate->splice_mode)
+	if (vcstate->splice_mode) {
+		VOP_MODULE_SET(vop2, vp, splice_en, 0);
 		VOP_MODULE_SET(vop2, splice_vp, standby, 1);
+	}
 	VOP_MODULE_SET(vop2, vp, standby, 1);
 
 	spin_unlock(&vop2->reg_lock);
@@ -5078,7 +5080,11 @@ static int vop2_crtc_loader_protect(struct drm_crtc *crtc, bool on)
 	struct vop2_video_port *vp = to_vop2_video_port(crtc);
 	struct vop2 *vop2 = vp->vop2;
 	struct rockchip_drm_private *private = crtc->dev->dev_private;
-	struct vop2_win *win;
+	const struct vop2_video_port_data *vp_data = &vop2->data->vp[vp->id];
+	struct vop2_video_port *splice_vp = &vop2->vps[vp_data->splice_vp_id];
+	struct drm_crtc_state *crtc_state;
+	struct drm_display_mode *mode;
+	struct vop2_win *win, *splice_win;
 
 	if (on == vp->loader_protect)
 		return 0;
@@ -5090,9 +5096,30 @@ static int vop2_crtc_loader_protect(struct drm_crtc *crtc, bool on)
 		vop2_initial(crtc);
 		if (crtc->primary) {
 			win = to_vop2_win(crtc->primary);
-			if (win->pd && VOP_WIN_GET(vop2, win, enable)) {
-				win->pd->ref_count++;
-				win->pd->vp_mask |= BIT(vp->id);
+			if (VOP_WIN_GET(vop2, win, enable)) {
+				if (win->pd) {
+					win->pd->ref_count++;
+					win->pd->vp_mask |= BIT(vp->id);
+				}
+
+				crtc_state = drm_atomic_get_crtc_state(crtc->state->state, crtc);
+				mode = &crtc_state->adjusted_mode;
+				if (mode->hdisplay > VOP2_MAX_VP_OUTPUT_WIDTH)	{
+					splice_win = vop2_find_win_by_phys_id(vop2,
+									      win->splice_win_id);
+					splice_win->splice_mode_right = true;
+					splice_win->left_win = win;
+					win->splice_win = splice_win;
+					splice_vp->win_mask |=  BIT(splice_win->phys_id);
+					splice_win->vp_mask = BIT(splice_vp->id);
+					vop2->active_vp_mask |= BIT(splice_vp->id);
+
+					if (splice_win->pd &&
+					    VOP_WIN_GET(vop2, splice_win, enable)) {
+						splice_win->pd->ref_count++;
+						splice_win->pd->vp_mask |= BIT(splice_vp->id);
+					}
+				}
 			}
 		}
 		drm_crtc_vblank_on(crtc);
@@ -5374,6 +5401,14 @@ vop2_crtc_mode_valid(struct drm_crtc *crtc, const struct drm_display_mode *mode)
 	const struct vop2_video_port_data *vp_data = &vop2_data->vp[vp->id];
 	int request_clock = mode->clock;
 	int clock;
+
+	/*
+	 * VP0 and VP1 will be both used in splice mode. All display modes of
+	 * the right VP should be set as invalid when vop2 is working in splice
+	 * mode.
+	 */
+	if (vp->splice_mode_right)
+		return MODE_BAD;
 
 	if (mode->hdisplay > vp_data->max_output.width)
 		return MODE_BAD_HVALUE;
@@ -5914,19 +5949,6 @@ static int vop2_calc_if_clk(struct drm_crtc *crtc, const struct vop2_connector_i
 	snprintf(clk_name, sizeof(clk_name), "dclk_out%d", vp->id);
 	dclk_out = vop2_clk_get(vop2, clk_name);
 
-	if (vcstate->dsc_enable) {
-		if ((vcstate->dsc_txp_clk_rate >= dclk_core_rate) &&
-		    (vcstate->dsc_txp_clk_rate >= if_pixclk->rate)) {
-			dsc_txp_clk_is_biggest = true;
-			if (vcstate->output_flags & ROCKCHIP_OUTPUT_DUAL_CHANNEL_LEFT_RIGHT_MODE) {
-				vop2_set_dsc_clk(crtc, 0);
-				vop2_set_dsc_clk(crtc, 1);
-			} else {
-				vop2_set_dsc_clk(crtc, dsc_id);
-			}
-		}
-	}
-
 	/*
 	 * HDMI use 1:1 dclk for rgb/yuv444, 1:2 for yuv420 when
 	 * pixclk <= 600
@@ -5943,6 +5965,19 @@ static int vop2_calc_if_clk(struct drm_crtc *crtc, const struct vop2_connector_i
 			    (vcstate->output_flags & ROCKCHIP_OUTPUT_DUAL_CHANNEL_LEFT_RIGHT_MODE))
 				v_pixclk = v_pixclk >> 1;
 			clk_set_rate(dclk->hw.clk, v_pixclk);
+		}
+	}
+
+	if (vcstate->dsc_enable) {
+		if ((vcstate->dsc_txp_clk_rate >= dclk_core_rate) &&
+		    (vcstate->dsc_txp_clk_rate >= if_pixclk->rate)) {
+			dsc_txp_clk_is_biggest = true;
+			if (vcstate->output_flags & ROCKCHIP_OUTPUT_DUAL_CHANNEL_LEFT_RIGHT_MODE) {
+				vop2_set_dsc_clk(crtc, 0);
+				vop2_set_dsc_clk(crtc, 1);
+			} else {
+				vop2_set_dsc_clk(crtc, dsc_id);
+			}
 		}
 	}
 

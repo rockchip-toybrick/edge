@@ -1362,6 +1362,7 @@ static struct platform_driver rkcif_hw_plat_drv = {
 	},
 	.probe = rkcif_plat_hw_probe,
 	.remove = rkcif_plat_remove,
+	.shutdown = rkcif_hw_shutdown,
 };
 
 static int __init rk_cif_plat_drv_init(void)

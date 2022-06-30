@@ -9,6 +9,9 @@
 source ./${srctree}/arch/arm/mach-rockchip/fit_args.sh
 rm -f ${srctree}/*.digest ${srctree}/*.bin.gz ${srctree}/bl31_0x*.bin
 
+# Periph register
+MAX_ADDR_VAL=$((0xf0000000))
+
 # compression
 if [ "${COMPRESSION}" == "gzip" ]; then
 	SUFFIX=".gz"
@@ -41,7 +44,7 @@ function gen_uboot_node()
 		else
 			touch ${srctree}/${UBOOT}${SUFFIX}
 		fi
-		echo "		digest {
+		echo "			digest {
 				value = /incbin/(\"./${UBOOT}.digest\");
 				algo = \"sha256\";
 			};"
@@ -148,7 +151,7 @@ function gen_bl32_node()
 	if [ "${ARCH}" == "arm" ]; then
 		# If not AArch32 mode
 		if ! grep  -q '^CONFIG_ARM64_BOOT_AARCH32=y' .config ; then
-			ENTRY="entry = <0x${TEE_LOAD_ADDR}>;"
+			ENTRY="entry = <"${TEE_LOAD_ADDR}">;"
 		fi
 	fi
 
@@ -161,7 +164,7 @@ function gen_bl32_node()
 			os = \"op-tee\";
 			compression = \"${COMPRESSION}\";
 			${ENTRY}
-			load = <"0x${TEE_LOAD_ADDR}">;"
+			load = <"${TEE_LOAD_ADDR}">;"
 	if [ "${COMPRESSION}" != "none" ]; then
 		openssl dgst -sha256 -binary -out ${TEE}.digest ${TEE}
 		${COMPRESS_CMD} ${TEE}
@@ -198,22 +201,29 @@ function gen_mcu_node()
 		if [ -z ${MCU_ADDR} ]; then
 			continue
 		fi
+
+		MCU_ADDR_VAL=$((MCU_ADDR))
 		MCU="mcu${i}"
 		echo "		${MCU} {
 			description = \"${MCU}\";
 			type = \"standalone\";
 			arch = \"riscv\";
-			data = /incbin/(\"./${MCU}.bin${SUFFIX}\");
-			compression = \"${COMPRESSION}\";
-			load = <0x"${MCU_ADDR}">;"
-		if [ "${COMPRESSION}" != "none" ]; then
+			load = <"${MCU_ADDR}">;"
+
+		if [ "${COMPRESSION}" != "none" -a ${MCU_ADDR_VAL} -lt ${MAX_ADDR_VAL} ]; then
 			openssl dgst -sha256 -binary -out ${MCU}.bin.digest ${MCU}.bin
 			${COMPRESS_CMD} ${MCU}.bin
-		echo "			digest {
+			echo "			data = /incbin/(\"./${MCU}.bin${SUFFIX}\");
+			compression = \"${COMPRESSION}\";
+			digest {
 				value = /incbin/(\"./${MCU}.bin.digest\");
 				algo = \"sha256\";
 			};"
+		else
+			echo "			data = /incbin/(\"./${MCU}.bin\");
+			compression = \"none\";"
 		fi
+
 		echo "			hash {
 				algo = \"sha256\";
 			};
@@ -250,22 +260,29 @@ function gen_loadable_node()
 		if [ -z ${LOAD_ADDR} ]; then
 			continue
 		fi
+
+		LOAD_ADDR_VAL=$((LOAD_ADDR))
 		LOAD="load${i}"
 		echo "		${LOAD} {
 			description = \"${LOAD}\";
 			type = \"standalone\";
 			arch = \"${ARCH}\";
-			data = /incbin/(\"./${LOAD}.bin${SUFFIX}\");
-			compression = \"${COMPRESSION}\";
-			load = <0x"${LOAD_ADDR}">;"
-		if [ "${COMPRESSION}" != "none" ]; then
+			load = <"${LOAD_ADDR}">;"
+
+		if [ "${COMPRESSION}" != "none" -a ${LOAD_ADDR_VAL} -lt ${MAX_ADDR_VAL} ]; then
 			openssl dgst -sha256 -binary -out ${LOAD}.bin.digest ${LOAD}.bin
 			${COMPRESS_CMD} ${LOAD}.bin
-	echo "			digest {
+			echo "			data = /incbin/(\"./${LOAD}.bin${SUFFIX}\");
+			compression = \"${COMPRESSION}\";
+			digest {
 				value = /incbin/(\"./${LOAD}.bin.digest\");
 				algo = \"sha256\";
 			};"
+		else
+			echo "			data = /incbin/(\"./${LOAD}.bin\");
+			compression = \"none\";"
 		fi
+
 		echo "			hash {
 				algo = \"sha256\";
 			};

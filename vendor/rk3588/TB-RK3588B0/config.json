@@ -1,0 +1,22 @@
+{
+  "board": "TB-RK3588B0",
+  "chip": "rk3588",
+  "arch": "arm64",
+  "bootmode": "extlinux",
+  "uboot": {
+    "config": "rk3588-edge"
+  },
+  "kernel": {
+    "version": "5.10",
+    "config": "rk3588_toybrickb.config",
+    "dtbname": "rk3588-toybrickb-x0-linux",
+    "debug": "0xfeb50000"
+  },
+  "rootfs": {
+    "osname": "debian",
+    "version": "11",
+    "type": "gnome",
+    "user": "rockchip",
+    "password": "rockchip"
+  }
+}

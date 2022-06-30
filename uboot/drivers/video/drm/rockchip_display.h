@@ -11,6 +11,7 @@
 #include <drm_modes.h>
 #include <edid.h>
 #include <dm/ofnode.h>
+#include <drm/drm_dsc.h>
 
 /*
  * major: IP major vertion, used for IP structure
@@ -158,10 +159,20 @@ struct crtc_state {
 	bool bcsh_en;
 	bool splice_mode;
 	u8 splice_crtc_id;
+	u8 dsc_id;
+	u8 dsc_enable;
+	u8 dsc_slice_num;
+	u8 dsc_pixel_num;
 	struct rockchip_mcu_timing mcu_timing;
 	u32 dual_channel_swap;
 	u32 feature;
 	struct vop_rect max_output;
+
+	u64 dsc_txp_clk_rate;
+	u64 dsc_pxl_clk_rate;
+	u64 dsc_cds_clk_rate;
+	struct drm_dsc_picture_parameter_set pps;
+	struct rockchip_dsc_sink_cap dsc_sink_cap;
 };
 
 struct panel_state {
@@ -195,7 +206,6 @@ struct connector_state {
 	int output_if;
 	int output_flags;
 	int color_space;
-	int dsc_enable;
 	unsigned int bpc;
 
 	/**
@@ -215,6 +225,7 @@ struct connector_state {
 	u64 dsc_pxl_clk;
 	u64 dsc_cds_clk;
 	struct rockchip_dsc_sink_cap dsc_sink_cap;
+	struct drm_dsc_picture_parameter_set pps;
 
 	struct {
 		u32 *lut;
@@ -281,5 +292,6 @@ struct base2_disp_info *rockchip_get_disp_info(int type, int id);
 void drm_mode_max_resolution_filter(struct hdmi_edid_data *edid_data,
 				    struct vop_rect *max_output);
 unsigned long get_cubic_lut_buffer(int crtc_id);
+int rockchip_ofnode_get_display_mode(ofnode node, struct drm_display_mode *mode);
 
 #endif

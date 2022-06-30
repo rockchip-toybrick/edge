@@ -251,6 +251,9 @@ static bool rockchip_dp_skip_connector(struct drm_bridge *bridge)
 	if (of_device_is_compatible(bridge->of_node, "dp-connector"))
 		return false;
 
+	if (bridge->ops & DRM_BRIDGE_OP_MODES)
+		return false;
+
 	return true;
 }
 
@@ -270,6 +273,16 @@ static int rockchip_dp_bridge_attach(struct analogix_dp_plat_data *plat_data,
 			DRM_ERROR("Failed to attach bridge to drm: %d\n", ret);
 			return ret;
 		}
+	}
+
+	if (!connector) {
+		struct list_head *connector_list =
+			&bridge->dev->mode_config.connector_list;
+
+		list_for_each_entry(connector, connector_list, head)
+			if (drm_connector_has_possible_encoder(connector,
+							       bridge->encoder))
+				break;
 	}
 
 	if (connector) {

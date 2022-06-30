@@ -92,11 +92,11 @@ Enter the number of the board: 1
 [EDGE DEBUG]   resource: ['0x00068000', '0x00010000']
 [EDGE DEBUG]   rootfs:grow: ['0x00078000', '-']
 [EDGE DEBUG] > Uboot:
-[EDGE DEBUG]   config: rk3588-edge
+[EDGE DEBUG]   config: rk3588-toybrick
 [EDGE DEBUG] > Kernel:
 [EDGE DEBUG]   version: 5.10
-[EDGE DEBUG]   config: rk3588_edge.config
-[EDGE DEBUG]   dtbname: rk3588s-toybrik-x0-linux
+[EDGE DEBUG]   config: rk3588_edge.config rk3588_toybrick.config
+[EDGE DEBUG]   dtbname: rk3588-toybrick-x0-linux
 [EDGE DEBUG]   size: 64
 [EDGE DEBUG]   docker: False
 [EDGE DEBUG]   debug: 0xfeb50000

@@ -408,7 +408,7 @@ int drm_mode_vrefresh(const struct drm_display_mode *mode)
 	return refresh;
 }
 
-static int display_get_detail_timing(ofnode node, struct drm_display_mode *mode)
+int rockchip_ofnode_get_display_mode(ofnode node, struct drm_display_mode *mode)
 {
 	int hactive, vactive, pixelclock;
 	int hfront_porch, hback_porch, hsync_len;
@@ -462,6 +462,7 @@ static int display_get_detail_timing(ofnode node, struct drm_display_mode *mode)
 
 	mode->clock = pixelclock / 1000;
 	mode->flags = flags;
+	mode->vrefresh = drm_mode_vrefresh(mode);
 
 	return 0;
 }
@@ -470,7 +471,7 @@ static int display_get_force_timing_from_dts(ofnode node, struct drm_display_mod
 {
 	int ret = 0;
 
-	ret = display_get_detail_timing(node, mode);
+	ret = rockchip_ofnode_get_display_mode(node, mode);
 
 	if (ret) {
 		mode->clock = 74250;
@@ -521,7 +522,7 @@ static int display_get_timing_from_dts(struct panel_state *panel_state,
 		return -ENXIO;
 	}
 
-	display_get_detail_timing(timing, mode);
+	rockchip_ofnode_get_display_mode(timing, mode);
 
 	return 0;
 }
@@ -818,7 +819,10 @@ static int display_init(struct display_state *state)
 	}
 
 	if (panel_state->panel)
-		rockchip_panel_init(panel_state->panel);
+		rockchip_panel_init(panel_state->panel, state);
+
+	if (conn_state->bridge)
+		rockchip_bridge_init(conn_state->bridge, state);
 
 	if (conn_funcs->init) {
 		ret = conn_funcs->init(state);
@@ -1682,7 +1686,7 @@ static int rockchip_display_probe(struct udevice *dev)
 	struct rockchip_crtc *crtc;
 	const struct rockchip_connector *conn;
 	struct rockchip_panel *panel = NULL;
-	struct rockchip_bridge *bridge = NULL;
+	struct rockchip_bridge *bridge = NULL, *b = NULL;
 	struct rockchip_phy *phy = NULL;
 	struct display_state *s;
 	const char *name;
@@ -1770,7 +1774,20 @@ static int rockchip_display_probe(struct udevice *dev)
 
 		bridge = rockchip_of_find_bridge(conn_dev);
 		if (bridge)
-			panel = rockchip_of_find_panel(bridge->dev);
+			b = bridge;
+		while (b) {
+			struct rockchip_bridge *next_bridge = NULL;
+
+			next_bridge = rockchip_of_find_bridge(b->dev);
+			if (!next_bridge)
+				break;
+
+			b->next_bridge = next_bridge;
+			b = next_bridge;
+		}
+
+		if (b)
+			panel = rockchip_of_find_panel(b->dev);
 		else
 			panel = rockchip_of_find_panel(conn_dev);
 
@@ -1864,12 +1881,6 @@ static int rockchip_display_probe(struct udevice *dev)
 				get_plane_mask_from_dts = true;
 			}
 		}
-
-		if (bridge)
-			bridge->state = s;
-
-		if (panel)
-			panel->state = s;
 
 		get_crtc_mcu_mode(&s->crtc_state);
 

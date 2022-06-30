@@ -4,6 +4,9 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 #include <common.h>
+#include <boot_rkimg.h>
+#include <cli.h>
+#include <debug_uart.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/grf_rv1106.h>
@@ -40,13 +43,64 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define PMU_SGRF_BASE			0xff080000
 
+/* QoS Generator Base Address */
+#define QOS_CPU_BASE			0xff110000
+#define QOS_CRYPTO_BASE			0xff120000
+#define QOS_DECOM_BASE			0xff120080
+#define QOS_DMAC_BASE			0xff120100
+#define QOS_EMMC_BASE			0xff120180
+#define QOS_FSPI_BASE			0xff120200
+#define QOS_IVE_RD_BASE			0xff120280
+#define QOS_IVE_WR_BASE			0xff120300
+#define QOS_USB_BASE			0xff120380
+#define QOS_ISP_BASE			0xff130000
+#define QOS_SDMMC0_BASE			0xff130080
+#define QOS_VICAP_BASE			0xff130100
+#define QOS_NPU_BASE			0xff140000
+#define QOS_VENC_BASE			0xff150000
+#define QOS_VEPU_PP_BASE		0xff150080
+#define QOS_MAC_BASE			0xff160000
+#define QOS_RGA_RD_BASE			0xff160080
+#define QOS_RGA_WR_BASE			0xff160100
+#define QOS_SDIO_BASE			0xff160280
+#define QOS_VOP_BASE			0xff160300
+
+#define QOS_PRIORITY			0x0008
+#define QOS_MODE			0x000c
+#define QOS_BANDWIDTH			0x0010
+#define QOS_SATURATION			0x0014
+#define QOS_EXTCONTROL			0x0018
+
+/* Shaping Base Address */
+#define SHAPING_CPU_BASE		0xff110080
+#define SHAPING_DECOM_BASE		0xff110400
+#define SHAPING_IVE_RD_BASE		0xff120480
+#define SHAPING_IVE_WR_BASE		0xff120500
+#define SHAPING_ISP_BASE		0xff130180
+#define SHAPING_VICAP_BASE		0xff130200
+#define SHAPING_NPU_BASE		0xff140080
+#define SHAPING_VENC_BASE		0xff150100
+#define SHAPING_VEPU_PP_BASE		0xff150180
+#define SHAPING_RGA_RD_BASE		0xff160380
+#define SHAPING_RGA_WR_BASE		0xff160400
+#define SHAPING_VOP_BASE		0xff160580
+
+#define SHAPING_NBPKTMAX		0x0008
+
 #define FW_DDR_BASE			0xff900000
 #define FW_DDR_MST3_REG			0x4c
 #define FW_SHRM_BASE			0xff910000
 #define FW_SHRM_MST1_REG		0x44
 
+#define PMU_BASE			0xff300000
+#define PMU_BIU_IDLE_ST			0x00d8
+
 #define CRU_BASE			0xff3b0000
 #define CRU_GLB_RST_CON			0x0c10
+#define CRU_PVTPLL0_CON0_L		0x1000
+#define CRU_PVTPLL0_CON1_L		0x1008
+#define CRU_PVTPLL1_CON0_L		0x1030
+#define CRU_PVTPLL1_CON1_L		0x1038
 
 #define CORECRU_BASE			0xff3b8000
 #define CORECRU_CORESOFTRST_CON01	0xa04
@@ -62,6 +116,10 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define GPIO3A_IOMUX_SEL_L		0x0040
 #define GPIO3A_IOMUX_SEL_H		0x0044
+
+#define GPIO4A_IOMUX_SEL_L		0x000
+#define GPIO4A_IOMUX_SEL_H		0x004
+#define GPIO4B_IOMUX_SEL_L		0x008
 
 #define GPIO4_IOC_GPIO4B_DS0		0x0030
 
@@ -370,11 +428,54 @@ int arch_cpu_init(void)
 	writel(0x2000200, PERI_GRF_BASE + PERI_GRF_PERI_CON1);
 	writel(0x400040, CRU_BASE + CRU_GLB_RST_CON);
 
+	/*
+	 * When venc/npu use pvtpll, reboot will fail, because
+	 * pvtpll is reset before venc/npu reset, so venc/npu
+	 * is not completely reset, system will block when access
+	 * NoC in SPL.
+	 * Enable pvtpll can make venc/npu reset go on, wait
+	 * until venc/npu is reset completely.
+	 */
+	writel(0xffff0018, CRU_BASE + CRU_PVTPLL0_CON1_L);
+	writel(0x00030003, CRU_BASE + CRU_PVTPLL0_CON0_L);
+	writel(0xffff0018, CRU_BASE + CRU_PVTPLL1_CON1_L);
+	writel(0x00030003, CRU_BASE + CRU_PVTPLL1_CON0_L);
+	udelay(2);
+
+	if (readl(PMU_BASE + PMU_BIU_IDLE_ST)) {
+		printascii("BAD PMU_BIU_IDLE_ST: ");
+		printhex8(readl(PMU_BASE + PMU_BIU_IDLE_ST));
+	}
+
+	/*
+	 * Limits npu max transport packets to 4 for route to scheduler,
+	 * give much more chance for other controllers to access memory.
+	 * such as VENC.
+	 */
+	writel(0x4, SHAPING_NPU_BASE + SHAPING_NBPKTMAX);
+
+	/* Improve VENC QOS PRIORITY */
+	writel(0x303, QOS_VENC_BASE + QOS_PRIORITY);
+
 #ifdef CONFIG_ROCKCHIP_IMAGE_TINY
 	/* Pinctrl is disabled, set sdmmc0 iomux here */
 	writel(0xfff01110, GPIO3_IOC_BASE + GPIO3A_IOMUX_SEL_L);
 	writel(0xffff1111, GPIO3_IOC_BASE + GPIO3A_IOMUX_SEL_H);
 #endif
+
+#if defined(CONFIG_ROCKCHIP_SFC_IOMUX)
+	/* fspi iomux */
+	writel(0x0f000700, GPIO4_IOC_BASE + 0x0030);
+	writel(0xff002200, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+	writel(0x0f0f0202, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+	writel(0x00ff0022, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+#elif defined(CONFIG_ROCKCHIP_EMMC_IOMUX)
+	/* emmc iomux */
+	writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+	writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+	writel(0x00ff0011, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+#endif
+
 #endif
 	return 0;
 }
@@ -416,3 +517,16 @@ int rk_board_scan_bootdev(void)
 	return 0;
 }
 #endif
+
+int rk_board_late_init(void)
+{
+#if defined(CONFIG_CMD_SCRIPT_UPDATE)
+	struct blk_desc *desc;
+
+	desc = rockchip_get_bootdev();
+	if (desc && desc->if_type == IF_TYPE_MMC && desc->devnum == 1)
+		run_command("sd_update", 0);
+#endif
+	return 0;
+}
+
