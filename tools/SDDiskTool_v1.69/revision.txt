@@ -1,0 +1,15 @@
+v1.65 revision(2021/03/23)
+1.modify lastusedlba in gpt to assure that align with 64 sector
+
+v1.66 revision(2021/04/09)
+1.support 356X
+
+v1.67 revision(2021/04/15)
+1.when generating sd update card,add sdfwupdate cmd into misc
+
+v1.68 revision(2021/04/20)
+1.change sdfwupdate cmd into rk_fwupdate
+
+v1.69 revision(2021/04/21)
+1.fix more than 16 partitions in the update when creating boot sd 
+

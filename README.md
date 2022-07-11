@@ -214,6 +214,14 @@ fit启动方式：生成boot.img和recovery.img
 
 extlinux启动方式：生成boot_linux.img、recovery.img和resource.img
 
+### 编译update镜像
+
+执行如下命令编译生成update镜像，保存在OUT_DIR目录：
+
+```shell
+./edge build -U
+```
+
 ### 查看编译帮助
 
 查看支持的编译参数：
@@ -472,6 +480,24 @@ sudo apt -y install minicom
 sudo minicom
 ```
 
+## SD卡启动
+
+### 制作SD启动卡
+
+1. 准备一张SD卡（容量不小于16G），通过SD卡读卡器插到windows电脑下USB Host口。
+
+2. 双机打开tools\SDDiskTool_v1.69\SD_Firmware_Tool.exe，如图4-1所示：
+
+   按界面提示选择磁盘设备、功能模式和update.img的路径，然后点击“开始创建”按钮，开始制作SD卡。
+
+   ![SDDisk](./resources/SDDisk.png)
+
+<center>图4-1：SDDisk界面</center>
+
+### 从SD卡启动
+
+将SD卡从RK3588开发板的SD卡槽重启开机启动，即可从SD卡启动。
+
 ## 更多文档
 
 1. Debian系统软件包： docs/edge/debian
@@ -481,4 +507,3 @@ sudo minicom
 5. rknn文档：docs/edge/rknn
 6. python-sdk文档：docs/edge/python-sdk
 7. ros2文档：docs/edge/ros2
-
