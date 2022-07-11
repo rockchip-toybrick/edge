@@ -128,10 +128,6 @@ class Config:
         for item in self.kernel_items:
             EDGE_DBG('  %s: %s' % (item, conf['kernel_%s' % item]))
         
-        EDGE_DBG('> Rootfs:')
-        for item in self.rootfs_items:
-            EDGE_DBG('  %s: %s' % (item, conf['rootfs_%s' % item]))
-
     def get(self):
         if self.conf_set == False:
             EDGE_ERR('Build env is not set')
