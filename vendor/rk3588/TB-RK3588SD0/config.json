@@ -1,0 +1,16 @@
+{
+  "board": "TB-RK3588SD0",
+  "chip": "rk3588",
+  "arch": "arm64",
+  "bootmode": "extlinux",
+  "uboot": {
+    "config": "rk3588s-toybrick"
+  },
+  "kernel": {
+    "version": "5.10",
+    "config": "rk3588_edge.config rk3588s_toybrick.config",
+    "dtbname": "rk3588s-toybrick-d0-linux",
+    "docker": true, 
+    "debug": "0xfeb50000"
+  }
+}

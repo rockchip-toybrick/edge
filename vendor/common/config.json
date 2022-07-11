@@ -3,6 +3,11 @@
   "chip": "not set",
   "arch": "not set",
   "bootmode": "extlinux",
+  "secureboot": {
+    "enable": false,
+    "rollback": [0, 0],
+    "burnkey": false
+  },
    "part-fit": {
     "uboot": [
       "0x00002000",
@@ -70,10 +75,10 @@
     ],
     "uboot": [
       "0x00000A00",
-      "0x00001000"
+      "0x00000800"
     ],
     "boot": [
-      "0x00001A00",
+      "0x00001200",
       "-"
     ]
   },

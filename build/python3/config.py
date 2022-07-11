@@ -15,11 +15,13 @@ class Config:
     def __init__(self, root_path):
         self.root_path = root_path
         self.common_items = ['board', 'chip', 'arch', 'bootmode']
+        self.secureboot_items = ['enable', 'rollback', 'burnkey']
         self.part_extlinux_items = ['uboot', 'misc', 'boot_linux:bootable', 'recovery', 'resource', 'rootfs:grow']
         self.part_fit_items = ['uboot', 'misc', 'boot', 'recovery', 'backup', 'rootfs', 'oem', 'userdata:grow']
         self.part_flash_items = ['vnvm', 'uboot', 'boot']
         self.uboot_items = ['config']
         self.kernel_items = ['version', 'config', 'dtbname', 'size', 'docker', 'debug']
+        self.rootfs_items = ['osname', 'version', 'type', 'apturl', 'uuid', 'size', 'user', 'password', 'relver']
 
         self.default_file = '%s/vendor/common/config.json' % root_path
         self.edge_file = '%s/edge_config.json' % root_path
@@ -49,6 +51,11 @@ class Config:
         # Load common items
         self.load_items(json_data, None, self.common_items, conf)
         
+        # Load secureboot items
+        json_items = json_data.get('secureboot', None)
+        if json_items != None:
+            self.load_items(json_items, 'secureboot', self.secureboot_items,conf)
+
         # Load part items
         json_items = json_data.get('part-extlinux', None)
         if json_items != None:
@@ -72,8 +79,17 @@ class Config:
         if json_items != None:
             self.load_items(json_items, 'kernel', self.kernel_items, conf)
 
+        # Load rootfs items
+        json_items = json_data.get('rootfs', None)
+        if json_items != None:
+            self.load_items(json_items, 'rootfs', self.rootfs_items, conf)
+
         conf['root_path'] = self.root_path
         conf['out_path'] = '%s/out/%s/%s/images' % (self.root_path, conf['chip'], conf['board'])
+
+        if conf['bootmode'] in ('extlinux', 'flash') and conf['secureboot_enable']:
+            EDGE_ERR('Only boot mode <fit> can enable secure boot')
+            sys.exit(1)
 
         return conf
 
@@ -86,6 +102,10 @@ class Config:
         for item in self.common_items:
             EDGE_DBG('%s: %s' % (item, conf[item]))
 
+        EDGE_DBG('> Secureboot:')
+        for item in self.secureboot_items:
+            EDGE_DBG('  %s: %s' % (item, conf['secureboot_%s' % item]))
+        
         EDGE_DBG('> Partition:')
         if bootmode in ('extlinux'):
             for item in self.part_extlinux_items:
@@ -108,6 +128,10 @@ class Config:
         for item in self.kernel_items:
             EDGE_DBG('  %s: %s' % (item, conf['kernel_%s' % item]))
         
+        EDGE_DBG('> Rootfs:')
+        for item in self.rootfs_items:
+            EDGE_DBG('  %s: %s' % (item, conf['rootfs_%s' % item]))
+
     def get(self):
         if self.conf_set == False:
             EDGE_ERR('Build env is not set')
@@ -123,6 +147,11 @@ class Config:
             self.conf_set = False
         else:
             self.conf_set = True
+
+        if self.conf['secureboot_burnkey']:
+            EDGE_WARN('<burnkey> is enabled, this will burn the sign key to efuse at first boot!')
+            EDGE_WARN('The system will only boot the singed images with this key!')
+            EDGE_WARN('Please keep the key properly!!!')
 
         edge_cmd('rm -rf config.cfg; ln -s config-%s.cfg config.cfg' % self.conf['bootmode'], "%s/tools/RKDevTool_Release" % self.root_path)
 

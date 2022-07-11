@@ -35,15 +35,21 @@ class Build:
             text += '  -k, --kernel             Build kernel(source.img, boot_linux.img)\n'
         elif bootmode in ('fit', 'flash'):
             text += '  -k, --kernel             Build kernel(boot.img and recovery.img)\n'
+            text += '  -s, --sign               Create new keys and save to uboot/keys\n'
+            text += '  -o, --ota list           Build ota image(update.img) specified by the parameter: list\n'
+            text += '                           list is the name of images to be update which separated by commas\n'
         else:
             sys.exit(1)
 
+        text += '  -U, --update             Build update(update.img)\n'
         text += '  -a, --all                Build all images\n'
+        text += '  -m, --module MODULE      Build kernel module in kernel/modules directory\n'
         text += '  -b, --androidboot ANDROID_DTB   Build boot image for android(boot.img)\n'
         text += '                                  Note: you should cp boot_android.img to kernel source directory first\n'
         text += '\n'
         text += 'e.g.\n'
         text += '  %s build -uk             Build uboot and kernel images\n' % EDGE_NAME
+        text += '  %s build -o uboot,boot   Build ota update.img, include uboot.img and boot.img to be update\n' % EDGE_NAME
         text += '  %s build -a\n' % EDGE_NAME
         text +='\n'
 
@@ -52,9 +58,20 @@ class Build:
     def build_parse_args(self, argv):
         conf = self.config.get()
         bootmode = conf['bootmode']
-        short_optarg = 'hpkuab:'
-        long_optarg = ['help', 'parameter', 'kernel', 'uboot', 'all', 'androidboot']
-        build_list_all = ['parameter', 'kernel', 'uboot']
+        if bootmode in ('extlinux'):
+            short_optarg = 'hpkuUam:b:'
+            long_optarg = ['help', 'parameter', 'kernel', 'uboot', 'update', 'all', 'module', 'androidboot']
+            build_list_all = ['parameter', 'kernel', 'uboot', 'update']
+        elif bootmode in ('fit'):
+            short_optarg = 'hpkuUam:b:so:'
+            long_optarg = ['help', 'parameter', 'kernel', 'uboot', 'update', 'all', 'module', 'androidboot', 'sign', 'ota']
+            build_list_all = ['parameter', 'kernel', 'uboot', 'update']
+        elif bootmode in ('flash'):
+            short_optarg = 'hpkuram:b:'
+            long_optarg = ['help', 'parameter', 'kernel', 'uboot', 'all', 'module', 'androidboot']
+            build_list_all = ['parameter', 'kernel', 'uboot']
+        else:
+            sys.exit(1)
 
         build_list = []
         build_args = {}
@@ -82,9 +99,19 @@ class Build:
                     build_list.append('uboot')
                 if option in ('-k', '--kernel'):
                     build_list.append('kernel')
+                if option in ('-U', '--update'):
+                    build_list.append('update')
+                if option in ('-m', '--module'):
+                    build_list.append('module')
+                    build_args['module'] = param
                 if option in ('-b', '--boot'):
                     build_list.append('boot')
                     build_args['android_dtb'] = param
+                if option in ('-s', '--sign'):
+                    build_list.append('sign')
+                if option in ('-o', '--ota'):
+                    build_list.append('ota')
+                    build_args['ota'] = param
 
         return build_list,build_args
 
@@ -117,6 +144,23 @@ class Build:
 
         EDGE_INFO('Build parameter successfully!')
     
+    def build_uboot_secure_boot_config(self, old):
+        conf = self.config.get()
+        uboot_path = '%s/uboot' % self.root_path
+
+        # make secure boot config
+        new = '%s/configs/%s-s.config' % (uboot_path, old)
+        f = open(new, 'w+')
+        line = 'CONFIG_BASE_DEFCONFIG="%s.config"\n' % old
+        line += 'CONFIG_FIT_SIGNATURE=y\n'
+        line += 'CONFIG_FIT_ROLLBACK_PROTECT=y\n'
+        line += 'CONFIG_SPL_FIT_SIGNATURE=y\n'
+        line += 'CONFIG_SPL_FIT_ROLLBACK_PROTECT=y\n'
+        line += '# CONFIG_OPTEE_ALWAYS_USE_SECURITY_PARTITION is not set\n'
+        f.write(line)
+        f.close()
+        return "%s-s" % old
+        
     def build_uboot(self):
         conf = self.config.get()
         uboot_path = '%s/uboot' % self.root_path
@@ -124,18 +168,50 @@ class Build:
         out_path = conf['out_path']
         chip = conf['chip']
         bootmode = conf['bootmode']
+        secureboot_enable = conf['secureboot_enable']
+        secureboot_rollback = conf['secureboot_rollback']
+        secureboot_burnkey = conf['secureboot_burnkey']
         key_path = '%s/keys' % uboot_path
 
         EDGE_DBG('Start build uboot ...')
 
         uboot_config = conf['uboot_config']
-        cmd = './make.sh %s' % uboot_config
+        # Build uboot
+        if secureboot_enable:
+            ret1 = edge_cmd_result('fdtdump %s/boot.img 2>&1 | grep hashed-strings' % out_path)
+            ret2 = edge_cmd_result('fdtdump %s/recovery.img 2>&1 | grep hashed-strings' % out_path)
+            if len(ret1) != 0 or len(ret2) != 0:
+                EDGE_ERR('boot.img or recovery.img has been signed, please run "./edge build -k" to build a non-singed one first')
+                sys.exit(1)
+            if os.path.exists('%s/dev.key' % key_path) == False or os.path.exists('%s/dev.crt' % key_path) == False or os.path.exists('%s/dev.pubkey' % key_path) == False:
+                EDGE_ERR('Secure boot sign keys <%s/{dev.key, dev.crt, dev.pubkey}> dose NOT exist' % key_path)
+                EDGE_ERR('Please copy them to %s, or run "./edge build -s" to generate new keys' % key_path)
+                sys.exit(1)
+
+            uboot_config = self.build_uboot_secure_boot_config(uboot_config)
+            if os.path.exists('%s/boot.img' % out_path) == False or os.path.exists('%s/recovery.img' % out_path) == False:
+                EDGE_ERR('boot.img or recovery.img is NOT in %s' % out_path)
+                sys.exit(1)
+
+            cmd = './make.sh %s --spl-new --boot_img %s/boot.img --recovery_img %s/recovery.img' % (uboot_config, out_path, out_path)
+            if secureboot_rollback[0] >= 0:
+                cmd += ' --rollback-index-uboot %s' % secureboot_rollback[0]
+            if secureboot_rollback[1] >= 0:
+                cmd += ' --rollback-index-boot %s' % secureboot_rollback[1]
+                cmd += ' --rollback-index-recovery %s' % secureboot_rollback[1]
+            if secureboot_burnkey:
+                cmd += ' --burn-key-hash'
+        else:
+            cmd = './make.sh %s' % uboot_config
         if edge_cmd(cmd, uboot_path):
             EDGE_ERR('Build uboot failed, cmd: %s' % cmd)
             sys.exit(1)
 
         # Copy uboot.img to output directory
-        cmd = 'cp %s/uboot.img %s/' % (uboot_path, out_path)
+        if secureboot_enable:
+            cmd = 'cp %s/{uboot.img,boot.img,recovery.img} %s/' % (uboot_path, out_path)
+        else:
+            cmd = 'cp %s/uboot.img %s/' % (uboot_path, out_path)
         if edge_cmd(cmd, None) != 0:
             EDGE_ERR('Copy uboot.img failed')
             sys.exit(1)
@@ -162,7 +238,7 @@ class Build:
         gcc_v6_3_1='gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-'
         gcc_v10_3='gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-'
 
-        if os.uname().machine == 'x86_64':
+        if host_arch == 'x86_64':
             cross_compile = '%s/prebuilts/gcc/linux-x86/aarch64/%s' % (root_path, gcc_v10_3)
             make_cmd = 'make CROSS_COMPILE=%s LLVM=1 LLVM_IAS=1 -j %s' % (cross_compile, cpus)
         else:
@@ -175,7 +251,7 @@ class Build:
             dtb_path = '%s/arch/arm/boot/dts' % kernel_path
 
         # Set env: PATH
-        if os.uname().machine == 'x86_64':
+        if host_arch == 'x86_64':
             os.environ['PATH'] = '%s/prebuilts/clang/bin:%s/prebuilts/bin:%s' % (root_path, root_path, os.environ['PATH'])
 
         EDGE_DBG('Start build kernel ...')
@@ -190,7 +266,7 @@ class Build:
 
         # Build kernel
         android_dtb = build_args['android_dtb']
-        cmd = '%s ARCH=arm64 BOOT_IMG=./boot_android.img %s.img' % (make_cmd, android_dtb)
+        cmd = '%s ARCH=%s BOOT_IMG=./boot_android.img %s.img' % (make_cmd, arch, ndroid_dtb)
         if edge_cmd(cmd, kernel_path):
             EDGE_ERR('Build kernel failed, cmd: %s' % cmd)
             sys.exit(1)
@@ -209,6 +285,7 @@ class Build:
         kernel_config = conf['kernel_config']
         kernel_docker = conf['kernel_docker']
         kernel_size = conf['kernel_size']
+        rootfs_uuid = self.rootfs_uuid
         chip = conf['chip']
         arch = conf['arch']
         kernel_path = '%s/kernel/linux-%s' % (root_path, kernel_version)
@@ -223,7 +300,7 @@ class Build:
         blocks = 4096
         block_size = image_size / blocks
 
-        if os.uname().machine == 'x86_64':
+        if host_arch == 'x86_64':
             cross_compile = '%s/prebuilts/gcc/linux-x86/aarch64/%s' % (root_path, gcc_v10_3)
             make_cmd = 'make CROSS_COMPILE=%s LLVM=1 LLVM_IAS=1 -j %s' % (cross_compile, cpus)
         else:
@@ -238,7 +315,7 @@ class Build:
             dtb_path = '%s/arch/arm/boot/dts' % kernel_path
 
         # Set env: PATH
-        if os.uname().machine == 'x86_64':
+        if host_arch == 'x86_64':
             os.environ['PATH'] = '%s/prebuilts/clang/bin:%s/prebuilts/bin:%s' % (root_path, root_path, os.environ['PATH'])
 
         EDGE_DBG('Start build boot linux ...')
@@ -252,10 +329,11 @@ class Build:
             EDGE_ERR('Make kernel config failed')
             sys.exit(1)
 
-        cmd = '%s ARCH=arm64 %s.img' % (make_cmd, kernel_dtbname)
+        cmd = '%s ARCH=%s %s.img' % (make_cmd, arch, kernel_dtbname)
         if edge_cmd(cmd, kernel_path):
             EDGE_ERR('Build kernel failed, cmd: %s' % cmd)
             sys.exit(1)
+
         # mkdir boot_linux/extliux
         cmd = 'rm -rf %s; mkdir -p %s/extlinux' % (boot_linux_path, boot_linux_path)
         edge_cmd(cmd, None)
@@ -278,7 +356,7 @@ class Build:
         line = 'label rockchip-kernel-%s\n' % kernel_version
         line += '  kernel /extlinux/Image\n'
         line += '  fdt /extlinux/%s\n' % toybrick_dtb
-        line += '  append earlycon=uart8250,mmio32,%s root=PARTUUID=%s rw rootwait rootfstype=ext4\n' % (kernel_debug, self.rootfs_uuid)
+        line += '  append earlycon=uart8250,mmio32,%s root=PARTUUID=%s rw rootwait rootfstype=ext4\n' % (kernel_debug, rootfs_uuid)
         f.write(line)
         f.close()
 
@@ -312,7 +390,7 @@ class Build:
 
         EDGE_INFO('Build boot linux successfully!')
 
-    def build_boot_image(self, target_name, initrd, lz4_compress):
+    def build_boot_image(self, target_name, initrd, compress_type):
         conf = self.config.get()
         cpus = cpu_count()
         root_path = self.root_path
@@ -356,9 +434,9 @@ class Build:
         line += '        };\n'
         line += '\n'
         line += '        kernel {\n'
-        if lz4_compress:
-            line += '            data = /incbin/("%s/arch/%s/boot/Image.lz4");\n' % (kernel_path, arch)
-            line += '            compression = "lz4";\n'
+        if compress_type:
+            line += '            data = /incbin/("%s/arch/%s/boot/Image.%s");\n' % (kernel_path, arch, compress_type)
+            line += '            compression = "%s";\n' % compress_type
         else:
             line += '            data = /incbin/("%s/arch/%s/boot/Image");\n' % (kernel_path, arch)
             line += '            compression = "none";\n'
@@ -390,7 +468,7 @@ class Build:
             line += '            type = "ramdisk";\n'
             line += '            arch = "%s";\n' % arch
             line += '            os = "linux";\n'
-            line += '            compression = "lzma";\n'
+            line += '            compression = "%s";\n' % compress_type
             line += '            entry = <0xffffff02>;\n'
             line += '            load = <0xffffff02>;\n'
             line += '\n'
@@ -430,24 +508,144 @@ class Build:
         if edge_cmd(cmd, None) != 0:
             EDGE_ERR("mkimage failed")
             sys.exit(1)
+        edge_cmd('rm -rf %s/initrd-%s.img %s/boot_its' % (initrd_path, arch, out_path), None)
         EDGE_INFO('Build boot image successfully!')
 
     def build_boot_fit(self):
         self.build_boot_linux()
-        self.build_boot_image('boot.img', False, False)
-        self.build_boot_image('recovery.img', True, False)
+        self.build_boot_image('boot.img', False, None)
+        self.build_boot_image('recovery.img', True, None)
         EDGE_INFO('Build boot fit successfully!')
 
     def build_boot_flash(self):
         self.build_boot_linux()
-        self.build_boot_image('boot.img', True, True)
+        self.build_boot_image('boot.img', True, 'lzma')
         EDGE_INFO('Build boot flash successfully!')
 
     def build_boot_extlinux(self):
         self.build_boot_linux()
-        self.build_boot_image('recovery.img', True, False)
+        self.build_boot_image('recovery.img', True, None)
         EDGE_INFO('Build boot extlinux successfully!')
 
+    def build_kernel_module(self, build_args):
+        conf = self.config.get()
+        cpus = cpu_count()
+        root_path = self.root_path
+        out_path = conf['out_path']
+        kernel_version = conf['kernel_version']
+        arch = conf['arch']
+        kernel_path = '%s/kernel/linux-%s' % (root_path, kernel_version)
+        module_path = '%s/kernel/modules' % root_path
+        host_arch = platform.machine()
+        gcc_v6_3_1='gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-'
+        gcc_v10_3='gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-'
+        target = build_args['module']
+
+        if host_arch == 'x86_64':
+            cross_compile = '%s/prebuilts/gcc/linux-x86/aarch64/%s' % (root_path, gcc_v10_3)
+            make_cmd = 'make CROSS_COMPILE=%s LLVM=1 LLVM_IAS=1 -j %s' % (cross_compile, cpus)
+        else:
+            cross_compile = '/usr/bin/aarch64-linux-gnu-'
+            make_cmd = 'make CROSS_COMPILE=%s -j %s' % (cross_compile, cpus)
+
+        EDGE_DBG('Start build module: %s ...' % target)
+
+        # Set env: PATH
+        if host_arch == 'x86_64':
+            os.environ['PATH'] = '%s/prebuilts/clang/bin:%s/prebuilts/bin:%s' % (root_path, root_path, os.environ['PATH'])
+
+        cmd = '%s ARCH=%s modules' % (make_cmd, arch);
+        if edge_cmd(cmd, kernel_path):
+            EDGE_ERR('Build modules, cmd: %s' % cmd)
+            sys.exit(1)
+
+        cmd = '%s ARCH=%s KSRC=%s -C %s/%s TARGET_ARCH=aarch64' % (make_cmd, arch, kernel_path, module_path, target);
+        if edge_cmd(cmd, kernel_path):
+            EDGE_ERR('Build module failed, cmd: %s' % cmd)
+            sys.exit(1)
+
+        EDGE_INFO('Build module %s successfully!' % target)
+
+    def build_update(self, isota, build_args):
+        conf = self.config.get()
+        root_path = self.root_path
+        out_path = conf['out_path']
+        chip = conf['chip']
+        board = conf['board']
+        bootmode = conf['bootmode']
+        EDGE_DBG('Start build update ...')
+        # Make package-file
+        package_file = '%s/package-file' % out_path
+        f = open(package_file, 'w+')
+        line = 'package-file package-file\n'
+        line += 'parameter parameter.txt\n'
+        line += 'bootloader MiniLoaderAll.bin\n'
+        if isota:
+            imagename = 'update-ota.img'
+            ota_list = build_args['ota'].split(',')
+            for list in ota_list:
+                line += '%s %s.img\n' % (list, list) 
+        else:
+            imagename = 'update.img'
+            line += 'uboot uboot.img\n'
+            if bootmode in ('extlinux'):
+                line += 'misc misc.img\n'
+                line += 'boot_linux boot_linux.img\n'
+                line += 'recovery recovery.img\n'
+                line += 'resource resource.img\n'
+                line += 'rootfs rootfs.img\n'
+            elif bootmode in ('fit'):
+                line += 'misc misc.img\n'
+                line += 'boot boot.img\n'
+                line += 'recovery recovery.img\n'
+                line += 'rootfs rootfs.img\n'
+                if os.path.exists('%s/userdata.img' % out_path):
+                    line += 'userdata userdata.img\n'
+                if os.path.exists('%s/oem.img' % out_path):
+                    line += 'oem oem.img\n'
+            elif bootmode in ('flash'):
+                line += 'vnvm RESERVED\n'
+                line += 'boot boot.img\n'
+            else:
+                f.close()
+                sys.exit(1)
+        f.write(line)
+        f.close()
+
+        afptool = '%s/build/bin/afptool' % root_path
+        cmd = '%s -pack . update.img.tmp' % afptool
+        if edge_cmd(cmd, out_path):
+            EDGE_ERR('afptool pack failed')
+            sys.exit(1)
+
+        rkImageMaker = '%s/build/bin/rkImageMaker' % root_path
+        cmd = '%s -%s MiniLoaderAll.bin update.img.tmp %s -os_type:androidos' % (rkImageMaker, chip, imagename)
+        if edge_cmd(cmd, out_path):
+            EDGE_ERR('rkImageMaker pack failed')
+            sys.exit(1)
+        edge_cmd('rm -rf update.img.tmp package-file', out_path)
+        EDGE_INFO('Build update successfully!')
+
+    def build_secureboot_keys(self):
+        conf = self.config.get()
+        uboot_path = '%s/uboot' % self.root_path
+        rkbin_path = '%s/rkbin' % self.root_path
+
+        EDGE_DBG('Start build secureboot keys ...')
+        edge_cmd('mkdir -p keys', uboot_path)
+        cmd = '%s/tools/rk_sign_tool kk --bits 2048' % rkbin_path
+        if edge_cmd(cmd, uboot_path):
+            EDGE_ERR('rk_sign_tool gernerate dev.key and ev.pubkey failed')
+            sys.exit(1)
+        edge_cmd('mv private_key.pem keys/dev.key; mv public_key.pem keys/dev.pubkey', uboot_path)
+
+        cmd = 'openssl req -batch -new -x509 -key keys/dev.key --out keys/dev.crt'
+        if edge_cmd(cmd, uboot_path):
+            EDGE_ERR('openssl generate key.crt failed')
+            sys.exit(1)
+
+        EDGE_INFO('Build secureboot keys successfully!')
+        
     def build(self, argv):
         conf = self.config.get()
         root_path =self.root_path
@@ -472,8 +670,16 @@ class Build:
                     self.build_boot_extlinux()
                 else:
                     sys.exit(1)
+            elif list == 'update':
+                self.build_update(False, build_args)
+            elif list == 'ota':
+                self.build_update(True, build_args)
             elif list == 'androidboot':
                 self.build_android_boot(build_args)
+            elif list == 'module':
+                self.build_kernel_module(build_args)
+            elif list == 'sign':
+                self.build_secureboot_keys()
 
         EDGE_INFO('Build all successfully!')
         return 0

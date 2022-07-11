@@ -10,7 +10,7 @@
     "version": "5.10",
     "config": "rk3588_edge.config rk3588_toybrick.config",
     "dtbname": "rk3588-toybrick-x0-linux",
-    "initrd": true,
+    "docker": true, 
     "debug": "0xfeb50000"
   }
 }
