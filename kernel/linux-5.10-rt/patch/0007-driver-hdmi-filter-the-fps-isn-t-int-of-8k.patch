@@ -1,0 +1,42 @@
+From 4a246d0f7246d96bf169c89f2db4f24748eb04ca Mon Sep 17 00:00:00 2001
+From: chenyifu <chenyf@rock-chips.com>
+Date: Thu, 5 May 2022 11:11:29 +0800
+Subject: [PATCH 07/22] driver: hdmi: filter the fps isn't int of 8k
+
+Signed-off-by: chenyifu <chenyf@rock-chips.com>
+Change-Id: Ib64c2bd070555fc68f2ffe8ffb7b15d1b0f6975c
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
+
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
+old mode 100644
+new mode 100755
+index cc0090f39e72..49e60a5d3c80
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
+@@ -33,7 +33,6 @@
+ 
+ #include <uapi/linux/media-bus-format.h>
+ #include <uapi/linux/videodev2.h>
+-
+ #include "dw-hdmi-qp-audio.h"
+ #include "dw-hdmi-qp.h"
+ #include "dw-hdmi-qp-cec.h"
+@@ -2344,6 +2343,12 @@ dw_hdmi_qp_bridge_mode_valid(struct drm_bridge *bridge,
+ 			     const struct drm_display_info *info,
+ 			     const struct drm_display_mode *mode)
+ {
++    if (mode->hdisplay == 7680) {
++	if (mode->clock == 1186813 || mode->clock == 2373626) {
++                return MODE_ERROR;
++	}
++    }
++
+ 	return MODE_OK;
+ }
+ 
+-- 
+2.25.1
+

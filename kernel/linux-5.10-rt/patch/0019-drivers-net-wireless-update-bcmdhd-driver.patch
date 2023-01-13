@@ -1,0 +1,50 @@
+From 3a547a1053a3e5789013e03c284411639ce2e89c Mon Sep 17 00:00:00 2001
+From: Shaoxing Chen <csx@rock-chips.com>
+Date: Fri, 31 Dec 2021 19:28:54 +0800
+Subject: [PATCH 19/22] drivers: net: wireless: update bcmdhd driver
+
+Signed-off-by: Shaoxing Chen <csx@rock-chips.com>
+Change-Id: I0dc0d09b646d1bdd44dc6dd2e00898742bfbdde1
+---
+ drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile     | 2 +-
+ .../net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
+index d5f4d2946d64..1fbec70f3f3c 100755
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
+@@ -345,7 +345,7 @@ ifeq  ($(CONFIG_BCMDHD_STATIC_BUF_IN_DHD),y)
+ 	DHDOFILES += dhd_static_buf.o
+ 	DHDCFLAGS += -DDHD_STATIC_IN_DRIVER
+ else
+-	obj-m += dhd_static_buf.o
++	obj-y += dhd_static_buf.o
+ endif
+ 	DHDCFLAGS += -DSTATIC_WL_PRIV_STRUCT -DENHANCED_STATIC_BUF
+ 	DHDCFLAGS += -DCONFIG_DHD_USE_STATIC_BUF
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
+index 0d2cd973a616..0e3443202e6f 100755
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
+@@ -1543,6 +1543,7 @@ static int dhdpcie_device_scan(struct device *dev, void *data)
+ int
+ dhdpcie_bus_register(void)
+ {
++#if 0
+ 	int error = 0;
+ 
+ 	if (!(error = pci_register_driver(&dhdpcie_driver))) {
+@@ -1563,6 +1564,9 @@ dhdpcie_bus_register(void)
+ 	}
+ 
+ 	return error;
++#else
++	return pci_register_driver(&dhdpcie_driver);
++#endif
+ }
+ 
+ void
+-- 
+2.25.1
+

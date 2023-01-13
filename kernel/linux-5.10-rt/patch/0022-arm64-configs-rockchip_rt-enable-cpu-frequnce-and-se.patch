@@ -1,0 +1,37 @@
+From f0f27c5023ff28ba779e48044dec9895014a652f Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Wed, 19 Oct 2022 15:35:17 +0800
+Subject: [PATCH 22/22] arm64: configs: rockchip_rt: enable cpu frequnce and
+ set default gov: performance
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I0c82960f88365baf47c544b8bad87f2156bbd947
+---
+ arch/arm64/configs/rockchip_rt.config | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/configs/rockchip_rt.config b/arch/arm64/configs/rockchip_rt.config
+index 9bd1ba9100e8..7fe60d44d24b 100644
+--- a/arch/arm64/configs/rockchip_rt.config
++++ b/arch/arm64/configs/rockchip_rt.config
+@@ -2,10 +2,8 @@
+ # CONFIG_ARM_ROCKCHIP_DMC_DEVFREQ is not set
+ # CONFIG_CGROUP_CPUACCT is not set
+ # CONFIG_CGROUP_SCHED is not set
+-# CONFIG_CPU_FREQ is not set
+ # CONFIG_CPU_FREQ_TIMES is not set
+ # CONFIG_CPU_FREQ_THERMAL is not set
+-# CONFIG_CPU_FREQ_GOV_SCHEDUTIL is not set
+ # CONFIG_DEBUG_SPINLOCK is not set
+ # CONFIG_FTRACE is not set
+ # CONFIG_IRQ_TIME_ACCOUNTING is not set
+@@ -22,3 +20,6 @@
+ CONFIG_HZ_PERIODIC=y
+ CONFIG_HZ_1000=y
+ CONFIG_PREEMPT_RT=y
++
++CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
++# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set
+-- 
+2.25.1
+

@@ -1,0 +1,28 @@
+From 91b818d9189df955ca886a2b43e47bec9c94c1d6 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Tue, 24 May 2022 09:42:07 +0800
+Subject: [PATCH 02/22] arm64: dts: rockchip: rk3588-evb1: disable dp0 sound
+ card
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I8b1b62c0e6fd7830e8568da77f3a5de7d1da3c56
+---
+ arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4.dtsi
+index f5269776b64e..8d6f77be52ab 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4.dtsi
+@@ -255,7 +255,7 @@ &dp0_in_vp2 {
+ };
+ 
+ &dp0_sound{
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &dp1 {
+-- 
+2.25.1
+

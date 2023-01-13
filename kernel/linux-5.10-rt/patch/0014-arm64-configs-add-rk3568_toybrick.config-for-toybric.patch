@@ -1,0 +1,33 @@
+From 2c85130778f703d0d2a953764f90fb0a37caf7e8 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Wed, 22 Jun 2022 14:49:22 +0800
+Subject: [PATCH 14/22] arm64: configs: add rk3568_toybrick.config for toybrick
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I1a893c15cc25ebb98d8e5c9059c71d60209318d0
+---
+ arch/arm64/configs/rk3568_toybrick.config | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+ create mode 100644 arch/arm64/configs/rk3568_toybrick.config
+
+diff --git a/arch/arm64/configs/rk3568_toybrick.config b/arch/arm64/configs/rk3568_toybrick.config
+new file mode 100644
+index 000000000000..8b8da3eb0903
+--- /dev/null
++++ b/arch/arm64/configs/rk3568_toybrick.config
+@@ -0,0 +1,12 @@
++CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP=y
++CONFIG_AP6XXX=y
++# CONFIG_WIFI_BUILD_MODULE is not set
++CONFIG_FRAMEBUFFER_CONSOLE=y
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_F_UAC1=y
++CONFIG_USB_CONFIGFS_F_UAC2=y
++CONFIG_USB_CONFIGFS_F_HID=y
++CONFIG_SND_SOC_ES7210=y
++CONFIG_ANDROID_BINDER_IPC=y
++# CONFIG_BCMDHD_PCIE is not set
++# CONFIG_MALI_CSF_SUPPORT is not set
+-- 
+2.25.1
+

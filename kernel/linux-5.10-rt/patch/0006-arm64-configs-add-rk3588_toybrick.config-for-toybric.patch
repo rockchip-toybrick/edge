@@ -1,0 +1,30 @@
+From 8b8db5b7d904ee422808f3ded8a20bef6e4ceea1 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Tue, 21 Jun 2022 17:24:57 +0800
+Subject: [PATCH 06/22] arm64: configs: add rk3588_toybrick.config for toybrick
+
+make ARCH=arm64 rockchip_linux_defconfig rk3588_toybrick.config
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I567f92288c85cba27ba55bfddd1d4f5650c46fd4
+---
+ arch/arm64/configs/rk3588_toybrick.config | 7 +++++++
+ 1 file changed, 7 insertions(+)
+ create mode 100644 arch/arm64/configs/rk3588_toybrick.config
+
+diff --git a/arch/arm64/configs/rk3588_toybrick.config b/arch/arm64/configs/rk3588_toybrick.config
+new file mode 100644
+index 000000000000..391100bd5a36
+--- /dev/null
++++ b/arch/arm64/configs/rk3588_toybrick.config
+@@ -0,0 +1,7 @@
++CONFIG_BCMDHD=y
++CONFIG_BCMDHD_PCIE=y
++CONFIG_VIDEO_IMX258=y
++CONFIG_VIDEO_ROCKCHIP_HDMIRX=y
++CONFIG_CAN=y
++CONFIG_CAN_ROCKCHIP=y
++CONFIG_CANFD_ROCKCHIP=y
+-- 
+2.25.1
+

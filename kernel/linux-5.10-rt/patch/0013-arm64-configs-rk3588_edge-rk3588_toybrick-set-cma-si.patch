@@ -1,0 +1,34 @@
+From 9d6800881078dfe877c7d2a0891b6aed0864daa9 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Wed, 22 Jun 2022 08:47:09 +0800
+Subject: [PATCH 13/22] arm64: configs: rk3588_edge & rk3588_toybrick: set cma
+ size 128M
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I3fdc780849e7b1ad13e4b7a4601bcefdadba200d
+---
+ arch/arm64/configs/rk3588_edge.config     | 1 +
+ arch/arm64/configs/rk3588_toybrick.config | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm64/configs/rk3588_edge.config b/arch/arm64/configs/rk3588_edge.config
+index f09140e89b3e..768a85faef3b 100644
+--- a/arch/arm64/configs/rk3588_edge.config
++++ b/arch/arm64/configs/rk3588_edge.config
+@@ -8,3 +8,4 @@ CONFIG_USB_CONFIGFS_F_UAC2=y
+ CONFIG_USB_CONFIGFS_F_HID=y
+ CONFIG_VIDEO_OV50C40=y
+ CONFIG_VIDEO_ROCKCHIP_HDMIRX=y
++CONFIG_CMA_SIZE_MBYTES=128
+diff --git a/arch/arm64/configs/rk3588_toybrick.config b/arch/arm64/configs/rk3588_toybrick.config
+index 391100bd5a36..ddb7cb70ee41 100644
+--- a/arch/arm64/configs/rk3588_toybrick.config
++++ b/arch/arm64/configs/rk3588_toybrick.config
+@@ -5,3 +5,4 @@ CONFIG_VIDEO_ROCKCHIP_HDMIRX=y
+ CONFIG_CAN=y
+ CONFIG_CAN_ROCKCHIP=y
+ CONFIG_CANFD_ROCKCHIP=y
++CONFIG_CMA_SIZE_MBYTES=128
+-- 
+2.25.1
+

@@ -1,0 +1,39 @@
+From 6c60015e0f76e5a1805ee0e37d9668a181b5a49a Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Thu, 19 May 2022 12:56:32 +0000
+Subject: [PATCH 12/22] gcc-wrapper.py: ignore hw.c:1297
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: Ie127dfa9a07ed3f8581f1eb33dd2890a32e50508
+---
+ scripts/clang-wrapper.py | 1 +
+ scripts/gcc-wrapper.py   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/scripts/clang-wrapper.py b/scripts/clang-wrapper.py
+index 871aa5080bad..b2b4857e7c31 100755
+--- a/scripts/clang-wrapper.py
++++ b/scripts/clang-wrapper.py
+@@ -43,6 +43,7 @@ allowed_warnings = set([
+     "file.c:3010", # fs/f2fs/file.c:3010:12: warning: unused function 'f2fs_ioctl_check_project'
+     "configfs.c:1488", # drivers/usb/gadget/configfs.c:1488:12: warning: unused function 'configfs_composite_setup'
+     "configfs.c:1513", # drivers/usb/gadget/configfs.c:1513:13: warning: unused function 'configfs_composite_disconnect'
++    "hw.c:1297" # drivers/media/platform/rockchip/cif/hw.c:1297:13: warning: 'rkcif_hw_shutdown' defined but not used [-Wunused-function]
+  ])
+ 
+ # Capture the name of the object file, can find it.
+diff --git a/scripts/gcc-wrapper.py b/scripts/gcc-wrapper.py
+index ddea57858c64..8d7e517c1974 100755
+--- a/scripts/gcc-wrapper.py
++++ b/scripts/gcc-wrapper.py
+@@ -61,6 +61,7 @@ allowed_warnings = set([
+     "halphyrf_8188e_ce.c:2208", # drivers/net/wireless/rockchip_wlan/rtl8189es/hal/phydm/rtl8188e/halphyrf_8188e_ce.c:2208:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
+     "halphyrf_8723b_ce.c:2879", # drivers/net/wireless/rockchip_wlan/rtl8723bu/hal/phydm/rtl8723b/halphyrf_8723b_ce.c:2879:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
+     "dhd_pcie_linux.c:1499", #drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c:1499:12: warning: 'dhdpcie_device_scan' defined but not used [-Wunused-function]
++    "hw.c:1297" # drivers/media/platform/rockchip/cif/hw.c:1297:13: warning: 'rkcif_hw_shutdown' defined but not used [-Wunused-function]
+  ])
+ 
+ # Capture the name of the object file, can find it.
+-- 
+2.25.1
+

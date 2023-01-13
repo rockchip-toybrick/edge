@@ -1,0 +1,34 @@
+From ce0f880fbe3a87a79187b2c31276e7c6cd7d7397 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Tue, 21 Jun 2022 16:50:09 +0800
+Subject: [PATCH 01/22] arm64: configs: rk3588_edge.config: update configure
+
+1) change wifi configure to R8168
+2) enable OV50C40
+3) enable hdmirx
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I86598dd6bf8557e543a4d7625adb04a3823474af
+---
+ arch/arm64/configs/rk3588_edge.config | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/configs/rk3588_edge.config b/arch/arm64/configs/rk3588_edge.config
+index 1ccc4a1778d9..f09140e89b3e 100644
+--- a/arch/arm64/configs/rk3588_edge.config
++++ b/arch/arm64/configs/rk3588_edge.config
+@@ -1,5 +1,3 @@
+-# CONFIG_R8168 is not set
+-CONFIG_R8169=y
+ CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP=y
+ CONFIG_AP6XXX=y
+ # CONFIG_WIFI_BUILD_MODULE is not set
+@@ -8,3 +6,5 @@ CONFIG_USB_CONFIGFS_RNDIS=y
+ CONFIG_USB_CONFIGFS_F_UAC1=y
+ CONFIG_USB_CONFIGFS_F_UAC2=y
+ CONFIG_USB_CONFIGFS_F_HID=y
++CONFIG_VIDEO_OV50C40=y
++CONFIG_VIDEO_ROCKCHIP_HDMIRX=y
+-- 
+2.25.1
+

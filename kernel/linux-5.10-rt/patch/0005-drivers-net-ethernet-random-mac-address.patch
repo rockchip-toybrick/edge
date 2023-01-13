@@ -1,0 +1,27 @@
+From 5c2b755b56afcafaed845025e4a88914710b2ee9 Mon Sep 17 00:00:00 2001
+From: Shaoxing Chen <csx@rock-chips.com>
+Date: Wed, 20 Apr 2022 10:27:51 +0800
+Subject: [PATCH 05/22] drivers: net: ethernet: random mac address
+
+Signed-off-by: Shaoxing Chen <csx@rock-chips.com>
+Change-Id: I4a39db474a587c7686db6e4701c06cc0d5dc6fda
+---
+ drivers/net/ethernet/realtek/r8168/r8168_n.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8168/r8168_n.c b/drivers/net/ethernet/realtek/r8168/r8168_n.c
+index 84c4d0970673..94735f75ffd6 100644
+--- a/drivers/net/ethernet/realtek/r8168/r8168_n.c
++++ b/drivers/net/ethernet/realtek/r8168/r8168_n.c
+@@ -24160,7 +24160,7 @@ rtl8168_set_mac_address(struct net_device *dev,
+ 
+         spin_lock_irqsave(&tp->lock, flags);
+ 
+-        memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
++        //memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
+ 
+         rtl8168_rar_set(tp, dev->dev_addr);
+ 
+-- 
+2.25.1
+

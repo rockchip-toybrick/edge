@@ -1,0 +1,27 @@
+From 743c5f1c7062e450af03140585d5f9b013568bab Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Tue, 26 Apr 2022 18:47:31 +0800
+Subject: [PATCH 03/22] arm64: dts: rockchip: rk3588s-evb1-lp4x-v10-linux:
+ enable mipi camera
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I0c60d1e19f366cd60fb1f9e56bfb1798297778c1
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-evb1-lp4x-v10-linux.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-evb1-lp4x-v10-linux.dts b/arch/arm64/boot/dts/rockchip/rk3588s-evb1-lp4x-v10-linux.dts
+index 121255ddfdbc..88e1dbe3bfcd 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-evb1-lp4x-v10-linux.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-evb1-lp4x-v10-linux.dts
+@@ -8,6 +8,7 @@
+ 
+ #include "rk3588s-evb1-lp4x.dtsi"
+ #include "rk3588-linux.dtsi"
++#include "rk3588s-evb1-lp4x-v10-camera.dtsi"
+ 
+ / {
+ 	model = "Rockchip RK3588S EVB1 LP4X V10 Board";
+-- 
+2.25.1
+

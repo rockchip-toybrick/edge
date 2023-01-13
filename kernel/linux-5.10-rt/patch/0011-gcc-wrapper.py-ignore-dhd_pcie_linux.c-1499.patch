@@ -1,0 +1,28 @@
+From c835b4bae8307ffc34205d9f39d39425aefecd76 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Fri, 25 Feb 2022 10:10:52 +0800
+Subject: [PATCH 11/22] gcc-wrapper.py: ignore dhd_pcie_linux.c:1499
+
+This fix warning  dhd_pcie_linux.c:1499, build on Debian11 with aarch64-linux-gnu-gcc 10.2.1
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I673b7635639700b7d9e65cfa0d697362140557a9
+---
+ scripts/gcc-wrapper.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/gcc-wrapper.py b/scripts/gcc-wrapper.py
+index ea74ea852242..ddea57858c64 100755
+--- a/scripts/gcc-wrapper.py
++++ b/scripts/gcc-wrapper.py
+@@ -60,6 +60,7 @@ allowed_warnings = set([
+     "sched.h:1211", # include/linux/sched.h:1211:1: warning: type qualifiers ignored on function return type
+     "halphyrf_8188e_ce.c:2208", # drivers/net/wireless/rockchip_wlan/rtl8189es/hal/phydm/rtl8188e/halphyrf_8188e_ce.c:2208:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
+     "halphyrf_8723b_ce.c:2879", # drivers/net/wireless/rockchip_wlan/rtl8723bu/hal/phydm/rtl8723b/halphyrf_8723b_ce.c:2879:1: warning: the frame size of 1056 bytes is larger than 1024 bytes
++    "dhd_pcie_linux.c:1499", #drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c:1499:12: warning: 'dhdpcie_device_scan' defined but not used [-Wunused-function]
+  ])
+ 
+ # Capture the name of the object file, can find it.
+-- 
+2.25.1
+

@@ -1,0 +1,43 @@
+From a470103b43b4d95fcf4fd796cbb2285607a44c11 Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Tue, 21 Jun 2022 19:19:45 +0800
+Subject: [PATCH 15/22] arm64: dts: rockchip: keep on vdd_log with suspend on
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: I9af3236d1589de66fecbd794e910610a1e4b48ea
+---
+ .../dts/rockchip/rk3588-toybrick-x0-linux.dts | 21 +++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0-linux.dts b/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0-linux.dts
+index e7f40c01045e..4e2144765da5 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0-linux.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-toybrick-x0-linux.dts
+@@ -13,3 +13,24 @@ / {
+ 	model = "Rockchip RK3588 TOYBRICK X10 Board";
+ 	compatible = "rockchip,rk3588-toybrick-x10-linux", "rockchip,rk3588";
+ };
++
++&rockchip_suspend {
++	rockchip,sleep-mode-config = <
++		(0
++		| RKPM_SLP_ARMOFF_DDRPD
++		| RKPM_SLP_PMU_PMUALIVE_32K
++		| RKPM_SLP_PMU_DIS_OSC
++		| RKPM_SLP_32K_EXT
++		| RKPM_SLP_PMU_DBG
++		)
++	>;
++};
++
++&vdd_log_s0 {
++	regulator-state-mem {
++	regulator-on-in-suspend;
++		regulator-suspend-microvolt = <750000>;
++	};
++};
++
++
+-- 
+2.25.1
+
