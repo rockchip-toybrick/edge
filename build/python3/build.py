@@ -325,6 +325,10 @@ class Build:
             cmd = '%s ARCH=%s rockchip_linux_defconfig %s rockchip_docker.config' % (make_cmd, arch, kernel_config)
         else:
             cmd = '%s ARCH=%s rockchip_linux_defconfig %s' % (make_cmd, arch, kernel_config)
+
+        if kernel_version.find('rt') >= 0:
+            cmd += ' rockchip_rt.config'
+
         if edge_cmd(cmd, kernel_path):
             EDGE_ERR('Make kernel config failed')
             sys.exit(1)
