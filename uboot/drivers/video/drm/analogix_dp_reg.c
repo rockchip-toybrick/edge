@@ -72,16 +72,12 @@ void analogix_dp_stop_video(struct analogix_dp_device *dp)
 	analogix_dp_write(dp, ANALOGIX_DP_VIDEO_CTL_1, reg);
 }
 
-void analogix_dp_lane_swap(struct analogix_dp_device *dp, bool enable)
+static void analogix_dp_set_lane_map(struct analogix_dp_device *dp)
 {
-	u32 reg;
+	u32 i, reg = 0;
 
-	if (enable)
-		reg = LANE3_MAP_LOGIC_LANE_0 | LANE2_MAP_LOGIC_LANE_1 |
-		      LANE1_MAP_LOGIC_LANE_2 | LANE0_MAP_LOGIC_LANE_3;
-	else
-		reg = LANE3_MAP_LOGIC_LANE_3 | LANE2_MAP_LOGIC_LANE_2 |
-		      LANE1_MAP_LOGIC_LANE_1 | LANE0_MAP_LOGIC_LANE_0;
+	for (i = 0; i < dp->video_info.max_lane_count; i++)
+		reg |= dp->lane_map[i] << (2 * i);
 
 	analogix_dp_write(dp, ANALOGIX_DP_LANE_MAP, reg);
 }
@@ -161,7 +157,7 @@ void analogix_dp_reset(struct analogix_dp_device *dp)
 
 	udelay(30);
 
-	analogix_dp_lane_swap(dp, 0);
+	analogix_dp_set_lane_map(dp);
 
 	analogix_dp_write(dp, ANALOGIX_DP_SYS_CTL_1, 0x0);
 	analogix_dp_write(dp, ANALOGIX_DP_SYS_CTL_2, 0x40);
@@ -1115,7 +1111,8 @@ void analogix_dp_init_video(struct analogix_dp_device *dp)
 	reg = CHA_CRI(4) | CHA_CTRL;
 	analogix_dp_write(dp, ANALOGIX_DP_SYS_CTL_2, reg);
 
-	reg = 0x0;
+	reg = analogix_dp_read(dp, ANALOGIX_DP_SYS_CTL_3);
+	reg |= VALID_CTRL | F_VALID;
 	analogix_dp_write(dp, ANALOGIX_DP_SYS_CTL_3, reg);
 
 	reg = VID_HRES_TH(2) | VID_VRES_TH(0);
@@ -1298,4 +1295,73 @@ void analogix_dp_disable_scrambling(struct analogix_dp_device *dp)
 	reg = analogix_dp_read(dp, ANALOGIX_DP_TRAINING_PTN_SET);
 	reg |= SCRAMBLING_DISABLE;
 	analogix_dp_write(dp, ANALOGIX_DP_TRAINING_PTN_SET, reg);
+}
+
+void analogix_dp_set_video_format(struct analogix_dp_device *dp,
+				  const struct drm_display_mode *mode)
+{
+	unsigned int hsw, hfp, hbp, vsw, vfp, vbp;
+
+	dp->video_info.interlaced = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
+	dp->video_info.v_sync_polarity = !!(mode->flags & DRM_MODE_FLAG_NVSYNC);
+	dp->video_info.h_sync_polarity = !!(mode->flags & DRM_MODE_FLAG_NHSYNC);
+
+	hsw = mode->hsync_end - mode->hsync_start;
+	hfp = mode->hsync_start - mode->hdisplay;
+	hbp = mode->htotal - mode->hsync_end;
+	vsw = mode->vsync_end - mode->vsync_start;
+	vfp = mode->vsync_start - mode->vdisplay;
+	vbp = mode->vtotal - mode->vsync_end;
+
+	/* Set Video Format Parameters */
+	analogix_dp_write(dp, ANALOGIX_DP_TOTAL_LINE_CFG_L,
+			  TOTAL_LINE_CFG_L(mode->vtotal));
+	analogix_dp_write(dp, ANALOGIX_DP_TOTAL_LINE_CFG_H,
+			  TOTAL_LINE_CFG_H(mode->vtotal >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_ACTIVE_LINE_CFG_L,
+			  ACTIVE_LINE_CFG_L(mode->vdisplay));
+	analogix_dp_write(dp, ANALOGIX_DP_ACTIVE_LINE_CFG_H,
+			  ACTIVE_LINE_CFG_H(mode->vdisplay >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_V_F_PORCH_CFG,
+			  V_F_PORCH_CFG(vfp));
+	analogix_dp_write(dp, ANALOGIX_DP_V_SYNC_WIDTH_CFG,
+			  V_SYNC_WIDTH_CFG(vsw));
+	analogix_dp_write(dp, ANALOGIX_DP_V_B_PORCH_CFG,
+			  V_B_PORCH_CFG(vbp));
+	analogix_dp_write(dp, ANALOGIX_DP_TOTAL_PIXEL_CFG_L,
+			  TOTAL_PIXEL_CFG_L(mode->htotal));
+	analogix_dp_write(dp, ANALOGIX_DP_TOTAL_PIXEL_CFG_H,
+			  TOTAL_PIXEL_CFG_H(mode->htotal >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_ACTIVE_PIXEL_CFG_L,
+			  ACTIVE_PIXEL_CFG_L(mode->hdisplay));
+	analogix_dp_write(dp, ANALOGIX_DP_ACTIVE_PIXEL_CFG_H,
+			  ACTIVE_PIXEL_CFG_H(mode->hdisplay >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_H_F_PORCH_CFG_L,
+			  H_F_PORCH_CFG_L(hfp));
+	analogix_dp_write(dp, ANALOGIX_DP_H_F_PORCH_CFG_H,
+			  H_F_PORCH_CFG_H(hfp >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_H_SYNC_CFG_L,
+			  H_SYNC_CFG_L(hsw));
+	analogix_dp_write(dp, ANALOGIX_DP_H_SYNC_CFG_H,
+			  H_SYNC_CFG_H(hsw >> 8));
+	analogix_dp_write(dp, ANALOGIX_DP_H_B_PORCH_CFG_L,
+			  H_B_PORCH_CFG_L(hbp));
+	analogix_dp_write(dp, ANALOGIX_DP_H_B_PORCH_CFG_H,
+			  H_B_PORCH_CFG_H(hbp >> 8));
+}
+
+void analogix_dp_video_bist_enable(struct analogix_dp_device *dp)
+{
+	u32 reg;
+
+	/* Enable Video BIST */
+	analogix_dp_write(dp, ANALOGIX_DP_VIDEO_CTL_4, BIST_EN);
+
+	/*
+	 * Note that if BIST_EN is set to 1, F_SEL must be cleared to 0
+	 * although video format information comes from registers set by user.
+	 */
+	reg = analogix_dp_read(dp, ANALOGIX_DP_VIDEO_CTL_10);
+	reg &= ~FORMAT_SEL;
+	analogix_dp_write(dp, ANALOGIX_DP_VIDEO_CTL_10, reg);
 }

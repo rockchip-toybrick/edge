@@ -42,6 +42,12 @@
 
 #define I2C_MAX_XFER_SIZE		128
 
+#ifdef LT6911UXC_OUT_RGB
+#define LT6911UXC_MEDIA_BUS_FMT		MEDIA_BUS_FMT_BGR888_1X24
+#else
+#define LT6911UXC_MEDIA_BUS_FMT		MEDIA_BUS_FMT_UYVY8_2X8
+#endif
+
 static int debug;
 module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "debug level (0-2)");
@@ -522,6 +528,8 @@ static void lt6911uxc_delayed_work_enable_hotplug(struct work_struct *work)
 	struct v4l2_subdev *sd = &lt6911uxc->sd;
 
 	v4l2_dbg(2, debug, sd, "%s:\n", __func__);
+
+	v4l2_ctrl_s_ctrl(lt6911uxc->detect_tx_5v_ctrl, tx_5v_power_present(sd));
 	lt6911uxc_config_hpd(sd);
 }
 
@@ -604,21 +612,6 @@ static void lt6911uxc_format_change(struct v4l2_subdev *sd)
 
 	if (sd->devnode)
 		v4l2_subdev_notify_event(sd, &lt6911uxc_ev_fmt);
-}
-
-static int lt6911uxc_get_ctrl(struct v4l2_ctrl *ctrl)
-{
-	int ret = -1;
-	struct lt6911uxc *lt6911uxc = container_of(ctrl->handler,
-			struct lt6911uxc, hdl);
-	struct v4l2_subdev *sd = &(lt6911uxc->sd);
-
-	if (ctrl->id == V4L2_CID_DV_RX_POWER_PRESENT) {
-		ret = tx_5v_power_present(sd);
-		*ctrl->p_new.p_s32 = ret;
-	}
-
-	return ret;
 }
 
 static int lt6911uxc_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
@@ -797,7 +790,7 @@ static int lt6911uxc_enum_mbus_code(struct v4l2_subdev *sd,
 {
 	switch (code->index) {
 	case 0:
-		code->code = MEDIA_BUS_FMT_UYVY8_2X8;
+		code->code = LT6911UXC_MEDIA_BUS_FMT;
 		break;
 
 	default:
@@ -814,7 +807,7 @@ static int lt6911uxc_enum_frame_sizes(struct v4l2_subdev *sd,
 	if (fse->index >= ARRAY_SIZE(supported_modes))
 		return -EINVAL;
 
-	if (fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
+	if (fse->code != LT6911UXC_MEDIA_BUS_FMT)
 		return -EINVAL;
 
 	fse->min_width  = supported_modes[fse->index].width;
@@ -832,7 +825,7 @@ static int lt6911uxc_enum_frame_interval(struct v4l2_subdev *sd,
 	if (fie->index >= ARRAY_SIZE(supported_modes))
 		return -EINVAL;
 
-	if (fie->code != MEDIA_BUS_FMT_UYVY8_2X8)
+	if (fie->code != LT6911UXC_MEDIA_BUS_FMT)
 		return -EINVAL;
 
 	fie->width = supported_modes[fie->index].width;
@@ -910,7 +903,7 @@ static int lt6911uxc_set_fmt(struct v4l2_subdev *sd,
 		return ret;
 
 	switch (code) {
-	case MEDIA_BUS_FMT_UYVY8_2X8:
+	case LT6911UXC_MEDIA_BUS_FMT:
 		break;
 
 	default:
@@ -969,6 +962,9 @@ static long lt6911uxc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	case RKMODULE_GET_MODULE_INFO:
 		lt6911uxc_get_module_inf(lt6911uxc, (struct rkmodule_inf *)arg);
 		break;
+	case RKMODULE_GET_HDMI_MODE:
+		*(int *)arg = RKMODULE_HDMIIN_MODE;
+		break;
 	default:
 		ret = -ENOIOCTLCMD;
 		break;
@@ -984,6 +980,7 @@ static long lt6911uxc_compat_ioctl32(struct v4l2_subdev *sd,
 	void __user *up = compat_ptr(arg);
 	struct rkmodule_inf *inf;
 	long ret;
+	int *seq;
 
 	switch (cmd) {
 	case RKMODULE_GET_MODULE_INFO:
@@ -1001,7 +998,21 @@ static long lt6911uxc_compat_ioctl32(struct v4l2_subdev *sd,
 		}
 		kfree(inf);
 		break;
+	case RKMODULE_GET_HDMI_MODE:
+		seq = kzalloc(sizeof(*seq), GFP_KERNEL);
+		if (!seq) {
+			ret = -ENOMEM;
+			return ret;
+		}
 
+		ret = lt6911uxc_ioctl(sd, cmd, seq);
+		if (!ret) {
+			ret = copy_to_user(up, seq, sizeof(*seq));
+			if (ret)
+				ret = -EFAULT;
+		}
+		kfree(seq);
+		break;
 	default:
 		ret = -ENOIOCTLCMD;
 		break;
@@ -1010,10 +1021,6 @@ static long lt6911uxc_compat_ioctl32(struct v4l2_subdev *sd,
 	return ret;
 }
 #endif
-
-static const struct v4l2_ctrl_ops lt6911uxc_ctrl_ops = {
-	.g_volatile_ctrl = lt6911uxc_get_ctrl,
-};
 
 static const struct v4l2_subdev_core_ops lt6911uxc_core_ops = {
 	.interrupt_service_routine = lt6911uxc_isr,
@@ -1101,10 +1108,8 @@ static int lt6911uxc_init_v4l2_ctrls(struct lt6911uxc *lt6911uxc)
 			  0, LT6911UXC_PIXEL_RATE, 1, LT6911UXC_PIXEL_RATE);
 
 	lt6911uxc->detect_tx_5v_ctrl = v4l2_ctrl_new_std(&lt6911uxc->hdl,
-			&lt6911uxc_ctrl_ops, V4L2_CID_DV_RX_POWER_PRESENT,
+			NULL, V4L2_CID_DV_RX_POWER_PRESENT,
 			0, 1, 0, 0);
-	if (lt6911uxc->detect_tx_5v_ctrl)
-		lt6911uxc->detect_tx_5v_ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
 
 	lt6911uxc->audio_sampling_rate_ctrl =
 		v4l2_ctrl_new_custom(&lt6911uxc->hdl,
@@ -1296,7 +1301,7 @@ static int lt6911uxc_probe(struct i2c_client *client,
 	sd = &lt6911uxc->sd;
 	lt6911uxc->i2c_client = client;
 	lt6911uxc->cur_mode = &supported_modes[0];
-	lt6911uxc->mbus_fmt_code = MEDIA_BUS_FMT_UYVY8_2X8;
+	lt6911uxc->mbus_fmt_code = LT6911UXC_MEDIA_BUS_FMT;
 
 	err = lt6911uxc_parse_of(lt6911uxc);
 	if (err) {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2011-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2011-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -621,6 +621,7 @@ void kbasep_js_devdata_term(struct kbase_device *kbdev)
 {
 	struct kbasep_js_device_data *js_devdata;
 	s8 zero_ctx_attr_ref_count[KBASEP_JS_CTX_ATTR_COUNT] = { 0, };
+	CSTD_UNUSED(js_devdata);
 
 	KBASE_DEBUG_ASSERT(kbdev != NULL);
 
@@ -638,14 +639,11 @@ void kbasep_js_devdata_term(struct kbase_device *kbdev)
 
 int kbasep_js_kctx_init(struct kbase_context *const kctx)
 {
-	struct kbase_device *kbdev;
 	struct kbasep_js_kctx_info *js_kctx_info;
 	int i, j;
+	CSTD_UNUSED(js_kctx_info);
 
 	KBASE_DEBUG_ASSERT(kctx != NULL);
-
-	kbdev = kctx->kbdev;
-	KBASE_DEBUG_ASSERT(kbdev != NULL);
 
 	for (i = 0; i < BASE_JM_MAX_NR_SLOTS; ++i)
 		INIT_LIST_HEAD(&kctx->jctx.sched_info.ctx.ctx_list_entry[i]);
@@ -688,6 +686,7 @@ void kbasep_js_kctx_term(struct kbase_context *kctx)
 	int js;
 	bool update_ctx_count = false;
 	unsigned long flags;
+	CSTD_UNUSED(js_kctx_info);
 
 	KBASE_DEBUG_ASSERT(kctx != NULL);
 
@@ -1800,6 +1799,7 @@ static kbasep_js_release_result kbasep_js_runpool_release_ctx_internal(
 	bool runpool_ctx_attr_change = false;
 	int kctx_as_nr;
 	int new_ref_count;
+	CSTD_UNUSED(kctx_as_nr);
 
 	KBASE_DEBUG_ASSERT(kbdev != NULL);
 	KBASE_DEBUG_ASSERT(kctx != NULL);
@@ -2183,6 +2183,7 @@ static bool kbasep_js_schedule_ctx(struct kbase_device *kbdev,
 #endif
 		/* Cause it to leave at some later point */
 		bool retained;
+		CSTD_UNUSED(retained);
 
 		retained = kbase_ctx_sched_inc_refcount_nolock(kctx);
 		KBASE_DEBUG_ASSERT(retained);
@@ -3484,6 +3485,11 @@ struct kbase_jd_atom *kbase_js_complete_atom(struct kbase_jd_atom *katom,
 
 	katom->status = KBASE_JD_ATOM_STATE_HW_COMPLETED;
 	dev_dbg(kbdev->dev, "Atom %pK status to HW completed\n", (void *)katom);
+	if (kbase_is_quick_reset_enabled(kbdev)) {
+		kbdev->num_of_atoms_hw_completed++;
+		if (kbdev->num_of_atoms_hw_completed >= 20)
+			kbase_disable_quick_reset(kbdev);
+	}
 
 	if (katom->event_code != BASE_JD_EVENT_DONE) {
 		kbase_js_evict_deps(kctx, katom, katom->slot_nr,
@@ -3913,6 +3919,7 @@ void kbase_js_zap_context(struct kbase_context *kctx)
 	} else {
 		unsigned long flags;
 		bool was_retained;
+		CSTD_UNUSED(was_retained);
 
 		/* Case c: didn't evict, but it is scheduled - it's in the Run
 		 * Pool
@@ -4016,13 +4023,16 @@ base_jd_prio kbase_js_priority_check(struct kbase_device *kbdev, base_jd_prio pr
 {
 	struct priority_control_manager_device *pcm_device = kbdev->pcm_dev;
 	int req_priority, out_priority;
-	base_jd_prio out_jd_priority = priority;
 
-	if (pcm_device)	{
-		req_priority = kbasep_js_atom_prio_to_sched_prio(priority);
-		out_priority = pcm_device->ops.pcm_scheduler_priority_check(pcm_device, current, req_priority);
-		out_jd_priority = kbasep_js_sched_prio_to_atom_prio(out_priority);
-	}
-	return out_jd_priority;
+	req_priority = kbasep_js_atom_prio_to_sched_prio(priority);
+	out_priority = req_priority;
+	/* Does not use pcm defined priority check if PCM not defined or if
+	 * kbasep_js_atom_prio_to_sched_prio returns an error
+	 * (KBASE_JS_ATOM_SCHED_PRIO_INVALID).
+	 */
+	if (pcm_device && (req_priority != KBASE_JS_ATOM_SCHED_PRIO_INVALID))
+		out_priority = pcm_device->ops.pcm_scheduler_priority_check(pcm_device, current,
+									    req_priority);
+	return kbasep_js_sched_prio_to_atom_prio(kbdev, out_priority);
 }
 

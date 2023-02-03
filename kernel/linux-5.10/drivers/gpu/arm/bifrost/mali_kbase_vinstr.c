@@ -20,11 +20,11 @@
  */
 
 #include "mali_kbase_vinstr.h"
-#include "mali_kbase_hwcnt_virtualizer.h"
-#include "mali_kbase_hwcnt_types.h"
+#include "hwcnt/mali_kbase_hwcnt_virtualizer.h"
+#include "hwcnt/mali_kbase_hwcnt_types.h"
 #include <uapi/gpu/arm/bifrost/mali_kbase_hwcnt_reader.h>
-#include "mali_kbase_hwcnt_gpu.h"
-#include "mali_kbase_hwcnt_gpu_narrow.h"
+#include "hwcnt/mali_kbase_hwcnt_gpu.h"
+#include "hwcnt/mali_kbase_hwcnt_gpu_narrow.h"
 #include <uapi/gpu/arm/bifrost/mali_kbase_ioctl.h>
 #include "mali_malisw.h"
 #include "mali_kbase_debug.h"
@@ -38,6 +38,7 @@
 #include <linux/mutex.h>
 #include <linux/poll.h>
 #include <linux/slab.h>
+#include <linux/version_compat_defs.h>
 #include <linux/workqueue.h>
 
 /* Hwcnt reader API version */
@@ -113,9 +114,7 @@ struct kbase_vinstr_client {
 	wait_queue_head_t waitq;
 };
 
-static unsigned int kbasep_vinstr_hwcnt_reader_poll(
-	struct file *filp,
-	poll_table *wait);
+static __poll_t kbasep_vinstr_hwcnt_reader_poll(struct file *filp, poll_table *wait);
 
 static long kbasep_vinstr_hwcnt_reader_ioctl(
 	struct file *filp,
@@ -517,8 +516,6 @@ void kbase_vinstr_term(struct kbase_vinstr_context *vctx)
 	if (!vctx)
 		return;
 
-	cancel_work_sync(&vctx->dump_work);
-
 	/* Non-zero client count implies client leak */
 	if (WARN_ON(vctx->client_count != 0)) {
 		struct kbase_vinstr_client *pos, *n;
@@ -530,6 +527,7 @@ void kbase_vinstr_term(struct kbase_vinstr_context *vctx)
 		}
 	}
 
+	cancel_work_sync(&vctx->dump_work);
 	kbase_hwcnt_gpu_metadata_narrow_destroy(vctx->metadata_user);
 
 	WARN_ON(vctx->client_count != 0);
@@ -1036,26 +1034,25 @@ static long kbasep_vinstr_hwcnt_reader_ioctl(
  * @filp: Non-NULL pointer to file structure.
  * @wait: Non-NULL pointer to poll table.
  *
- * Return: POLLIN if data can be read without blocking, 0 if data can not be
- *         read without blocking, else error code.
+ * Return: EPOLLIN | EPOLLRDNORM if data can be read without blocking, 0 if
+ *         data can not be read without blocking, else EPOLLHUP | EPOLLERR.
  */
-static unsigned int kbasep_vinstr_hwcnt_reader_poll(
-	struct file *filp,
-	poll_table *wait)
+static __poll_t kbasep_vinstr_hwcnt_reader_poll(struct file *filp, poll_table *wait)
 {
 	struct kbase_vinstr_client *cli;
 
 	if (!filp || !wait)
-		return -EINVAL;
+		return EPOLLHUP | EPOLLERR;
 
 	cli = filp->private_data;
 	if (!cli)
-		return -EINVAL;
+		return EPOLLHUP | EPOLLERR;
 
 	poll_wait(filp, &cli->waitq, wait);
 	if (kbasep_vinstr_hwcnt_reader_buffer_ready(cli))
-		return POLLIN;
-	return 0;
+		return EPOLLIN | EPOLLRDNORM;
+
+	return (__poll_t)0;
 }
 
 /**

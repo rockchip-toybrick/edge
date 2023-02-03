@@ -50,6 +50,8 @@
 #define ADCL				(1 << 0)
 #define ADCR				(1 << 1)
 
+#define NOT_SPECIFIED			(-1)
+
 enum soc_id_e {
 	SOC_RV1103 = 0x1103,
 	SOC_RV1106 = 0x1106,
@@ -97,6 +99,11 @@ struct rv1106_codec_priv {
 
 	/* For the high pass filter */
 	unsigned int hpf_cutoff;
+
+	/* Specify init gains after codec startup */
+	unsigned int init_mic_gain;
+	unsigned int init_alc_gain;
+	unsigned int init_lineout_gain;
 
 	bool adc_enable;
 	bool dac_enable;
@@ -297,15 +304,15 @@ static const struct snd_kcontrol_new rv1106_codec_dapm_controls[] = {
 	/* ADC ALC */
 	SOC_SINGLE_RANGE_TLV("ADC ALC Left Volume",
 			     ACODEC_ADC_ANA_CTL4,
-			     ACODEC_ADC_L_DIG_VOL_SFT,
-			     ACODEC_ADC_L_DIG_VOL_MIN,
-			     ACODEC_ADC_L_DIG_VOL_MAX,
+			     ACODEC_ADC_L_ALC_GAIN_SFT,
+			     ACODEC_ADC_L_ALC_GAIN_MIN,
+			     ACODEC_ADC_L_ALC_GAIN_MAX,
 			     0, rv1106_codec_adc_alc_gain_tlv),
 	SOC_SINGLE_RANGE_TLV("ADC ALC Right Volume",
 			     ACODEC_ADC_ANA_CTL5,
-			     ACODEC_ADC_R_DIG_VOL_SFT,
-			     ACODEC_ADC_R_DIG_VOL_MIN,
-			     ACODEC_ADC_R_DIG_VOL_MAX,
+			     ACODEC_ADC_R_ALC_GAIN_SFT,
+			     ACODEC_ADC_R_ALC_GAIN_MIN,
+			     ACODEC_ADC_R_ALC_GAIN_MAX,
 			     0, rv1106_codec_adc_alc_gain_tlv),
 
 	/* ADC Digital Volume */
@@ -755,9 +762,9 @@ static int rv1106_codec_hpf_get(struct snd_kcontrol *kcontrol,
 
 	regmap_read(rv1106->regmap, ACODEC_ADC_HPF_PGA_CTL, &value);
 	if (value & ACODEC_ADC_HPF_MSK)
-		rv1106->hpf_cutoff = 0;
-	else
 		rv1106->hpf_cutoff = 1;
+	else
+		rv1106->hpf_cutoff = 0;
 
 	ucontrol->value.integer.value[0] = rv1106->hpf_cutoff;
 
@@ -775,7 +782,7 @@ static int rv1106_codec_hpf_put(struct snd_kcontrol *kcontrol,
 		/* Enable high pass filter for ADCs */
 		regmap_update_bits(rv1106->regmap, ACODEC_ADC_HPF_PGA_CTL,
 				   ACODEC_ADC_HPF_MSK,
-				   ACODEC_ADC_HPF_50_48K);
+				   ACODEC_ADC_HPF_EN);
 	} else {
 		/* Disable high pass filter for ADCs. */
 		regmap_update_bits(rv1106->regmap, ACODEC_ADC_HPF_PGA_CTL,
@@ -1348,7 +1355,7 @@ static int rv1106_codec_adc_enable(struct rv1106_codec_priv *rv1106)
 		return ret;
 	}
 
-	/* vendor step 1 */
+	/* vendor step 00 */
 	if (rv1106->soc_id == SOC_RV1103 && rv1106->adc_mode == DIFF_ADCL) {
 		/* The ADCL is differential mode on rv1103 */
 		regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL3,
@@ -1370,86 +1377,81 @@ static int rv1106_codec_adc_enable(struct rv1106_codec_priv *rv1106)
 				   R(lr, ACODEC_ADC_R_SINGLE_END));
 	}
 
-	regmap_update_bits(rv1106->regmap,
-			   ACODEC_ADC_ANA_CTL3,
-			   L(lr, ACODEC_MIC_L_MSK) |
-			   R(lr, ACODEC_MIC_R_MSK),
-			   L(lr, ACODEC_MIC_L_EN) |
-			   R(lr, ACODEC_MIC_R_EN));
-
-	/* vendor step 2 */
+	/* vendor step 01 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL1,
 			   L(lr, ACODEC_ADC_L_MIC_MSK) |
 			   R(lr, ACODEC_ADC_R_MIC_MSK),
 			   L(lr, ACODEC_ADC_L_MIC_WORK) |
 			   R(lr, ACODEC_ADC_R_MIC_WORK));
 
-	/* vendor step 3 */
+	/* vendor step 02 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL0,
-			   ACODEC_ADC_CUR_SRC_MSK,
-			   ACODEC_ADC_CUR_SRC_EN);
+			   ACODEC_ADC_IBIAS_MSK,
+			   ACODEC_ADC_IBIAS_EN);
 
-	/* vendor step 4*/
+	/* vendor step 03 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL1,
 			   L(lr, ACODEC_ADC_L_REF_VOL_BUF_MSK) |
 			   R(lr, ACODEC_ADC_R_REF_VOL_BUF_MSK),
 			   L(lr, ACODEC_ADC_L_REF_VOL_BUF_EN) |
 			   R(lr, ACODEC_ADC_R_REF_VOL_BUF_EN));
+	/* waiting VREF be stable */
+	msleep(100);
 
-	/* vendor step 5 */
+	/* vendor step 04 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL3,
 			   L(lr, ACODEC_MIC_L_MSK) |
 			   R(lr, ACODEC_MIC_R_MSK),
 			   L(lr, ACODEC_MIC_L_EN) |
 			   R(lr, ACODEC_MIC_R_EN));
 
-	/* vendor step 6 */
+	/* vendor step 05 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL3,
 			   L(lr, ACODEC_ADC_L_MSK) |
 			   R(lr, ACODEC_ADC_R_MSK),
 			   L(lr, ACODEC_ADC_L_EN) |
 			   R(lr, ACODEC_ADC_R_EN));
 
-	/* vendor step 7 */
+	/* vendor step 06 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL6,
 			   L(lr, ACODEC_ADC_L_CLK_MSK) |
 			   R(lr, ACODEC_ADC_R_CLK_MSK),
 			   L(lr, ACODEC_ADC_L_CLK_WORK) |
 			   R(lr, ACODEC_ADC_R_CLK_WORK));
 
-	/* vendor step 8 */
+	/* vendor step 07 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL6,
 			   L(lr, ACODEC_ADC_L_WORK) |
 			   R(lr, ACODEC_ADC_R_WORK),
 			   L(lr, ACODEC_ADC_L_WORK) |
 			   R(lr, ACODEC_ADC_R_WORK));
 
-	/* vendor step 9 */
+	/* vendor step 08 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL6,
 			   L(lr, ACODEC_ADC_L_SIGNAL_EN) |
 			   R(lr, ACODEC_ADC_R_SIGNAL_EN),
 			   L(lr, ACODEC_ADC_L_SIGNAL_EN) |
 			   R(lr, ACODEC_ADC_R_SIGNAL_EN));
 
-	/* vendor step 10 */
+	/* vendor step 09 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL6,
 			   L(lr, ACODEC_ADC_L_ALC_MSK) |
 			   R(lr, ACODEC_ADC_R_ALC_MSK),
 			   L(lr, ACODEC_ADC_L_ALC_WORK) |
 			   R(lr, ACODEC_ADC_R_ALC_WORK));
 
-	/* vendor step 11 */
+	/* vendor step 10 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL1,
 			   L(lr, ACODEC_ADC_L_MIC_SIGNAL_MSK) |
 			   R(lr, ACODEC_ADC_R_MIC_SIGNAL_MSK),
 			   L(lr, ACODEC_ADC_L_MIC_SIGNAL_WORK) |
 			   R(lr, ACODEC_ADC_R_MIC_SIGNAL_WORK));
 
-	/* vendor step 12 */
+	/* vendor step 11, configure GAIN_MICL/R by user */
+
+	/* vendor step 12, configure GAIN_ALCL/R by user */
 
 	/* vendor step 13 */
-
-	/* vendor step 14 */
 	regmap_read(rv1106->regmap, ACODEC_ADC_ANA_CTL1, &agc_func_en);
 	if (agc_func_en & ACODEC_AGC_FUNC_SEL_EN) {
 		regmap_update_bits(rv1106->regmap,
@@ -1511,8 +1513,8 @@ static int rv1106_codec_adc_disable(struct rv1106_codec_priv *rv1106)
 
 	/* vendor step 7 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL0,
-			   ACODEC_ADC_CUR_SRC_MSK,
-			   ACODEC_ADC_CUR_SRC_DIS);
+			   ACODEC_ADC_IBIAS_MSK,
+			   ACODEC_ADC_IBIAS_DIS);
 
 	/* vendor step 8 */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL6,
@@ -1685,31 +1687,68 @@ out:
 
 static int rv1106_codec_default_gains(struct rv1106_codec_priv *rv1106)
 {
+	int gainl, gainr;
+
+	/**
+	 * MIC Gain
+	 *  0dB (0x01)
+	 * 20dB (0x02)
+	 * 12dB (0x03)
+	 */
+	if (rv1106->init_mic_gain == NOT_SPECIFIED) {
+		gainl = ACODEC_ADC_L_MIC_GAIN_0DB;
+		gainr = ACODEC_ADC_R_MIC_GAIN_0DB;
+	} else {
+		gainl = ((rv1106->init_mic_gain >> 4) & 0x03) << ACODEC_ADC_L_MIC_GAIN_SFT;
+		gainr = ((rv1106->init_mic_gain >> 0) & 0x03) << ACODEC_ADC_R_MIC_GAIN_SFT;
+	}
+
 	/* Prepare ADC gains */
 	/* vendor step 12, set MIC PGA default gains */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL2,
 			   ACODEC_ADC_L_MIC_GAIN_MSK |
 			   ACODEC_ADC_R_MIC_GAIN_MSK,
-			   ACODEC_ADC_L_MIC_GAIN_20DB |
-			   ACODEC_ADC_R_MIC_GAIN_20DB); // TODO: using 20dB
+			   gainl | gainr);
 
+	/**
+	 * ALC Gain (0dB: 0x06)
+	 *  min: -9.0dB (0x00)
+	 *  max: +37.5dB (0x1f)
+	 * step: +1.5dB
+	 */
+	if (rv1106->init_alc_gain == NOT_SPECIFIED) {
+		gainl = ACODEC_ADC_L_ALC_GAIN_0DB;
+		gainr = ACODEC_ADC_R_ALC_GAIN_0DB;
+	} else {
+		gainl = ((rv1106->init_alc_gain >> 4) & 0x1f);
+		gainr = ((rv1106->init_alc_gain >> 0) & 0x1f);
+	}
 	/* vendor step 13, set ALC default gains */
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL4,
 			   ACODEC_ADC_L_ALC_GAIN_MSK,
-			   ACODEC_ADC_L_ALC_GAIN_0DB);
+			   gainl);
 	regmap_update_bits(rv1106->regmap, ACODEC_ADC_ANA_CTL5,
 			   ACODEC_ADC_R_ALC_GAIN_MSK,
-			   ACODEC_ADC_R_ALC_GAIN_0DB);
+			   gainr);
 
 	/* Prepare DAC gains */
 	/* Step 19, set LINEOUT default gains */
 	regmap_update_bits(rv1106->regmap, ACODEC_DAC_GAIN_SEL,
 			   ACODEC_DAC_DIG_GAIN_MSK,
-			   ACODEC_DAC_DIG_GAIN(ACODEC_DAC_DIG_0DB));
+			   ACODEC_DAC_DIG_GAIN(ACODEC_DAC_DIG_0DB)); /* The calibrated fixed gain */
+	/**
+	 * Lineout Gain (0dB: 0x1a)
+	 *  min: -39.0dB (0x00)
+	 *  max: +6.0dB (0x1f)
+	 * step: +1.5dB
+	 */
+	if (rv1106->init_lineout_gain == NOT_SPECIFIED)
+		gainl = ACODEC_DAC_LINEOUT_GAIN_0DB;
+	else
+		gainl = rv1106->init_lineout_gain & 0x1f;
 	regmap_update_bits(rv1106->regmap, ACODEC_DAC_ANA_CTL2,
 			   ACODEC_DAC_LINEOUT_GAIN_MSK,
-			   ACODEC_DAC_LINEOUT_GAIN_0DB);
-
+			   gainl);
 	return 0;
 }
 
@@ -2052,6 +2091,15 @@ static int rv1106_platform_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "No reset control found\n");
 		rv1106->reset = NULL;
 	}
+
+	rv1106->init_mic_gain = NOT_SPECIFIED;
+	of_property_read_u32(np, "init-mic-gain", &rv1106->init_mic_gain);
+
+	rv1106->init_alc_gain = NOT_SPECIFIED;
+	of_property_read_u32(np, "init-alc-gain", &rv1106->init_alc_gain);
+
+	rv1106->init_lineout_gain = NOT_SPECIFIED;
+	of_property_read_u32(np, "init-lineout-gain", &rv1106->init_lineout_gain);
 
 	rv1106->pa_ctl_gpio = devm_gpiod_get_optional(&pdev->dev, "pa-ctl",
 						       GPIOD_OUT_LOW);

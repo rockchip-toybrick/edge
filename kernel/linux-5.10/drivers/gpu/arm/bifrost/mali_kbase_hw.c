@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2012-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2012-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -85,6 +85,10 @@ void kbase_hw_set_features_mask(struct kbase_device *kbdev)
 	case GPU_ID2_PRODUCT_LTUX:
 		features = base_hw_features_tTUx;
 		break;
+	case GPU_ID2_PRODUCT_TTIX:
+	case GPU_ID2_PRODUCT_LTIX:
+		features = base_hw_features_tTIx;
+		break;
 	default:
 		features = base_hw_features_generic;
 		break;
@@ -137,8 +141,7 @@ static const enum base_hw_issue *kbase_hw_get_issues_for_new_id(
 
 	static const struct base_hw_product base_hw_products[] = {
 		{ GPU_ID2_PRODUCT_TMIX,
-		  { { GPU_ID2_VERSION_MAKE(0, 0, 1),
-		      base_hw_issues_tMIx_r0p0_05dev0 },
+		  { { GPU_ID2_VERSION_MAKE(0, 0, 1), base_hw_issues_tMIx_r0p0_05dev0 },
 		    { GPU_ID2_VERSION_MAKE(0, 0, 2), base_hw_issues_tMIx_r0p0 },
 		    { GPU_ID2_VERSION_MAKE(0, 1, 0), base_hw_issues_tMIx_r0p1 },
 		    { U32_MAX /* sentinel value */, NULL } } },
@@ -233,11 +236,23 @@ static const enum base_hw_issue *kbase_hw_get_issues_for_new_id(
 		{ GPU_ID2_PRODUCT_TTUX,
 		  { { GPU_ID2_VERSION_MAKE(0, 0, 0), base_hw_issues_tTUx_r0p0 },
 		    { GPU_ID2_VERSION_MAKE(1, 0, 0), base_hw_issues_tTUx_r1p0 },
+		    { GPU_ID2_VERSION_MAKE(1, 1, 0), base_hw_issues_tTUx_r1p1 },
+		    { GPU_ID2_VERSION_MAKE(1, 2, 0), base_hw_issues_tTUx_r1p2 },
 		    { U32_MAX, NULL } } },
 
 		{ GPU_ID2_PRODUCT_LTUX,
 		  { { GPU_ID2_VERSION_MAKE(0, 0, 0), base_hw_issues_tTUx_r0p0 },
 		    { GPU_ID2_VERSION_MAKE(1, 0, 0), base_hw_issues_tTUx_r1p0 },
+		    { GPU_ID2_VERSION_MAKE(1, 1, 0), base_hw_issues_tTUx_r1p1 },
+		    { GPU_ID2_VERSION_MAKE(1, 2, 0), base_hw_issues_tTUx_r1p2 },
+		    { U32_MAX, NULL } } },
+
+		{ GPU_ID2_PRODUCT_TTIX,
+		  { { GPU_ID2_VERSION_MAKE(0, 0, 0), base_hw_issues_tTIx_r0p0 },
+		    { U32_MAX, NULL } } },
+
+		{ GPU_ID2_PRODUCT_LTIX,
+		  { { GPU_ID2_VERSION_MAKE(0, 0, 0), base_hw_issues_tTIx_r0p0 },
 		    { U32_MAX, NULL } } },
 
 	};
@@ -294,12 +309,8 @@ static const enum base_hw_issue *kbase_hw_get_issues_for_new_id(
 			 */
 			issues = fallback_issues;
 
-#if MALI_CUSTOMER_RELEASE
 			dev_warn(kbdev->dev,
 				"GPU hardware issue table may need updating:\n"
-#else
-			dev_info(kbdev->dev,
-#endif
 				"r%dp%d status %d is unknown; treating as r%dp%d status %d",
 				(gpu_id & GPU_ID2_VERSION_MAJOR) >>
 					GPU_ID2_VERSION_MAJOR_SHIFT,
@@ -398,6 +409,10 @@ int kbase_hw_set_issues_mask(struct kbase_device *kbdev)
 		case GPU_ID2_PRODUCT_TTUX:
 		case GPU_ID2_PRODUCT_LTUX:
 			issues = base_hw_issues_model_tTUx;
+			break;
+		case GPU_ID2_PRODUCT_TTIX:
+		case GPU_ID2_PRODUCT_LTIX:
+			issues = base_hw_issues_model_tTIx;
 			break;
 
 		default:

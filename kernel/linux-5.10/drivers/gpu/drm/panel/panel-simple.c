@@ -551,12 +551,12 @@ static int panel_simple_prepare(struct drm_panel *panel)
 
 	gpiod_direction_output(p->reset_gpio, 0);
 
+	if (p->desc->delay.init)
+		msleep(p->desc->delay.init);
+
 	if (p->desc->init_seq)
 		if (p->dsi)
 			panel_simple_xfer_dsi_cmd_seq(p, p->desc->init_seq);
-
-	if (p->desc->delay.init)
-		msleep(p->desc->delay.init);
 
 	p->prepared = true;
 
@@ -843,6 +843,7 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		err = panel_dpi_probe(dev, panel);
 		if (err)
 			goto free_ddc;
+		desc = panel->desc;
 	} else {
 		if (!of_get_display_timing(dev->of_node, "panel-timing", &dt))
 			panel_simple_parse_panel_timing_node(dev, panel, &dt);
@@ -2419,7 +2420,7 @@ static const struct display_timing innolux_g070y2_l01_timing = {
 static const struct panel_desc innolux_g070y2_l01 = {
 	.timings = &innolux_g070y2_l01_timing,
 	.num_timings = 1,
-	.bpc = 6,
+	.bpc = 8,
 	.size = {
 		.width = 152,
 		.height = 91,

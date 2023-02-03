@@ -2104,7 +2104,8 @@ static void dw_mci_tasklet_func(unsigned long priv)
 				 * delayed. Allowing the transfer to take place
 				 * avoids races and keeps things simple.
 				 */
-				if (err != -ETIMEDOUT) {
+				if (err != -ETIMEDOUT &&
+				    host->dir_status == DW_MCI_RECV_STATUS) {
 					state = STATE_SENDING_DATA;
 					continue;
 				}
@@ -3617,9 +3618,7 @@ int dw_mci_runtime_resume(struct device *dev)
 	mci_writel(host, TMOUT, 0xFFFFFFFF);
 
 	mci_writel(host, RINTSTS, 0xFFFFFFFF);
-	mci_writel(host, INTMASK, SDMMC_INT_CMD_DONE | SDMMC_INT_DATA_OVER |
-		   SDMMC_INT_TXDR | SDMMC_INT_RXDR |
-		   DW_MCI_ERROR_FLAGS);
+	mci_writel(host, INTMASK, SDMMC_INT_CMD_DONE | SDMMC_INT_DATA_OVER | DW_MCI_ERROR_FLAGS);
 	mci_writel(host, CTRL, SDMMC_CTRL_INT_ENABLE);
 
 	if (host->is_rv1106_sd) {

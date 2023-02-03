@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2014-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2014-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -24,8 +24,7 @@
 #include <linux/seq_file.h>
 #include <mali_kbase.h>
 #include <mali_kbase_jd_debugfs.h>
-#include <mali_kbase_dma_fence.h>
-#if defined(CONFIG_SYNC) || defined(CONFIG_SYNC_FILE)
+#if IS_ENABLED(CONFIG_SYNC_FILE)
 #include <mali_kbase_sync.h>
 #endif
 #include <uapi/gpu/arm/bifrost/mali_kbase_ioctl.h>
@@ -38,7 +37,7 @@ struct kbase_jd_debugfs_depinfo {
 static void kbase_jd_debugfs_fence_info(struct kbase_jd_atom *atom,
 					struct seq_file *sfile)
 {
-#if defined(CONFIG_SYNC) || defined(CONFIG_SYNC_FILE)
+#if IS_ENABLED(CONFIG_SYNC_FILE)
 	struct kbase_sync_fence_info info;
 	int res;
 
@@ -58,55 +57,7 @@ static void kbase_jd_debugfs_fence_info(struct kbase_jd_atom *atom,
 	default:
 		break;
 	}
-#endif /* CONFIG_SYNC || CONFIG_SYNC_FILE */
-
-#ifdef CONFIG_MALI_BIFROST_DMA_FENCE
-	if (atom->core_req & BASE_JD_REQ_EXTERNAL_RESOURCES) {
-		struct kbase_fence_cb *cb;
-
-		if (atom->dma_fence.fence) {
-#if (KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE)
-			struct fence *fence = atom->dma_fence.fence;
-#else
-			struct dma_fence *fence = atom->dma_fence.fence;
-#endif
-
-			seq_printf(sfile,
-#if (KERNEL_VERSION(4, 8, 0) > LINUX_VERSION_CODE)
-				   "Sd(%u#%u: %s) ",
-#elif (KERNEL_VERSION(5, 1, 0) > LINUX_VERSION_CODE)
-				   "Sd(%llu#%u: %s) ",
-#else
-				   "Sd(%llu#%llu: %s) ",
-#endif
-				   fence->context, fence->seqno,
-				   dma_fence_is_signaled(fence) ? "signaled" :
-								  "active");
-		}
-
-		list_for_each_entry(cb, &atom->dma_fence.callbacks,
-				    node) {
-#if (KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE)
-			struct fence *fence = cb->fence;
-#else
-			struct dma_fence *fence = cb->fence;
-#endif
-
-			seq_printf(sfile,
-#if (KERNEL_VERSION(4, 8, 0) > LINUX_VERSION_CODE)
-				   "Wd(%u#%u: %s) ",
-#elif (KERNEL_VERSION(5, 1, 0) > LINUX_VERSION_CODE)
-				   "Wd(%llu#%u: %s) ",
-#else
-				   "Wd(%llu#%llu: %s) ",
-#endif
-				   fence->context, fence->seqno,
-				   dma_fence_is_signaled(fence) ? "signaled" :
-								  "active");
-		}
-	}
-#endif /* CONFIG_MALI_BIFROST_DMA_FENCE */
-
+#endif /* CONFIG_SYNC_FILE */
 }
 
 static void kbasep_jd_debugfs_atom_deps(
@@ -164,7 +115,7 @@ static int kbasep_jd_debugfs_atoms_show(struct seq_file *sfile, void *data)
 			BASE_UK_VERSION_MINOR);
 
 	/* Print table heading */
-	seq_puts(sfile, " ID, Core req, St, CR,   Predeps,           Start time, Additional info...\n");
+	seq_puts(sfile, " ID, Core req, St,   Predeps,           Start time, Additional info...\n");
 
 	atoms = kctx->jctx.atoms;
 	/* General atom states */
@@ -184,8 +135,8 @@ static int kbasep_jd_debugfs_atoms_show(struct seq_file *sfile, void *data)
 		 * it is valid
 		 */
 		if (ktime_to_ns(atom->start_timestamp))
-			start_timestamp = ktime_to_ns(
-					ktime_sub(ktime_get(), atom->start_timestamp));
+			start_timestamp =
+				ktime_to_ns(ktime_sub(ktime_get_raw(), atom->start_timestamp));
 
 		kbasep_jd_debugfs_atom_deps(deps, atom);
 
@@ -230,11 +181,7 @@ static const struct file_operations kbasep_jd_debugfs_atoms_fops = {
 
 void kbasep_jd_debugfs_ctx_init(struct kbase_context *kctx)
 {
-#if (KERNEL_VERSION(4, 7, 0) <= LINUX_VERSION_CODE)
 	const mode_t mode = 0444;
-#else
-	const mode_t mode = 0400;
-#endif
 
 	/* Caller already ensures this, but we keep the pattern for
 	 * maintenance safety.

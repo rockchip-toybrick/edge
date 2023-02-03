@@ -18,6 +18,334 @@
 static int mi_frame_end(struct rkisp_stream *stream);
 static void rkisp_buf_queue(struct vb2_buffer *vb);
 
+static const struct capture_fmt mp_fmts[] = {
+	/* yuv422 */
+	{
+		.fourcc = V4L2_PIX_FMT_UYVY,
+		.fmt_type = FMT_YUV,
+		.bpp = { 16 },
+		.cplanes = 1,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUVINT,
+		.output_format = ISP32_MI_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV422P,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 4, 4 },
+		.cplanes = 3,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = ISP32_MI_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV16,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV61,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV422M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 3,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = ISP32_MI_OUTPUT_YUV422,
+	},
+	/* yuv420 */
+	{
+		.fourcc = V4L2_PIX_FMT_NV21,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV12,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV21M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 2,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV12M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 2,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_SPLA,
+		.output_format = ISP32_MI_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV420,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = ISP32_MI_OUTPUT_YUV420,
+	},
+	/* yuv444 */
+	{
+		.fourcc = V4L2_PIX_FMT_YUV444M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 3,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = 0,
+	},
+	/* raw */
+	{
+		.fourcc = V4L2_PIX_FMT_SRGGB8,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 8 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGRBG8,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 8 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGBRG8,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 8 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SBGGR8,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 8 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_YUV_PLA_OR_RAW8,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SRGGB10,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 10 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGRBG10,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 10 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGBRG10,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 10 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SBGGR10,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 10 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SRGGB12,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 12 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGRBG12,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 12 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SGBRG12,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 12 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	}, {
+		.fourcc = V4L2_PIX_FMT_SBGGR12,
+		.fmt_type = FMT_BAYER,
+		.bpp = { 12 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_MP_WRITE_RAW12,
+		.output_format = 0,
+	},
+};
+
+static const struct capture_fmt sp_fmts[] = {
+	/* yuv422 */
+	{
+		.fourcc = V4L2_PIX_FMT_UYVY,
+		.fmt_type = FMT_YUV,
+		.bpp = { 16 },
+		.cplanes = 1,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_INT,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV422P,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV16,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV61,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV422,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV422M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 3,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV422,
+	},
+	/* yuv420 */
+	{
+		.fourcc = V4L2_PIX_FMT_NV21,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV12,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV21M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 2,
+		.uv_swap = 1,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_NV12M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 16 },
+		.cplanes = 2,
+		.mplanes = 2,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_SPLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV420,
+	}, {
+		.fourcc = V4L2_PIX_FMT_YUV420,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV420,
+	},
+	/* yuv444 */
+	{
+		.fourcc = V4L2_PIX_FMT_YUV444M,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8, 8, 8 },
+		.cplanes = 3,
+		.mplanes = 3,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV444,
+	},
+	/* yuv400 */
+	{
+		.fourcc = V4L2_PIX_FMT_GREY,
+		.fmt_type = FMT_YUV,
+		.bpp = { 8 },
+		.cplanes = 1,
+		.mplanes = 1,
+		.uv_swap = 0,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_YUV400,
+	},
+	/* rgb */
+	{
+		.fourcc = V4L2_PIX_FMT_XBGR32,
+		.fmt_type = FMT_RGB,
+		.bpp = { 32 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_RGB888,
+	}, {
+		.fourcc = V4L2_PIX_FMT_RGB565,
+		.fmt_type = FMT_RGB,
+		.bpp = { 16 },
+		.mplanes = 1,
+		.write_format = MI_CTRL_SP_WRITE_PLA,
+		.output_format = MI_CTRL_SP_OUTPUT_RGB565,
+	},
+};
 static const struct capture_fmt dmatx_fmts[] = {
 	/* raw */
 	{
@@ -618,8 +946,15 @@ static void mp_enable_mi(struct rkisp_stream *stream)
 
 static void sp_enable_mi(struct rkisp_stream *stream)
 {
-	rkisp_set_bits(stream->ispdev, CIF_MI_CTRL, 0,
-			CIF_MI_CTRL_SP_ENABLE, false);
+	struct rkisp_device *dev = stream->ispdev;
+	struct capture_fmt *fmt = &stream->out_isp_fmt;
+	u32 val = CIF_MI_CTRL_SP_ENABLE;
+	u32 mask = CIF_MI_SP_Y_FULL_YUV2RGB | CIF_MI_SP_CBCR_FULL_YUV2RGB;
+
+	if (fmt->fmt_type == FMT_RGB &&
+	    dev->isp_sdev.quantization == V4L2_QUANTIZATION_FULL_RANGE)
+		val |= mask;
+	rkisp_set_bits(stream->ispdev, CIF_MI_CTRL, mask, val, false);
 }
 
 static void dmatx_enable_mi(struct rkisp_stream *stream)
@@ -797,7 +1132,7 @@ static void rdbk_frame_end(struct rkisp_stream *stream)
 		return;
 
 	if (isp_dev->hdr.op_mode == HDR_RDBK_FRAME1) {
-		vb2_buffer_done(&cap->rdbk_buf[RDBK_S]->vb.vb2_buf, VB2_BUF_STATE_DONE);
+		rkisp_stream_buf_done(stream, cap->rdbk_buf[RDBK_S]);
 		cap->rdbk_buf[RDBK_S] = NULL;
 		return;
 	}
@@ -834,12 +1169,9 @@ static void rdbk_frame_end(struct rkisp_stream *stream)
 			goto RDBK_FRM_UNMATCH;
 		}
 
-		cap->rdbk_buf[RDBK_S]->vb.sequence =
-			cap->rdbk_buf[RDBK_L]->vb.sequence;
-		vb2_buffer_done(&cap->rdbk_buf[RDBK_L]->vb.vb2_buf,
-			VB2_BUF_STATE_DONE);
-		vb2_buffer_done(&cap->rdbk_buf[RDBK_S]->vb.vb2_buf,
-			VB2_BUF_STATE_DONE);
+		cap->rdbk_buf[RDBK_S]->vb.sequence = cap->rdbk_buf[RDBK_L]->vb.sequence;
+		rkisp_stream_buf_done(&cap->stream[RKISP_STREAM_DMATX0], cap->rdbk_buf[RDBK_L]);
+		rkisp_stream_buf_done(stream, cap->rdbk_buf[RDBK_S]);
 	} else {
 		v4l2_err(&isp_dev->v4l2_dev, "lost long frames\n");
 		goto RDBK_FRM_UNMATCH;
@@ -936,7 +1268,7 @@ static int mi_frame_end(struct rkisp_stream *stream)
 				rdbk_frame_end(stream);
 			}
 		} else {
-			vb2_buffer_done(vb2_buf, VB2_BUF_STATE_DONE);
+			rkisp_stream_buf_done(stream, stream->curr_buf);
 		}
 
 		stream->curr_buf = NULL;
@@ -993,7 +1325,9 @@ static void rkisp_stream_stop(struct rkisp_stream *stream)
 {
 	struct rkisp_device *dev = stream->ispdev;
 	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
+	unsigned long lock_flags = 0;
 	int ret = 0;
+	bool is_wait = dev->hw_dev->is_shutdown ? false : true;
 
 	if (!dev->dmarx_dev.trigger &&
 	    (is_rdbk_stream(stream) || is_hdr_stream(stream))) {
@@ -1006,11 +1340,20 @@ static void rkisp_stream_stop(struct rkisp_stream *stream)
 	     stream->id != RKISP_STREAM_SP) || dev->hw_dev->is_single)
 		stream->ops->stop_mi(stream);
 
-	if (stream->id == RKISP_STREAM_MP || stream->id == RKISP_STREAM_SP)
+	if (stream->id == RKISP_STREAM_MP || stream->id == RKISP_STREAM_SP) {
 		hdr_stop_dmatx(dev);
-
-	if (dev->isp_state & ISP_START &&
-	    !stream->ops->is_stream_stopped(stream)) {
+		if (IS_HDR_RDBK(dev->rd_mode) && !dev->hw_dev->is_single) {
+			spin_lock_irqsave(&dev->hw_dev->rdbk_lock, lock_flags);
+			if (dev->hw_dev->cur_dev_id != dev->dev_id || dev->hw_dev->is_idle) {
+				is_wait = false;
+				stream->ops->disable_mi(stream);
+			}
+			if (atomic_read(&dev->cap_dev.refcnt) == 1 && !is_wait)
+				dev->isp_state = ISP_STOP;
+			spin_unlock_irqrestore(&dev->hw_dev->rdbk_lock, lock_flags);
+		}
+	}
+	if (is_wait && !stream->ops->is_stream_stopped(stream)) {
 		ret = wait_event_timeout(stream->done,
 					 !stream->streaming,
 					 msecs_to_jiffies(500));
@@ -1251,7 +1594,7 @@ static void rkisp_stop_streaming(struct vb2_queue *queue)
 		v4l2_err(v4l2_dev, "pipeline close failed error:%d\n", ret);
 	rkisp_destroy_dummy_buf(stream);
 	atomic_dec(&dev->cap_dev.refcnt);
-
+	tasklet_disable(&stream->buf_done_tasklet);
 end:
 	mutex_unlock(&dev->hw_dev->dev_lock);
 }
@@ -1377,7 +1720,7 @@ rkisp_start_streaming(struct vb2_queue *queue, unsigned int count)
 			goto pipe_stream_off;
 		}
 	}
-
+	tasklet_enable(&stream->buf_done_tasklet);
 	mutex_unlock(&dev->hw_dev->dev_lock);
 	return 0;
 
@@ -1452,6 +1795,8 @@ static int rkisp_stream_init(struct rkisp_device *dev, u32 id)
 			sizeof(vdev->name));
 		stream->ops = &rkisp_sp_streams_ops;
 		stream->config = &rkisp_sp_stream_config;
+		stream->config->fmts = sp_fmts;
+		stream->config->fmt_size = ARRAY_SIZE(sp_fmts);
 		break;
 	case RKISP_STREAM_DMATX0:
 		strlcpy(vdev->name, DMATX0_VDEV_NAME,
@@ -1476,6 +1821,8 @@ static int rkisp_stream_init(struct rkisp_device *dev, u32 id)
 			sizeof(vdev->name));
 		stream->ops = &rkisp_mp_streams_ops;
 		stream->config = &rkisp_mp_stream_config;
+		stream->config->fmts = mp_fmts;
+		stream->config->fmt_size = ARRAY_SIZE(mp_fmts);
 	}
 
 	node = vdev_to_node(vdev);

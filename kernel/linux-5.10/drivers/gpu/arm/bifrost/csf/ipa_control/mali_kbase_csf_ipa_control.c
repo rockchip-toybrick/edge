@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2020-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2020-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -28,8 +28,6 @@
  * Status flags from the STATUS register of the IPA Control interface.
  */
 #define STATUS_COMMAND_ACTIVE ((u32)1 << 0)
-#define STATUS_TIMER_ACTIVE ((u32)1 << 1)
-#define STATUS_AUTO_ACTIVE ((u32)1 << 2)
 #define STATUS_PROTECTED_MODE ((u32)1 << 8)
 #define STATUS_RESET ((u32)1 << 9)
 #define STATUS_TIMER_ENABLED ((u32)1 << 31)
@@ -37,9 +35,7 @@
 /*
  * Commands for the COMMAND register of the IPA Control interface.
  */
-#define COMMAND_NOP ((u32)0)
 #define COMMAND_APPLY ((u32)1)
-#define COMMAND_CLEAR ((u32)2)
 #define COMMAND_SAMPLE ((u32)3)
 #define COMMAND_PROTECTED_ACK ((u32)4)
 #define COMMAND_RESET_ACK ((u32)5)
@@ -593,9 +589,10 @@ int kbase_ipa_control_register(
 	 */
 	for (session_idx = 0; session_idx < KBASE_IPA_CONTROL_MAX_SESSIONS;
 	     session_idx++) {
-		session = &ipa_ctrl->sessions[session_idx];
-		if (!session->active)
+		if (!ipa_ctrl->sessions[session_idx].active) {
+			session = &ipa_ctrl->sessions[session_idx];
 			break;
+		}
 	}
 
 	if (!session) {
@@ -650,7 +647,7 @@ int kbase_ipa_control_register(
 		/* Reports to this client for GPU time spent in protected mode
 		 * should begin from the point of registration.
 		 */
-		session->last_query_time = ktime_get_ns();
+		session->last_query_time = ktime_get_raw_ns();
 
 		/* Initially, no time has been spent in protected mode */
 		session->protm_time = 0;
@@ -820,7 +817,7 @@ int kbase_ipa_control_query(struct kbase_device *kbdev, const void *client,
 	}
 
 	if (protected_time) {
-		u64 time_now = ktime_get_ns();
+		u64 time_now = ktime_get_raw_ns();
 
 		/* This is the amount of protected-mode time spent prior to
 		 * the current protm period.
@@ -964,6 +961,43 @@ void kbase_ipa_control_handle_gpu_reset_post(struct kbase_device *kbdev)
 }
 KBASE_EXPORT_TEST_API(kbase_ipa_control_handle_gpu_reset_post);
 
+#ifdef KBASE_PM_RUNTIME
+void kbase_ipa_control_handle_gpu_sleep_enter(struct kbase_device *kbdev)
+{
+	lockdep_assert_held(&kbdev->hwaccess_lock);
+
+	if (kbdev->pm.backend.mcu_state == KBASE_MCU_IN_SLEEP) {
+		/* GPU Sleep is treated as a power down */
+		kbase_ipa_control_handle_gpu_power_off(kbdev);
+
+		/* SELECT_CSHW register needs to be cleared to prevent any
+		 * IPA control message to be sent to the top level GPU HWCNT.
+		 */
+		kbase_reg_write(kbdev, IPA_CONTROL_REG(SELECT_CSHW_LO), 0);
+		kbase_reg_write(kbdev, IPA_CONTROL_REG(SELECT_CSHW_HI), 0);
+
+		/* No need to issue the APPLY command here */
+	}
+}
+KBASE_EXPORT_TEST_API(kbase_ipa_control_handle_gpu_sleep_enter);
+
+void kbase_ipa_control_handle_gpu_sleep_exit(struct kbase_device *kbdev)
+{
+	lockdep_assert_held(&kbdev->hwaccess_lock);
+
+	if (kbdev->pm.backend.mcu_state == KBASE_MCU_IN_SLEEP) {
+		/* To keep things simple, currently exit from
+		 * GPU Sleep is treated as a power on event where
+		 * all 4 SELECT registers are reconfigured.
+		 * On exit from sleep, reconfiguration is needed
+		 * only for the SELECT_CSHW register.
+		 */
+		kbase_ipa_control_handle_gpu_power_on(kbdev);
+	}
+}
+KBASE_EXPORT_TEST_API(kbase_ipa_control_handle_gpu_sleep_exit);
+#endif
+
 #if MALI_UNIT_TEST
 void kbase_ipa_control_rate_change_notify_test(struct kbase_device *kbdev,
 					       u32 clk_index, u32 clk_rate_hz)
@@ -983,14 +1017,14 @@ void kbase_ipa_control_protm_entered(struct kbase_device *kbdev)
 	struct kbase_ipa_control *ipa_ctrl = &kbdev->csf.ipa_control;
 
 	lockdep_assert_held(&kbdev->hwaccess_lock);
-	ipa_ctrl->protm_start = ktime_get_ns();
+	ipa_ctrl->protm_start = ktime_get_raw_ns();
 }
 
 void kbase_ipa_control_protm_exited(struct kbase_device *kbdev)
 {
 	struct kbase_ipa_control *ipa_ctrl = &kbdev->csf.ipa_control;
 	size_t i;
-	u64 time_now = ktime_get_ns();
+	u64 time_now = ktime_get_raw_ns();
 	u32 status;
 
 	lockdep_assert_held(&kbdev->hwaccess_lock);

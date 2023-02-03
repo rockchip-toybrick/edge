@@ -958,7 +958,7 @@ static struct rockchip_clk_branch rk3568_clk_branches[] __initdata = {
 	COMPOSITE_NODIV(HCLK_USB, "hclk_usb", gpll150_gpll100_gpll75_xin24m_p, CLK_IS_CRITICAL,
 			RK3568_CLKSEL_CON(32), 2, 2, MFLAGS,
 			RK3568_CLKGATE_CON(16), 1, GFLAGS),
-	COMPOSITE_NOMUX(PCLK_USB, "pclk_usb", "aclk_usb", 0,
+	COMPOSITE_NOMUX(PCLK_USB, "pclk_usb", "aclk_usb", CLK_IS_CRITICAL,
 			RK3568_CLKSEL_CON(32), 4, 4, DFLAGS,
 			RK3568_CLKGATE_CON(16), 2, GFLAGS),
 	GATE(HCLK_USB2HOST0, "hclk_usb2host0", "hclk_usb", 0,
@@ -1699,6 +1699,7 @@ static void __init rk3568_clk_init(struct device_node *np)
 
 CLK_OF_DECLARE(rk3568_cru, "rockchip,rk3568-cru", rk3568_clk_init);
 
+#ifdef MODULE
 struct clk_rk3568_inits {
 	void (*inits)(struct device_node *np);
 };
@@ -1723,7 +1724,7 @@ static const struct of_device_id clk_rk3568_match_table[] = {
 };
 MODULE_DEVICE_TABLE(of, clk_rk3568_match_table);
 
-static int __init clk_rk3568_probe(struct platform_device *pdev)
+static int clk_rk3568_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
 	const struct of_device_id *match;
@@ -1741,14 +1742,16 @@ static int __init clk_rk3568_probe(struct platform_device *pdev)
 }
 
 static struct platform_driver clk_rk3568_driver = {
+	.probe		= clk_rk3568_probe,
 	.driver		= {
 		.name	= "clk-rk3568",
 		.of_match_table = clk_rk3568_match_table,
 		.suppress_bind_attrs = true,
 	},
 };
-builtin_platform_driver_probe(clk_rk3568_driver, clk_rk3568_probe);
+module_platform_driver(clk_rk3568_driver);
 
 MODULE_DESCRIPTION("Rockchip RK3568 Clock Driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:clk-rk3568");
+#endif /* MODULE */

@@ -117,6 +117,9 @@ int rockchip_get_boot_mode(void)
 		} else if (!strcmp(env_reboot_mode, "fastboot")) {
 			printf("boot mode: fastboot\n");
 			return BOOT_MODE_BOOTLOADER;
+		} else if (!strcmp(env_reboot_mode, "normal")) {
+			printf("boot mode: normal(env)\n");
+			return BOOT_MODE_NORMAL;
 		}
 	}
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2018-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2018-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -32,6 +32,7 @@
 #include "mali_kbase_csf_scheduler.h"
 #include "mmu/mali_kbase_mmu.h"
 #include "backend/gpu/mali_kbase_clk_rate_trace_mgr.h"
+#include <backend/gpu/mali_kbase_model_dummy.h>
 
 #include <linux/list.h>
 #include <linux/slab.h>
@@ -102,6 +103,7 @@ struct dummy_firmware_interface {
 #define CSF_GLB_REQ_CFG_MASK                                                   \
 	(GLB_REQ_CFG_ALLOC_EN_MASK | GLB_REQ_CFG_PROGRESS_TIMER_MASK |         \
 	 GLB_REQ_CFG_PWROFF_TIMER_MASK | GLB_REQ_IDLE_ENABLE_MASK)
+
 
 static inline u32 input_page_read(const u32 *const input, const u32 offset)
 {
@@ -227,7 +229,8 @@ static int invent_capabilities(struct kbase_device *kbdev)
 	iface->version = 1;
 	iface->kbdev = kbdev;
 	iface->features = 0;
-	iface->prfcnt_size = 64;
+	iface->prfcnt_size =
+		GLB_PRFCNT_SIZE_HARDWARE_SIZE_SET(0, KBASE_DUMMY_MODEL_MAX_SAMPLE_SIZE);
 
 	if (iface->version >= kbase_csf_interface_version(1, 1, 0)) {
 		/* update rate=1, max event size = 1<<8 = 256 */
@@ -265,6 +268,18 @@ void kbase_csf_read_firmware_memory(struct kbase_device *kbdev,
 
 
 void kbase_csf_update_firmware_memory(struct kbase_device *kbdev,
+	u32 gpu_addr, u32 value)
+{
+	/* NO_MALI: Nothing to do here */
+}
+
+void kbase_csf_read_firmware_memory_exe(struct kbase_device *kbdev,
+	u32 gpu_addr, u32 *value)
+{
+	/* NO_MALI: Nothing to do here */
+}
+
+void kbase_csf_update_firmware_memory_exe(struct kbase_device *kbdev,
 	u32 gpu_addr, u32 value)
 {
 	/* NO_MALI: Nothing to do here */
@@ -371,37 +386,6 @@ u32 kbase_csf_firmware_csg_output(
 }
 KBASE_EXPORT_TEST_API(kbase_csf_firmware_csg_output);
 
-static void
-csf_firmware_prfcnt_process(const struct kbase_csf_global_iface *const iface,
-			    const u32 glb_req)
-{
-	struct kbase_device *kbdev = iface->kbdev;
-	u32 glb_ack = output_page_read(iface->output, GLB_ACK);
-	/* If the value of GLB_REQ.PRFCNT_SAMPLE is different from the value of
-	 * GLB_ACK.PRFCNT_SAMPLE, the CSF will sample the performance counters.
-	 */
-	if ((glb_req ^ glb_ack) & GLB_REQ_PRFCNT_SAMPLE_MASK) {
-		/* NO_MALI only uses the first buffer in the ring buffer. */
-		input_page_write(iface->input, GLB_PRFCNT_EXTRACT, 0);
-		output_page_write(iface->output, GLB_PRFCNT_INSERT, 1);
-		kbase_reg_write(kbdev, GPU_COMMAND, GPU_COMMAND_PRFCNT_SAMPLE);
-	}
-
-	/* Propagate enable masks to model if request to enable. */
-	if (glb_req & GLB_REQ_PRFCNT_ENABLE_MASK) {
-		u32 tiler_en, l2_en, sc_en;
-
-		tiler_en = input_page_read(iface->input, GLB_PRFCNT_TILER_EN);
-		l2_en = input_page_read(iface->input, GLB_PRFCNT_MMU_L2_EN);
-		sc_en = input_page_read(iface->input, GLB_PRFCNT_SHADER_EN);
-
-		/* NO_MALI platform enabled all CSHW counters by default. */
-		kbase_reg_write(kbdev, PRFCNT_TILER_EN, tiler_en);
-		kbase_reg_write(kbdev, PRFCNT_MMU_L2_EN, l2_en);
-		kbase_reg_write(kbdev, PRFCNT_SHADER_EN, sc_en);
-	}
-}
-
 void kbase_csf_firmware_global_input(
 	const struct kbase_csf_global_iface *const iface, const u32 offset,
 	const u32 value)
@@ -412,9 +396,17 @@ void kbase_csf_firmware_global_input(
 	input_page_write(iface->input, offset, value);
 
 	if (offset == GLB_REQ) {
-		csf_firmware_prfcnt_process(iface, value);
-		/* NO_MALI: Immediately acknowledge requests */
-		output_page_write(iface->output, GLB_ACK, value);
+		/* NO_MALI: Immediately acknowledge requests - except for PRFCNT_ENABLE
+		 * and PRFCNT_SAMPLE. These will be processed along with the
+		 * corresponding performance counter registers when the global doorbell
+		 * is rung in order to emulate the performance counter sampling behavior
+		 * of the real firmware.
+		 */
+		const u32 ack = output_page_read(iface->output, GLB_ACK);
+		const u32 req_mask = ~(GLB_REQ_PRFCNT_ENABLE_MASK | GLB_REQ_PRFCNT_SAMPLE_MASK);
+		const u32 toggled = (value ^ ack) & req_mask;
+
+		output_page_write(iface->output, GLB_ACK, ack ^ toggled);
 	}
 }
 KBASE_EXPORT_TEST_API(kbase_csf_firmware_global_input);
@@ -453,6 +445,99 @@ u32 kbase_csf_firmware_global_output(
 	return val;
 }
 KBASE_EXPORT_TEST_API(kbase_csf_firmware_global_output);
+
+/**
+ * csf_doorbell_prfcnt() - Process CSF performance counter doorbell request
+ *
+ * @kbdev: An instance of the GPU platform device
+ */
+static void csf_doorbell_prfcnt(struct kbase_device *kbdev)
+{
+	struct kbase_csf_global_iface *iface;
+	u32 req;
+	u32 ack;
+	u32 extract_index;
+
+	if (WARN_ON(!kbdev))
+		return;
+
+	iface = &kbdev->csf.global_iface;
+
+	req = input_page_read(iface->input, GLB_REQ);
+	ack = output_page_read(iface->output, GLB_ACK);
+	extract_index = input_page_read(iface->input, GLB_PRFCNT_EXTRACT);
+
+	/* Process enable bit toggle */
+	if ((req ^ ack) & GLB_REQ_PRFCNT_ENABLE_MASK) {
+		if (req & GLB_REQ_PRFCNT_ENABLE_MASK) {
+			/* Reset insert index to zero on enable bit set */
+			output_page_write(iface->output, GLB_PRFCNT_INSERT, 0);
+			WARN_ON(extract_index != 0);
+		}
+		ack ^= GLB_REQ_PRFCNT_ENABLE_MASK;
+	}
+
+	/* Process sample request */
+	if ((req ^ ack) & GLB_REQ_PRFCNT_SAMPLE_MASK) {
+		const u32 ring_size = GLB_PRFCNT_CONFIG_SIZE_GET(
+			input_page_read(iface->input, GLB_PRFCNT_CONFIG));
+		u32 insert_index = output_page_read(iface->output, GLB_PRFCNT_INSERT);
+
+		const bool prev_overflow = (req ^ ack) & GLB_ACK_IRQ_MASK_PRFCNT_OVERFLOW_MASK;
+		const bool prev_threshold = (req ^ ack) & GLB_ACK_IRQ_MASK_PRFCNT_THRESHOLD_MASK;
+
+		/* If ringbuffer is full toggle PRFCNT_OVERFLOW and skip sample */
+		if (insert_index - extract_index >= ring_size) {
+			WARN_ON(insert_index - extract_index > ring_size);
+			if (!prev_overflow)
+				ack ^= GLB_ACK_IRQ_MASK_PRFCNT_OVERFLOW_MASK;
+		} else {
+			struct gpu_model_prfcnt_en enable_maps = {
+				.fe = input_page_read(iface->input, GLB_PRFCNT_CSF_EN),
+				.tiler = input_page_read(iface->input, GLB_PRFCNT_TILER_EN),
+				.l2 = input_page_read(iface->input, GLB_PRFCNT_MMU_L2_EN),
+				.shader = input_page_read(iface->input, GLB_PRFCNT_SHADER_EN),
+			};
+
+			const u64 prfcnt_base =
+				input_page_read(iface->input, GLB_PRFCNT_BASE_LO) +
+				((u64)input_page_read(iface->input, GLB_PRFCNT_BASE_HI) << 32);
+
+			u32 *sample_base = (u32 *)(uintptr_t)prfcnt_base +
+					   (KBASE_DUMMY_MODEL_MAX_VALUES_PER_SAMPLE *
+					    (insert_index % ring_size));
+
+			/* trigger sample dump in the dummy model */
+			gpu_model_prfcnt_dump_request(sample_base, enable_maps);
+
+			/* increment insert index and toggle PRFCNT_SAMPLE bit in ACK */
+			output_page_write(iface->output, GLB_PRFCNT_INSERT, ++insert_index);
+			ack ^= GLB_ACK_IRQ_MASK_PRFCNT_SAMPLE_MASK;
+		}
+
+		/* When the ringbuffer reaches 50% capacity toggle PRFCNT_THRESHOLD */
+		if (!prev_threshold && (insert_index - extract_index >= (ring_size / 2)))
+			ack ^= GLB_ACK_IRQ_MASK_PRFCNT_THRESHOLD_MASK;
+	}
+
+	/* Update GLB_ACK */
+	output_page_write(iface->output, GLB_ACK, ack);
+}
+
+void kbase_csf_ring_doorbell(struct kbase_device *kbdev, int doorbell_nr)
+{
+	WARN_ON(doorbell_nr < 0);
+	WARN_ON(doorbell_nr >= CSF_NUM_DOORBELL);
+
+	if (WARN_ON(!kbdev))
+		return;
+
+	if (doorbell_nr == CSF_KERNEL_DOORBELL_NR) {
+		csf_doorbell_prfcnt(kbdev);
+		gpu_model_glb_request_job_irq(kbdev->model);
+	}
+}
+EXPORT_SYMBOL(kbase_csf_ring_doorbell);
 
 /**
  * handle_internal_firmware_fatal - Handler for CS internal firmware fault.
@@ -631,17 +716,16 @@ static void enable_gpu_idle_timer(struct kbase_device *const kbdev)
 		kbdev->csf.gpu_idle_dur_count);
 }
 
+
 static void global_init(struct kbase_device *const kbdev, u64 core_mask)
 {
-	u32 const ack_irq_mask = GLB_ACK_IRQ_MASK_CFG_ALLOC_EN_MASK |
-				 GLB_ACK_IRQ_MASK_PING_MASK |
-				 GLB_ACK_IRQ_MASK_CFG_PROGRESS_TIMER_MASK |
-				 GLB_ACK_IRQ_MASK_PROTM_ENTER_MASK |
-				 GLB_ACK_IRQ_MASK_FIRMWARE_CONFIG_UPDATE_MASK |
-				 GLB_ACK_IRQ_MASK_PROTM_EXIT_MASK |
-				 GLB_ACK_IRQ_MASK_CFG_PWROFF_TIMER_MASK |
-				 GLB_ACK_IRQ_MASK_IDLE_EVENT_MASK |
-				 GLB_ACK_IRQ_MASK_IDLE_ENABLE_MASK;
+	u32 const ack_irq_mask =
+		GLB_ACK_IRQ_MASK_CFG_ALLOC_EN_MASK | GLB_ACK_IRQ_MASK_PING_MASK |
+		GLB_ACK_IRQ_MASK_CFG_PROGRESS_TIMER_MASK | GLB_ACK_IRQ_MASK_PROTM_ENTER_MASK |
+		GLB_ACK_IRQ_MASK_PROTM_EXIT_MASK | GLB_ACK_IRQ_MASK_FIRMWARE_CONFIG_UPDATE_MASK |
+		GLB_ACK_IRQ_MASK_CFG_PWROFF_TIMER_MASK | GLB_ACK_IRQ_MASK_IDLE_EVENT_MASK |
+		GLB_ACK_IRQ_MASK_IDLE_ENABLE_MASK |
+		0;
 
 	const struct kbase_csf_global_iface *const global_iface =
 		&kbdev->csf.global_iface;
@@ -803,8 +887,9 @@ static u32 convert_dur_to_idle_count(struct kbase_device *kbdev, const u32 dur_m
 			dev_warn(kbdev->dev, "No GPU clock, unexpected intregration issue!");
 		spin_unlock(&kbdev->pm.clk_rtm.lock);
 
-		dev_info(kbdev->dev, "Can't get the timestamp frequency, "
-			 "use cycle counter format with firmware idle hysteresis!");
+		dev_info(
+			kbdev->dev,
+			"Can't get the timestamp frequency, use cycle counter format with firmware idle hysteresis!");
 	}
 
 	/* Formula for dur_val = ((dur_ms/1000) * freq_HZ) >> 10) */
@@ -898,7 +983,6 @@ end:
 
 static u32 convert_dur_to_core_pwroff_count(struct kbase_device *kbdev, const u32 dur_us)
 {
-#define PWROFF_VAL_UNIT_SHIFT (10)
 	/* Get the cntfreq_el0 value, which drives the SYSTEM_TIMESTAMP */
 	u64 freq = arch_timer_get_cntfrq();
 	u64 dur_val = dur_us;
@@ -914,8 +998,9 @@ static u32 convert_dur_to_core_pwroff_count(struct kbase_device *kbdev, const u3
 			dev_warn(kbdev->dev, "No GPU clock, unexpected integration issue!");
 		spin_unlock(&kbdev->pm.clk_rtm.lock);
 
-		dev_info(kbdev->dev, "Can't get the timestamp frequency, "
-			 "use cycle counter with MCU Core Poweroff timer!");
+		dev_info(
+			kbdev->dev,
+			"Can't get the timestamp frequency, use cycle counter with MCU shader Core Poweroff timer!");
 	}
 
 	/* Formula for dur_val = ((dur_us/1e6) * freq_HZ) >> 10) */
@@ -939,7 +1024,14 @@ static u32 convert_dur_to_core_pwroff_count(struct kbase_device *kbdev, const u3
 
 u32 kbase_csf_firmware_get_mcu_core_pwroff_time(struct kbase_device *kbdev)
 {
-	return kbdev->csf.mcu_core_pwroff_dur_us;
+	u32 pwroff;
+	unsigned long flags;
+
+	spin_lock_irqsave(&kbdev->hwaccess_lock, flags);
+	pwroff = kbdev->csf.mcu_core_pwroff_dur_us;
+	spin_unlock_irqrestore(&kbdev->hwaccess_lock, flags);
+
+	return pwroff;
 }
 
 u32 kbase_csf_firmware_set_mcu_core_pwroff_time(struct kbase_device *kbdev, u32 dur)
@@ -952,7 +1044,7 @@ u32 kbase_csf_firmware_set_mcu_core_pwroff_time(struct kbase_device *kbdev, u32 
 	kbdev->csf.mcu_core_pwroff_dur_count = pwroff;
 	spin_unlock_irqrestore(&kbdev->hwaccess_lock, flags);
 
-	dev_dbg(kbdev->dev, "MCU Core Poweroff input update: 0x%.8x", pwroff);
+	dev_dbg(kbdev->dev, "MCU shader Core Poweroff input update: 0x%.8x", pwroff);
 
 	return pwroff;
 }
@@ -964,16 +1056,6 @@ int kbase_csf_firmware_early_init(struct kbase_device *kbdev)
 
 	kbdev->csf.fw_timeout_ms =
 		kbase_get_timeout_ms(kbdev, CSF_FIRMWARE_TIMEOUT);
-
-	kbdev->csf.gpu_idle_hysteresis_ms = FIRMWARE_IDLE_HYSTERESIS_TIME_MS;
-#ifdef KBASE_PM_RUNTIME
-	if (kbase_pm_gpu_sleep_allowed(kbdev))
-		kbdev->csf.gpu_idle_hysteresis_ms /=
-			FIRMWARE_IDLE_HYSTERESIS_GPU_SLEEP_SCALER;
-#endif
-	WARN_ON(!kbdev->csf.gpu_idle_hysteresis_ms);
-	kbdev->csf.gpu_idle_dur_count = convert_dur_to_idle_count(
-		kbdev, kbdev->csf.gpu_idle_hysteresis_ms);
 
 	INIT_LIST_HEAD(&kbdev->csf.firmware_interfaces);
 	INIT_LIST_HEAD(&kbdev->csf.firmware_config);
@@ -987,7 +1069,26 @@ int kbase_csf_firmware_early_init(struct kbase_device *kbdev)
 	return 0;
 }
 
-int kbase_csf_firmware_init(struct kbase_device *kbdev)
+void kbase_csf_firmware_early_term(struct kbase_device *kbdev)
+{
+	mutex_destroy(&kbdev->csf.reg_lock);
+}
+
+int kbase_csf_firmware_late_init(struct kbase_device *kbdev)
+{
+	kbdev->csf.gpu_idle_hysteresis_ms = FIRMWARE_IDLE_HYSTERESIS_TIME_MS;
+#ifdef KBASE_PM_RUNTIME
+	if (kbase_pm_gpu_sleep_allowed(kbdev))
+		kbdev->csf.gpu_idle_hysteresis_ms /= FIRMWARE_IDLE_HYSTERESIS_GPU_SLEEP_SCALER;
+#endif
+	WARN_ON(!kbdev->csf.gpu_idle_hysteresis_ms);
+	kbdev->csf.gpu_idle_dur_count =
+		convert_dur_to_idle_count(kbdev, kbdev->csf.gpu_idle_hysteresis_ms);
+
+	return 0;
+}
+
+int kbase_csf_firmware_load_init(struct kbase_device *kbdev)
 {
 	int ret;
 
@@ -1053,11 +1154,11 @@ int kbase_csf_firmware_init(struct kbase_device *kbdev)
 	return 0;
 
 error:
-	kbase_csf_firmware_term(kbdev);
+	kbase_csf_firmware_unload_term(kbdev);
 	return ret;
 }
 
-void kbase_csf_firmware_term(struct kbase_device *kbdev)
+void kbase_csf_firmware_unload_term(struct kbase_device *kbdev)
 {
 	cancel_work_sync(&kbdev->csf.fw_error_work);
 
@@ -1091,8 +1192,6 @@ void kbase_csf_firmware_term(struct kbase_device *kbdev)
 	}
 
 	/* NO_MALI: No trace buffers to terminate */
-
-	mutex_destroy(&kbdev->csf.reg_lock);
 
 	/* This will also free up the region allocated for the shared interface
 	 * entry parsed from the firmware image.
@@ -1146,8 +1245,9 @@ void kbase_csf_firmware_ping(struct kbase_device *const kbdev)
 	kbase_csf_scheduler_spin_unlock(kbdev, flags);
 }
 
-int kbase_csf_firmware_ping_wait(struct kbase_device *const kbdev)
+int kbase_csf_firmware_ping_wait(struct kbase_device *const kbdev, unsigned int wait_timeout_ms)
 {
+	CSTD_UNUSED(wait_timeout_ms);
 	kbase_csf_firmware_ping(kbdev);
 	return wait_for_global_request(kbdev, GLB_REQ_PING_MASK);
 }
@@ -1186,7 +1286,7 @@ void kbase_csf_enter_protected_mode(struct kbase_device *kbdev)
 	kbase_csf_ring_doorbell(kbdev, CSF_KERNEL_DOORBELL_NR);
 }
 
-void kbase_csf_wait_protected_mode_enter(struct kbase_device *kbdev)
+int kbase_csf_wait_protected_mode_enter(struct kbase_device *kbdev)
 {
 	int err = wait_for_global_request(kbdev, GLB_REQ_PROTM_ENTER_MASK);
 
@@ -1194,6 +1294,8 @@ void kbase_csf_wait_protected_mode_enter(struct kbase_device *kbdev)
 		if (kbase_prepare_to_reset_gpu(kbdev, RESET_FLAGS_NONE))
 			kbase_reset_gpu(kbdev);
 	}
+
+	return err;
 }
 
 void kbase_csf_firmware_trigger_mcu_halt(struct kbase_device *kbdev)
@@ -1392,7 +1494,7 @@ int kbase_csf_firmware_mcu_shared_mapping_init(
 		gpu_map_prot =
 			KBASE_REG_MEMATTR_INDEX(AS_MEMATTR_INDEX_NON_CACHEABLE);
 		cpu_map_prot = pgprot_writecombine(cpu_map_prot);
-	};
+	}
 
 	phys = kmalloc_array(num_pages, sizeof(*phys), GFP_KERNEL);
 	if (!phys)
@@ -1402,9 +1504,8 @@ int kbase_csf_firmware_mcu_shared_mapping_init(
 	if (!page_list)
 		goto page_list_alloc_error;
 
-	ret = kbase_mem_pool_alloc_pages(
-		&kbdev->mem_pools.small[KBASE_MEM_GROUP_CSF_FW],
-		num_pages, phys, false);
+	ret = kbase_mem_pool_alloc_pages(&kbdev->mem_pools.small[KBASE_MEM_GROUP_CSF_FW], num_pages,
+					 phys, false);
 	if (ret <= 0)
 		goto phys_mem_pool_alloc_error;
 
@@ -1430,9 +1531,9 @@ int kbase_csf_firmware_mcu_shared_mapping_init(
 	gpu_map_properties &= (KBASE_REG_GPU_RD | KBASE_REG_GPU_WR);
 	gpu_map_properties |= gpu_map_prot;
 
-	ret = kbase_mmu_insert_pages_no_flush(kbdev, &kbdev->csf.mcu_mmu,
-			va_reg->start_pfn, &phys[0], num_pages,
-			gpu_map_properties, KBASE_MEM_GROUP_CSF_FW);
+	ret = kbase_mmu_insert_pages_no_flush(kbdev, &kbdev->csf.mcu_mmu, va_reg->start_pfn,
+					      &phys[0], num_pages, gpu_map_properties,
+					      KBASE_MEM_GROUP_CSF_FW, NULL);
 	if (ret)
 		goto mmu_insert_pages_error;
 
@@ -1493,3 +1594,4 @@ void kbase_csf_firmware_mcu_shared_mapping_term(
 	vunmap(csf_mapping->cpu_addr);
 	kfree(csf_mapping->phys);
 }
+

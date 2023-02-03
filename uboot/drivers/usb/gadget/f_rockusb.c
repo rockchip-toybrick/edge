@@ -181,7 +181,14 @@ static int rkusb_do_reset(struct fsg_common *common,
 static int rkusb_do_test_unit_ready(struct fsg_common *common,
 				    struct fsg_buffhd *bh)
 {
-	common->residue = 0x06 << 24; /* Max block xfer support from host */
+	struct blk_desc *desc = &ums[common->lun].block_dev;
+
+	if ((desc->if_type == IF_TYPE_MTD && desc->devnum == BLK_MTD_SPI_NOR) ||
+	    desc->if_type == IF_TYPE_SPINOR)
+		common->residue = 0x03 << 24; /* 128KB Max block xfer for SPI Nor */
+	else
+		common->residue = 0x06 << 24; /* Max block xfer support from host */
+
 	common->data_dir = DATA_DIR_NONE;
 	bh->state = BUF_STATE_EMPTY;
 
@@ -194,13 +201,30 @@ static int rkusb_do_read_flash_id(struct fsg_common *common,
 	u8 *buf = (u8 *)bh->buf;
 	u32 len = 5;
 	enum if_type type = ums[common->lun].block_dev.if_type;
+	u32 devnum = ums[common->lun].block_dev.devnum;
+	const char *str;
 
-	if (type == IF_TYPE_MMC)
-		memcpy((void *)&buf[0], "EMMC ", 5);
-	else if (type == IF_TYPE_RKNAND)
-		memcpy((void *)&buf[0], "NAND ", 5);
-	else
-		memcpy((void *)&buf[0], "UNKN ", 5); /* unknown */
+	switch (type) {
+	case IF_TYPE_MMC:
+		str = "EMMC ";
+		break;
+	case IF_TYPE_RKNAND:
+		str = "NAND ";
+		break;
+	case IF_TYPE_MTD:
+		if (devnum == BLK_MTD_SPI_NAND)
+			str ="SNAND";
+		else if (devnum == BLK_MTD_NAND)
+			str = "NAND ";
+		else
+			str = "NOR  ";
+		break;
+	default:
+		str = "UNKN "; /* unknown */
+		break;
+	}
+
+	memcpy((void *)&buf[0], str, len);
 
 	/* Set data xfer size */
 	common->residue = common->data_size_from_cmnd = len;
@@ -255,7 +279,7 @@ static int rkusb_do_read_flash_info(struct fsg_common *common,
 	if (desc->if_type == IF_TYPE_MTD && desc->devnum == BLK_MTD_SPI_NOR) {
 		/* RV1126/RK3308 mtd spinor keep the former upgrade mode */
 #if !defined(CONFIG_ROCKCHIP_RV1126) && !defined(CONFIG_ROCKCHIP_RK3308)
-		finfo.block_size = 0x100; /* Aligned to 128KB */
+		finfo.block_size = 0x80; /* Aligned to 64KB */
 #else
 		finfo.block_size = ROCKCHIP_FLASH_BLOCK_SIZE;
 #endif
@@ -750,7 +774,8 @@ static int rkusb_do_read_capacity(struct fsg_common *common,
 #if defined(CONFIG_ROCKCHIP_NEW_IDB)
 	buf[1] = BIT(0);
 #endif
-	buf[1] |= BIT(1);
+	buf[1] |= BIT(1); /* Switch Storage */
+	buf[1] |= BIT(2); /* LBAwrite Parity */
 
 	/* Set data xfer size */
 	common->residue = len;
@@ -898,6 +923,29 @@ static int rkusb_cmd_process(struct fsg_common *common,
 	}
 
 	return rc;
+}
+
+int rkusb_do_check_parity(struct fsg_common *common)
+{
+	int ret = 0, rc;
+	u32 parity, i, usb_parity, lba, len;
+	static u32 usb_check_buffer[1024 * 256];
+
+	usb_parity = common->cmnd[9] | (common->cmnd[10] << 8) |
+			(common->cmnd[11] << 16) | (common->cmnd[12] << 24);
+
+	if (common->cmnd[0] == SC_WRITE_10 && (usb_parity)) {
+		lba = get_unaligned_be32(&common->cmnd[2]);
+		len = common->data_size_from_cmnd >> 9;
+		rc = blk_dread(&ums[common->lun].block_dev, lba, len, usb_check_buffer);
+		parity = 0x000055aa;
+		for (i = 0; i < len * 128; i++)
+			parity += usb_check_buffer[i];
+		if (!rc || parity != usb_parity)
+			common->phase_error = 1;
+	}
+
+	return ret;
 }
 
 DECLARE_GADGET_BIND_CALLBACK(rkusb_ums_dnl, fsg_add);

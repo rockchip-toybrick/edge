@@ -74,12 +74,17 @@
 #define RK817_CODEC_DI2S_TXCR1		(RK817_CODEC_BASE + 0x4d)
 #define RK817_CODEC_DI2S_TXCR2		(RK817_CODEC_BASE + 0x4e)
 #define RK817_CODEC_DI2S_TXCR3_TXCMD	(RK817_CODEC_BASE + 0x4f)
+#define RK817_PMIC_CHIP_NAME		(RK817_CODEC_BASE + 0xed)
+#define RK817_PMIC_CHIP_VER		(RK817_CODEC_BASE + 0xee)
 
 /* RK817_CODEC_DTOP_DIGEN_CLKE */
 #define ADC_DIG_CLK_MASK		(0xf << 4)
 #define ADC_DIG_CLK_SFT			4
 #define ADC_DIG_CLK_DIS			(0x0 << 4)
 #define ADC_DIG_CLK_EN			(0xf << 4)
+
+#define I2STX_CKE_EN			(0x1 << 6)
+#define I2STX_CKE_DIS			(0x0 << 6)
 
 #define DAC_DIG_CLK_MASK		(0xf << 0)
 #define DAC_DIG_CLK_SFT			0

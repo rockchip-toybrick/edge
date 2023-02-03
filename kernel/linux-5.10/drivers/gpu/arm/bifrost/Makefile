@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 #
-# (C) COPYRIGHT 2010-2021 ARM Limited. All rights reserved.
+# (C) COPYRIGHT 2010-2022 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the
 # GNU General Public License version 2 as published by the Free Software
@@ -65,7 +65,7 @@ ifeq ($(CONFIG_MALI_BIFROST),m)
     endif
 
     ifeq ($(CONFIG_XEN),y)
-        ifneq ($(CONFIG_MALI_ARBITRATION), n)
+        ifneq ($(CONFIG_MALI_ARBITER_SUPPORT), n)
             CONFIG_MALI_XEN ?= m
         endif
     endif
@@ -91,14 +91,10 @@ ifeq ($(CONFIG_MALI_BIFROST),m)
             CONFIG_MALI_BIFROST_ENABLE_TRACE ?= y
             CONFIG_MALI_BIFROST_SYSTEM_TRACE ?= y
 
-            ifeq ($(CONFIG_SYNC), y)
+            ifeq ($(CONFIG_SYNC_FILE), y)
                 CONFIG_MALI_BIFROST_FENCE_DEBUG ?= y
             else
-                ifeq ($(CONFIG_SYNC_FILE), y)
-                    CONFIG_MALI_BIFROST_FENCE_DEBUG ?= y
-                else
-                    CONFIG_MALI_BIFROST_FENCE_DEBUG = n
-                endif
+                CONFIG_MALI_BIFROST_FENCE_DEBUG = n
             endif
         else
             # Prevent misuse when CONFIG_MALI_BIFROST_DEBUG=n
@@ -130,16 +126,19 @@ ifeq ($(CONFIG_MALI_BIFROST),m)
         ifeq ($(CONFIG_MALI_KUTF), y)
             CONFIG_MALI_KUTF_IRQ_TEST ?= y
             CONFIG_MALI_KUTF_CLK_RATE_TRACE ?= y
+            CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST ?= y
         else
             # Prevent misuse when CONFIG_MALI_KUTF=n
             CONFIG_MALI_KUTF_IRQ_TEST = n
             CONFIG_MALI_KUTF_CLK_RATE_TRACE = n
+            CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST = n
         endif
     else
         # Prevent misuse when CONFIG_MALI_BIFROST_DEBUG=n
         CONFIG_MALI_KUTF = n
         CONFIG_MALI_KUTF_IRQ_TEST = n
         CONFIG_MALI_KUTF_CLK_RATE_TRACE = n
+        CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST = n
     endif
 else
     # Prevent misuse when CONFIG_MALI_BIFROST=n
@@ -149,6 +148,7 @@ else
     CONFIG_MALI_KUTF = n
     CONFIG_MALI_KUTF_IRQ_TEST = n
     CONFIG_MALI_KUTF_CLK_RATE_TRACE = n
+    CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST = n
 endif
 
 # All Mali CONFIG should be listed here
@@ -156,7 +156,6 @@ CONFIGS := \
     CONFIG_MALI_BIFROST \
     CONFIG_MALI_CSF_SUPPORT \
     CONFIG_MALI_BIFROST_GATOR_SUPPORT \
-    CONFIG_MALI_BIFROST_DMA_FENCE \
     CONFIG_MALI_ARBITER_SUPPORT \
     CONFIG_MALI_ARBITRATION \
     CONFIG_MALI_ARBITER_MODULES \
@@ -189,6 +188,7 @@ CONFIGS := \
     CONFIG_MALI_KUTF \
     CONFIG_MALI_KUTF_IRQ_TEST \
     CONFIG_MALI_KUTF_CLK_RATE_TRACE \
+    CONFIG_MALI_KUTF_MGM_INTEGRATION_TEST \
     CONFIG_MALI_XEN
 
 
@@ -221,6 +221,47 @@ EXTRA_CFLAGS += -DCONFIG_MALI_PLATFORM_NAME=$(CONFIG_MALI_PLATFORM_NAME)
 #
 # KBUILD_EXTRA_SYMBOLS to prevent warnings about unknown functions
 #
+
+KBUILD_CFLAGS += -Wall -Werror
+
+# The following were added to align with W=1 in scripts/Makefile.extrawarn
+# from the Linux source tree (v5.18.14)
+KBUILD_CFLAGS += -Wextra -Wunused -Wno-unused-parameter
+KBUILD_CFLAGS += -Wmissing-declarations
+KBUILD_CFLAGS += -Wmissing-format-attribute
+KBUILD_CFLAGS += -Wmissing-prototypes
+KBUILD_CFLAGS += -Wold-style-definition
+# The -Wmissing-include-dirs cannot be enabled as the path to some of the
+# included directories change depending on whether it is an in-tree or
+# out-of-tree build.
+KBUILD_CFLAGS += $(call cc-option, -Wunused-but-set-variable)
+KBUILD_CFLAGS += $(call cc-option, -Wunused-const-variable)
+KBUILD_CFLAGS += $(call cc-option, -Wpacked-not-aligned)
+KBUILD_CFLAGS += $(call cc-option, -Wstringop-truncation)
+# The following turn off the warnings enabled by -Wextra
+KBUILD_CFLAGS += -Wno-sign-compare
+KBUILD_CFLAGS += -Wno-shift-negative-value
+# This flag is needed to avoid build errors on older kernels
+KBUILD_CFLAGS += $(call cc-option, -Wno-cast-function-type)
+
+KBUILD_CPPFLAGS += -DKBUILD_EXTRA_WARN1
+
+# The following were added to align with W=2 in scripts/Makefile.extrawarn
+# from the Linux source tree (v5.18.14)
+KBUILD_CFLAGS += -Wdisabled-optimization
+# The -Wshadow flag cannot be enabled unless upstream kernels are
+# patched to fix redefinitions of certain built-in functions and
+# global variables.
+KBUILD_CFLAGS += $(call cc-option, -Wlogical-op)
+KBUILD_CFLAGS += -Wmissing-field-initializers
+KBUILD_CFLAGS += -Wtype-limits
+KBUILD_CFLAGS += $(call cc-option, -Wmaybe-uninitialized)
+KBUILD_CFLAGS += $(call cc-option, -Wunused-macros)
+
+KBUILD_CPPFLAGS += -DKBUILD_EXTRA_WARN2
+
+# This warning is disabled to avoid build failures in some kernel versions
+KBUILD_CFLAGS += -Wno-ignored-qualifiers
 
 all:
 	$(MAKE) -C $(KDIR) M=$(CURDIR) $(MAKE_ARGS) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" KBUILD_EXTRA_SYMBOLS="$(EXTRA_SYMBOLS)" modules

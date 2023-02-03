@@ -609,6 +609,9 @@ static int dwc2_driver_probe(struct platform_device *dev)
 		ggpio |= GGPIO_STM32_OTG_GCCFG_IDEN;
 		ggpio |= GGPIO_STM32_OTG_GCCFG_VBDEN;
 		dwc2_writel(hsotg, ggpio, GGPIO);
+
+		/* ID/VBUS detection startup time */
+		usleep_range(5000, 7000);
 	}
 
 	retval = dwc2_drd_init(hsotg);
@@ -795,8 +798,30 @@ static int __maybe_unused dwc2_resume(struct device *dev)
 
 	dwc2_drd_resume(dwc2);
 
-	/* Stop hcd if dr_mode is host and PD is power off when suspend */
-	if (dwc2->op_state == OTG_STATE_A_HOST && dwc2_is_device_mode(dwc2)) {
+	if (dwc2->dr_mode == USB_DR_MODE_HOST && dwc2_is_device_mode(dwc2)) {
+		/* Reinit for Host mode if lost power */
+		dwc2_force_mode(dwc2, true);
+
+		spin_lock_irqsave(&dwc2->lock, flags);
+		dwc2_hsotg_disconnect(dwc2);
+		spin_unlock_irqrestore(&dwc2->lock, flags);
+
+		dwc2->op_state = OTG_STATE_A_HOST;
+		/* Initialize the Core for Host mode */
+		dwc2_core_init(dwc2, false);
+		dwc2_enable_global_interrupts(dwc2);
+		dwc2_hcd_start(dwc2);
+	} else if (dwc2->dr_mode == USB_DR_MODE_OTG &&
+		   dwc2->op_state == OTG_STATE_A_HOST &&
+		   !(dwc2_readl(dwc2, HPRT0) & HPRT0_PWR)) {
+		/*
+		 * Reinit the core to device mode, and later
+		 * after do dwc2_hsotg_resume, it can trigger
+		 * the ID status change interrupt if the OTG
+		 * cable is still connected, then we can init
+		 * for Host mode in the ID status change
+		 * interrupt handler.
+		 */
 		spin_lock_irqsave(&dwc2->lock, flags);
 		dwc2_hcd_disconnect(dwc2, true);
 		dwc2->op_state = OTG_STATE_B_PERIPHERAL;
@@ -804,10 +829,14 @@ static int __maybe_unused dwc2_resume(struct device *dev)
 		if (!dwc2->driver)
 			dwc2_hsotg_core_init_disconnected(dwc2, false);
 		spin_unlock_irqrestore(&dwc2->lock, flags);
-	}
 
-	if (dwc2_is_device_mode(dwc2))
 		ret = dwc2_hsotg_resume(dwc2);
+	} else if (dwc2_is_device_mode(dwc2) ||
+		   (dwc2_is_host_mode(dwc2) &&
+		    dwc2->dr_mode == USB_DR_MODE_OTG &&
+		    dwc2->op_state == OTG_STATE_B_PERIPHERAL)) {
+		ret = dwc2_hsotg_resume(dwc2);
+	}
 
 	return ret;
 }

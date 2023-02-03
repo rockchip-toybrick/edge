@@ -39,6 +39,7 @@
 #define HAS_RKVDEC2	IS_ENABLED(CONFIG_ROCKCHIP_MPP_RKVDEC2)
 #define HAS_RKVENC2	IS_ENABLED(CONFIG_ROCKCHIP_MPP_RKVENC2)
 #define HAS_AV1DEC	IS_ENABLED(CONFIG_ROCKCHIP_MPP_AV1DEC)
+#define HAS_VDPP	IS_ENABLED(CONFIG_ROCKCHIP_MPP_VDPP)
 
 #define MPP_REGISTER_DRIVER(srv, flag, X, x) {\
 	if (flag)\
@@ -98,7 +99,7 @@ static int mpp_add_driver(struct mpp_service *srv,
 		     &srv->grf_infos[type],
 		     grf_name);
 
-	if (type == MPP_DRIVER_AV1DEC)
+	if (IS_ENABLED(CONFIG_ROCKCHIP_MPP_AV1DEC) && type == MPP_DRIVER_AV1DEC)
 		ret = av1dec_driver_register(driver);
 	else
 		ret = platform_driver_register(driver);
@@ -116,11 +117,9 @@ static int mpp_remove_driver(struct mpp_service *srv, int i)
 		if (i != MPP_DRIVER_AV1DEC) {
 			mpp_set_grf(&srv->grf_infos[i]);
 			platform_driver_unregister(srv->sub_drivers[i]);
-		}
-#if IS_ENABLED(CONFIG_ROCKCHIP_MPP_AV1DEC)
-		else
+		} else if (IS_ENABLED(CONFIG_ROCKCHIP_MPP_AV1DEC)) {
 			av1dec_driver_unregister(srv->sub_drivers[i]);
-#endif
+		}
 		srv->sub_drivers[i] = NULL;
 	}
 
@@ -184,6 +183,55 @@ static int mpp_show_version(struct seq_file *seq, void *offset)
 	return 0;
 }
 
+static int mpp_dump_session(struct mpp_session *session, struct seq_file *s)
+{
+	struct mpp_dma_session *dma = session->dma;
+	struct mpp_dma_buffer *n;
+	struct mpp_dma_buffer *buffer;
+	phys_addr_t end;
+	unsigned long z = 0, t = 0;
+	int i = 0;
+#define K(size) ((unsigned long)((size) >> 10))
+
+	if (!dma)
+		return 0;
+
+	seq_puts(s, "session iova range dump:\n");
+
+	mutex_lock(&dma->list_mutex);
+	list_for_each_entry_safe(buffer, n, &dma->used_list, link) {
+		end = buffer->iova + buffer->size - 1;
+		z = (unsigned long)buffer->size;
+		t += z;
+
+		seq_printf(s, "%4d: ", i++);
+		seq_printf(s, "%pa..%pa (%10lu %s)\n", &buffer->iova, &end,
+			   (z >= 1024) ? (K(z)) : z,
+			   (z >= 1024) ? "KiB" : "Bytes");
+	}
+	i = 0;
+	list_for_each_entry_safe(buffer, n, &dma->unused_list, link) {
+		if (!buffer->dmabuf)
+			continue;
+
+		end = buffer->iova + buffer->size - 1;
+		z = (unsigned long)buffer->size;
+		t += z;
+
+		seq_printf(s, "%4d: ", i++);
+		seq_printf(s, "%pa..%pa (%10lu %s)\n", &buffer->iova, &end,
+			   (z >= 1024) ? (K(z)) : z,
+			   (z >= 1024) ? "KiB" : "Bytes");
+	}
+
+	mutex_unlock(&dma->list_mutex);
+	seq_printf(s, "session: pid=%d index=%d\n", session->pid, session->index);
+	seq_printf(s, " device: %s\n", dev_name(session->mpp->dev));
+	seq_printf(s, " memory: %lu MiB\n", K(K(t)));
+
+	return 0;
+}
+
 static int mpp_show_session_summary(struct seq_file *seq, void *offset)
 {
 	struct mpp_session *session = NULL, *n;
@@ -201,6 +249,8 @@ static int mpp_show_session_summary(struct seq_file *seq, void *offset)
 		if (!session->mpp)
 			continue;
 		mpp = session->mpp;
+
+		mpp_dump_session(session, seq);
 
 		if (mpp->dev_ops->dump_session)
 			mpp->dev_ops->dump_session(session, seq);
@@ -283,6 +333,7 @@ static int mpp_procfs_init(struct mpp_service *srv)
 	/* show support devices */
 	proc_create_single_data("supports-device", 0444,
 				srv->procfs, mpp_show_support_device, srv);
+	mpp_procfs_create_u32("timing_en", 0644, srv->procfs, &srv->timing_en);
 
 	return 0;
 }
@@ -383,6 +434,7 @@ static int mpp_service_probe(struct platform_device *pdev)
 	MPP_REGISTER_DRIVER(srv, HAS_RKVDEC2, RKVDEC2, rkvdec2);
 	MPP_REGISTER_DRIVER(srv, HAS_RKVENC2, RKVENC2, rkvenc2);
 	MPP_REGISTER_DRIVER(srv, HAS_AV1DEC, AV1DEC, av1dec);
+	MPP_REGISTER_DRIVER(srv, HAS_VDPP, VDPP, vdpp);
 
 	dev_info(dev, "probe success\n");
 

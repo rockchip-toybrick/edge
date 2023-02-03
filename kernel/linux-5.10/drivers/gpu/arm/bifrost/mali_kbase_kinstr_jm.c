@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2019-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2019-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -45,6 +45,7 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/version.h>
+#include <linux/version_compat_defs.h>
 #include <linux/wait.h>
 
 /* Define static_assert().
@@ -58,14 +59,6 @@
 // Stringify the expression if no message is given.
 #define static_assert(e, ...)  __static_assert(e, #__VA_ARGS__, #e)
 #define __static_assert(e, msg, ...) _Static_assert(e, msg)
-#endif
-
-#if KERNEL_VERSION(4, 16, 0) >= LINUX_VERSION_CODE
-typedef unsigned int __poll_t;
-#endif
-
-#ifndef ENOTSUP
-#define ENOTSUP EOPNOTSUPP
 #endif
 
 /* The module printing prefix */
@@ -227,11 +220,8 @@ static inline bool reader_changes_is_valid_size(const size_t size)
  *
  * Return:
  * (0, U16_MAX] - the number of data elements allocated
- * -EINVAL - a pointer was invalid
- * -ENOTSUP - we do not support allocation of the context
  * -ERANGE - the requested memory size was invalid
  * -ENOMEM - could not allocate the memory
- * -EADDRINUSE - the buffer memory was already allocated
  */
 static int reader_changes_init(struct reader_changes *const changes,
 			       const size_t size)
@@ -626,31 +616,34 @@ exit:
  *
  * Return:
  * * 0 - no data ready
- * * POLLIN - state changes have been buffered
- * * -EBADF - the file descriptor did not have an attached reader
- * * -EINVAL - the IO control arguments were invalid
+ * * EPOLLIN | EPOLLRDNORM - state changes have been buffered
+ * * EPOLLHUP | EPOLLERR - IO control arguments were invalid or the file
+ *                         descriptor did not have an attached reader.
  */
 static __poll_t reader_poll(struct file *const file,
 			    struct poll_table_struct *const wait)
 {
 	struct reader *reader;
 	struct reader_changes *changes;
+	__poll_t mask = 0;
 
 	if (unlikely(!file || !wait))
-		return -EINVAL;
+		return EPOLLHUP | EPOLLERR;
 
 	reader = file->private_data;
 	if (unlikely(!reader))
-		return -EBADF;
+		return EPOLLHUP | EPOLLERR;
 
 	changes = &reader->changes;
-
 	if (reader_changes_count(changes) >= changes->threshold)
-		return POLLIN;
+		return EPOLLIN | EPOLLRDNORM;
 
 	poll_wait(file, &reader->wait_queue, wait);
 
-	return (reader_changes_count(changes) > 0) ? POLLIN : 0;
+	if (reader_changes_count(changes) > 0)
+		mask |= EPOLLIN | EPOLLRDNORM;
+
+	return mask;
 }
 
 /* The file operations virtual function table */
@@ -666,7 +659,7 @@ static const struct file_operations file_operations = {
 static const size_t kbase_kinstr_jm_readers_max = 16;
 
 /**
- * kbasep_kinstr_jm_release() - Invoked when the reference count is dropped
+ * kbase_kinstr_jm_release() - Invoked when the reference count is dropped
  * @ref: the context reference count
  */
 static void kbase_kinstr_jm_release(struct kref *const ref)
@@ -737,7 +730,7 @@ static int kbase_kinstr_jm_readers_add(struct kbase_kinstr_jm *const ctx,
 }
 
 /**
- * readers_del() - Deletes a reader from the list of readers
+ * kbase_kinstr_jm_readers_del() - Deletes a reader from the list of readers
  * @ctx: the instrumentation context
  * @reader: the reader to delete
  */

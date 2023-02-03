@@ -15,6 +15,7 @@
 #define GET_GCD(n1, n2) \
 	({ \
 		int i; \
+		int gcd = 0; \
 		for (i = 1; i <= (n1) && i <= (n2); i++) { \
 			if ((n1) % i == 0 && (n2) % i == 0) \
 				gcd = i; \
@@ -90,7 +91,7 @@ static bool rga_check_format(const struct rga_hw_data *data,
 
 static bool rga_check_align(uint32_t byte_stride_align, uint32_t format, uint16_t w_stride)
 {
-	uint32_t bit_stride = 0, pixel_stride = 0, align = 0, gcd = 0;
+	int bit_stride, pixel_stride, align, gcd;
 
 	pixel_stride = rga_get_pixel_stride_from_format(format);
 	if (pixel_stride <= 0)
@@ -101,11 +102,12 @@ static bool rga_check_align(uint32_t byte_stride_align, uint32_t format, uint16_
 	if (bit_stride % (byte_stride_align * 8) == 0)
 		return true;
 
-	gcd = GET_GCD(pixel_stride, byte_stride_align * 8);
-	align = GET_LCM(pixel_stride, byte_stride_align * 8, gcd) / pixel_stride;
-	if (DEBUGGER_EN(MSG))
+	if (DEBUGGER_EN(MSG)) {
+		gcd = GET_GCD(pixel_stride, byte_stride_align * 8);
+		align = GET_LCM(pixel_stride, byte_stride_align * 8, gcd) / pixel_stride;
 		pr_info("unsupported width stride %d, 0x%x should be %d aligned!",
-				w_stride, format, align);
+			w_stride, format, align);
+	}
 
 	return false;
 }
@@ -114,6 +116,12 @@ static bool rga_check_src0(const struct rga_hw_data *data,
 			 struct rga_img_info_t *src0)
 {
 	if (!rga_check_resolution(&data->input_range, src0->act_w, src0->act_h))
+		return false;
+
+	if (data == &rga3_data &&
+	    !rga_check_resolution(&data->input_range,
+				  src0->act_w + src0->x_offset,
+				  src0->act_h + src0->y_offset))
 		return false;
 
 	if (!rga_check_format(data, src0->rd_mode, src0->format, 0))
@@ -131,6 +139,12 @@ static bool rga_check_src1(const struct rga_hw_data *data,
 	if (!rga_check_resolution(&data->input_range, src1->act_w, src1->act_h))
 		return false;
 
+	if (data == &rga3_data &&
+	    !rga_check_resolution(&data->input_range,
+				  src1->act_w + src1->x_offset,
+				  src1->act_h + src1->y_offset))
+		return false;
+
 	if (!rga_check_format(data, src1->rd_mode, src1->format, 1))
 		return false;
 
@@ -144,6 +158,12 @@ static bool rga_check_dst(const struct rga_hw_data *data,
 			 struct rga_img_info_t *dst)
 {
 	if (!rga_check_resolution(&data->output_range, dst->act_w, dst->act_h))
+		return false;
+
+	if (data == &rga3_data &&
+	    !rga_check_resolution(&data->output_range,
+				  dst->act_w + dst->x_offset,
+				  dst->act_h + dst->y_offset))
 		return false;
 
 	if (!rga_check_format(data, dst->rd_mode, dst->format, 2))
@@ -210,7 +230,7 @@ int rga_job_assign(struct rga_job *job)
 	int optional_cores = RGA_NONE_CORE;
 	int specified_cores = RGA_NONE_CORE;
 	int i;
-	int min_of_job_count = 0;
+	int min_of_job_count = -1;
 	unsigned long flags;
 
 	/* assigned by userspace */
@@ -236,11 +256,11 @@ int rga_job_assign(struct rga_job *job)
 		if (DEBUGGER_EN(MSG))
 			pr_info("start policy on core = %d", scheduler->core);
 
-		if (scheduler->core == RGA2_SCHEDULER_CORE0 &&
-		    job->flags & RGA_JOB_UNSUPPORT_RGA2) {
+		if (scheduler->data->mmu == RGA_MMU &&
+		    job->flags & RGA_JOB_UNSUPPORT_RGA_MMU) {
 			if (DEBUGGER_EN(MSG))
 				pr_info("RGA2 only support under 4G memory!\n");
-				continue;
+			continue;
 		}
 
 		if (feature > 0) {
@@ -329,8 +349,8 @@ int rga_job_assign(struct rga_job *job)
 							 flags);
 				break;
 			} else {
-				if ((min_of_job_count > scheduler->job_count) ||
-					(min_of_job_count == 0)) {
+				if ((min_of_job_count == -1) ||
+				    (min_of_job_count > scheduler->job_count)) {
 					min_of_job_count = scheduler->job_count;
 					core = scheduler->core;
 					job->scheduler = scheduler;

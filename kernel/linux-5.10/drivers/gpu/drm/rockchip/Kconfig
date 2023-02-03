@@ -82,6 +82,13 @@ config ROCKCHIP_CDN_DP
 	  RK3399 based SoC, you should select this
 	  option.
 
+config ROCKCHIP_DRM_TVE
+	bool "Rockchip TVE support"
+	depends on DRM_ROCKCHIP
+	help
+	  Choose this option to enable support for Rockchip TVE controllers.
+	  say Y to enable its driver.
+
 config ROCKCHIP_DW_HDMI
 	bool "Rockchip specific extensions for Synopsys DW HDMI"
 	help
@@ -150,6 +157,13 @@ config DRM_ROCKCHIP_VVOP
 	  don't need a real vop driver(et: you just want rockchip drm
 	  gem driver to allocate memory).
 
+config ROCKCHIP_DW_HDCP2
+	tristate "Synopsis Designware HDCP2 interface"
+	help
+	  Choose this option to enable support for the Synopsys
+	  Designware HDCP2 Controller.
+
+source "drivers/gpu/drm/rockchip/rk618/Kconfig"
 source "drivers/gpu/drm/rockchip/rk628/Kconfig"
 
 endif

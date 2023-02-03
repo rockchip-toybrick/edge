@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  *
- * (C) COPYRIGHT 2019-2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2019-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -127,29 +127,12 @@
 
 #define JOB_SLOT_REG(n, r)      (JOB_CONTROL_REG(JOB_SLOT0 + ((n) << 7)) + (r))
 
-#define JS_HEAD_LO             0x00	/* (RO) Job queue head pointer for job slot n, low word */
-#define JS_HEAD_HI             0x04	/* (RO) Job queue head pointer for job slot n, high word */
-#define JS_TAIL_LO             0x08	/* (RO) Job queue tail pointer for job slot n, low word */
-#define JS_TAIL_HI             0x0C	/* (RO) Job queue tail pointer for job slot n, high word */
-#define JS_AFFINITY_LO         0x10	/* (RO) Core affinity mask for job slot n, low word */
-#define JS_AFFINITY_HI         0x14	/* (RO) Core affinity mask for job slot n, high word */
-#define JS_CONFIG              0x18	/* (RO) Configuration settings for job slot n */
-/* (RO) Extended affinity mask for job slot n*/
-#define JS_XAFFINITY           0x1C
+#define JS_XAFFINITY           0x1C /* (RO) Extended affinity mask for job slot n*/
 
 #define JS_COMMAND             0x20	/* (WO) Command register for job slot n */
 #define JS_STATUS              0x24	/* (RO) Status register for job slot n */
 
-#define JS_HEAD_NEXT_LO        0x40	/* (RW) Next job queue head pointer for job slot n, low word */
-#define JS_HEAD_NEXT_HI        0x44	/* (RW) Next job queue head pointer for job slot n, high word */
-
-#define JS_AFFINITY_NEXT_LO    0x50	/* (RW) Next core affinity mask for job slot n, low word */
-#define JS_AFFINITY_NEXT_HI    0x54	/* (RW) Next core affinity mask for job slot n, high word */
-#define JS_CONFIG_NEXT         0x58	/* (RW) Next configuration settings for job slot n */
-/* (RW) Next extended affinity mask for job slot n */
-#define JS_XAFFINITY_NEXT      0x5C
-
-#define JS_COMMAND_NEXT        0x60	/* (RW) Next command register for job slot n */
+#define JS_XAFFINITY_NEXT      0x5C /* (RW) Next extended affinity mask for job slot n */
 
 #define JS_FLUSH_ID_NEXT       0x70	/* (RW) Next job slot n cache flush ID */
 
@@ -262,19 +245,22 @@
 #define GPU_COMMAND_CACHE_CLN_INV_L2 GPU_COMMAND_CLEAN_INV_CACHES
 #define GPU_COMMAND_CACHE_CLN_INV_L2_LSC GPU_COMMAND_CLEAN_INV_CACHES
 #define GPU_COMMAND_CACHE_CLN_INV_FULL GPU_COMMAND_CLEAN_INV_CACHES
+#define GPU_COMMAND_CACHE_CLN_INV_LSC GPU_COMMAND_CLEAN_INV_CACHES
 
 /* Merge cache flush commands */
 #define GPU_COMMAND_FLUSH_CACHE_MERGE(cmd1, cmd2)                              \
 	((cmd1) > (cmd2) ? (cmd1) : (cmd2))
 
 /* IRQ flags */
-#define GPU_FAULT               (1 << 0)    /* A GPU Fault has occurred */
-#define MULTIPLE_GPU_FAULTS     (1 << 7)    /* More than one GPU Fault occurred.  */
-#define RESET_COMPLETED         (1 << 8)    /* Set when a reset has completed.  */
-#define POWER_CHANGED_SINGLE    (1 << 9)    /* Set when a single core has finished powering up or down. */
-#define POWER_CHANGED_ALL       (1 << 10)   /* Set when all cores have finished powering up or down. */
-#define PRFCNT_SAMPLE_COMPLETED (1 << 16)   /* Set when a performance count sample has completed. */
-#define CLEAN_CACHES_COMPLETED  (1 << 17)   /* Set when a cache clean operation has completed. */
+#define GPU_FAULT (1 << 0) /* A GPU Fault has occurred */
+#define MULTIPLE_GPU_FAULTS (1 << 7) /* More than one GPU Fault occurred.  */
+#define RESET_COMPLETED (1 << 8) /* Set when a reset has completed.  */
+#define POWER_CHANGED_SINGLE (1 << 9) /* Set when a single core has finished powering up or down. */
+#define POWER_CHANGED_ALL (1 << 10) /* Set when all cores have finished powering up or down. */
+#define PRFCNT_SAMPLE_COMPLETED (1 << 16) /* Set when a performance count sample has completed. */
+#define CLEAN_CACHES_COMPLETED (1 << 17) /* Set when a cache clean operation has completed. */
+#define FLUSH_PA_RANGE_COMPLETED                                                                   \
+	(1 << 20) /* Set when a physical range cache clean operation has completed. */
 
 /*
  * In Debug build,

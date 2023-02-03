@@ -70,7 +70,9 @@
 #include "mali_kbase_jd_debugfs.h"
 #include "mali_kbase_jm.h"
 #include "mali_kbase_js.h"
-#endif /* !MALI_USE_CSF */
+#else /* !MALI_USE_CSF */
+#include "csf/mali_kbase_debug_csf_fault.h"
+#endif /* MALI_USE_CSF */
 
 #include "ipa/mali_kbase_ipa.h"
 
@@ -82,14 +84,7 @@
 
 #if MALI_USE_CSF
 #include "csf/mali_kbase_csf.h"
-#endif
 
-#ifndef u64_to_user_ptr
-/* Introduced in Linux v4.6 */
-#define u64_to_user_ptr(x) ((void __user *)(uintptr_t)x)
-#endif
-
-#if MALI_USE_CSF
 /* Physical memory group ID for CSF user I/O.
  */
 #define KBASE_MEM_GROUP_CSF_IO BASE_MEM_GROUP_DEFAULT
@@ -115,6 +110,13 @@ struct kbase_device *kbase_device_alloc(void);
 
 int kbase_device_misc_init(struct kbase_device *kbdev);
 void kbase_device_misc_term(struct kbase_device *kbdev);
+
+#if !MALI_USE_CSF
+void kbase_enable_quick_reset(struct kbase_device *kbdev);
+void kbase_disable_quick_reset(struct kbase_device *kbdev);
+bool kbase_is_quick_reset_enabled(struct kbase_device *kbdev);
+#endif
+
 void kbase_device_free(struct kbase_device *kbdev);
 int kbase_device_has_feature(struct kbase_device *kbdev, u32 feature);
 
@@ -258,7 +260,7 @@ void kbase_jd_cancel(struct kbase_device *kbdev, struct kbase_jd_atom *katom);
 void kbase_jd_zap_context(struct kbase_context *kctx);
 
 /*
- * jd_done_nolock - Perform the necessary handling of an atom that has completed
+ * kbase_jd_done_nolock - Perform the necessary handling of an atom that has completed
  *                  the execution.
  *
  * @katom: Pointer to the atom that completed the execution
@@ -274,7 +276,7 @@ void kbase_jd_zap_context(struct kbase_context *kctx);
  *
  * The caller must hold the kbase_jd_context.lock.
  */
-bool jd_done_nolock(struct kbase_jd_atom *katom, bool post_immediately);
+bool kbase_jd_done_nolock(struct kbase_jd_atom *katom, bool post_immediately);
 
 void kbase_jd_free_external_resources(struct kbase_jd_atom *katom);
 void kbase_jd_dep_clear_locked(struct kbase_jd_atom *katom);
@@ -466,7 +468,7 @@ void kbase_finish_soft_job(struct kbase_jd_atom *katom);
 void kbase_cancel_soft_job(struct kbase_jd_atom *katom);
 void kbase_resume_suspended_soft_jobs(struct kbase_device *kbdev);
 void kbasep_remove_waiting_soft_job(struct kbase_jd_atom *katom);
-#if defined(CONFIG_SYNC) || defined(CONFIG_SYNC_FILE)
+#if IS_ENABLED(CONFIG_SYNC_FILE)
 void kbase_soft_event_wait_callback(struct kbase_jd_atom *katom);
 #endif
 int kbase_soft_event_update(struct kbase_context *kctx,
@@ -549,6 +551,21 @@ static inline bool kbase_pm_is_active(struct kbase_device *kbdev)
 {
 	return kbdev->pm.active_count > 0;
 }
+
+/**
+ * kbase_pm_lowest_gpu_freq_init() - Find the lowest frequency that the GPU can
+ *                                run as using the device tree, and save this
+ *                                within kbdev.
+ * @kbdev: Pointer to kbase device.
+ *
+ * This function could be called from kbase_clk_rate_trace_manager_init,
+ * but is left separate as it can be called as soon as
+ * dev_pm_opp_of_add_table() has been called to initialize the OPP table,
+ * which occurs in power_control_init().
+ *
+ * Return: 0 in any case.
+ */
+int kbase_pm_lowest_gpu_freq_init(struct kbase_device *kbdev);
 
 /**
  * kbase_pm_metrics_start - Start the utilization metrics timer

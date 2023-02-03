@@ -2,6 +2,7 @@
 
 spi-nor-objs			:= core.o sfdp.o
 spi-nor-objs			+= atmel.o
+spi-nor-objs			+= boya.o
 spi-nor-objs			+= catalyst.o
 spi-nor-objs			+= dosilicon.o
 spi-nor-objs			+= eon.o
@@ -10,6 +11,7 @@ spi-nor-objs			+= everspin.o
 spi-nor-objs			+= fmsh.o
 spi-nor-objs			+= fujitsu.o
 spi-nor-objs			+= gigadevice.o
+spi-nor-objs			+= normem.o
 spi-nor-objs			+= intel.o
 spi-nor-objs			+= issi.o
 spi-nor-objs			+= macronix.o

@@ -67,12 +67,13 @@ struct rga_hw_data {
 extern const struct rga_hw_data rga3_data;
 extern const struct rga_hw_data rga2e_data;
 extern const struct rga_hw_data rga2e_1106_data;
+extern const struct rga_hw_data rga2e_iommu_data;
 
 /* Returns false if in range, true otherwise */
-#define RGA_HW_OUT_OF_RANGE(range, w, h) ((w) > (range)->max.width || \
-					  (h) > (range)->max.height || \
-					  (w) < (range)->min.width || \
-					  (h) < (range)->min.height)
-
+static inline bool rga_hw_out_of_range(const struct rga_rect_range *range, int width, int height)
+{
+	return (width > range->max.width || height > range->max.height ||
+		width < range->min.width || height < range->min.height);
+}
 
 #endif /* __LINUX_RGA_HW_CONFIG_H_ */

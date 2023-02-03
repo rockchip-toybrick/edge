@@ -9,7 +9,7 @@
  *
  */
 #include <linux/delay.h>
-#include <linux/dma-buf.h>
+#include <linux/dma-buf-cache.h>
 #include <linux/dma-iommu.h>
 #include <linux/iommu.h>
 #include <linux/of.h>
@@ -25,6 +25,7 @@
 
 #include "mpp_debug.h"
 #include "mpp_iommu.h"
+#include "mpp_common.h"
 
 static struct mpp_dma_buffer *
 mpp_dma_find_buffer_fd(struct mpp_dma_session *dma, int fd)
@@ -67,6 +68,15 @@ static void mpp_dma_release_buffer(struct kref *ref)
 	dma_buf_unmap_attachment(buffer->attach, buffer->sgt, buffer->dir);
 	dma_buf_detach(buffer->dmabuf, buffer->attach);
 	dma_buf_put(buffer->dmabuf);
+	buffer->dma = NULL;
+	buffer->dmabuf = NULL;
+	buffer->attach = NULL;
+	buffer->sgt = NULL;
+	buffer->copy_sgt = NULL;
+	buffer->iova = 0;
+	buffer->size = 0;
+	buffer->vaddr = NULL;
+	buffer->last_used = 0;
 }
 
 /* Remove the oldest buffer when count more than the setting */
@@ -88,7 +98,7 @@ mpp_dma_remove_extra_buffer(struct mpp_dma_session *dma)
 				oldest = buffer;
 			}
 		}
-		if (oldest)
+		if (oldest && kref_read(&oldest->ref) <= 1)
 			kref_put(&oldest->ref, mpp_dma_release_buffer);
 		mutex_unlock(&dma->list_mutex);
 	}
@@ -235,8 +245,10 @@ struct mpp_dma_buffer *mpp_dma_import_fd(struct mpp_iommu_info *iommu_info,
 	buffer->dma = dma;
 
 	kref_init(&buffer->ref);
-	/* Increase the reference for used outside the buffer pool */
-	kref_get(&buffer->ref);
+
+	if (!IS_ENABLED(CONFIG_DMABUF_CACHE))
+		/* Increase the reference for used outside the buffer pool */
+		kref_get(&buffer->ref);
 
 	mutex_lock(&dma->list_mutex);
 	dma->buffer_count++;
@@ -376,7 +388,33 @@ int mpp_iommu_attach(struct mpp_iommu_info *info)
 	if (!info)
 		return 0;
 
+	if (info->domain == iommu_get_domain_for_dev(info->dev))
+		return 0;
+
 	return iommu_attach_group(info->domain, info->group);
+}
+
+static int mpp_iommu_handle(struct iommu_domain *iommu,
+			    struct device *iommu_dev,
+			    unsigned long iova,
+			    int status, void *arg)
+{
+	struct mpp_dev *mpp = (struct mpp_dev *)arg;
+
+	dev_err(iommu_dev, "fault addr 0x%08lx status %x arg %p\n",
+		iova, status, arg);
+
+	if (!mpp) {
+		dev_err(iommu_dev, "pagefault without device to handle\n");
+		return 0;
+	}
+
+	if (mpp->dev_ops && mpp->dev_ops->dump_dev)
+		mpp->dev_ops->dump_dev(mpp);
+	else
+		mpp_task_dump_hw_reg(mpp);
+
+	return 0;
 }
 
 struct mpp_iommu_info *
@@ -437,10 +475,12 @@ mpp_iommu_probe(struct device *dev)
 	}
 
 	init_rwsem(&info->rw_sem);
+	spin_lock_init(&info->dev_lock);
 	info->dev = dev;
 	info->pdev = pdev;
 	info->group = group;
 	info->domain = domain;
+	info->dev_active = NULL;
 	info->irq = platform_get_irq(pdev, 0);
 	info->got_irq = (info->irq < 0) ? false : true;
 
@@ -495,6 +535,50 @@ int mpp_iommu_flush_tlb(struct mpp_iommu_info *info)
 
 	if (info->domain && info->domain->ops)
 		iommu_flush_iotlb_all(info->domain);
+
+	return 0;
+}
+
+int mpp_iommu_dev_activate(struct mpp_iommu_info *info, struct mpp_dev *dev)
+{
+	unsigned long flags;
+	int ret = 0;
+
+	spin_lock_irqsave(&info->dev_lock, flags);
+
+	if (info->dev_active || !dev) {
+		dev_err(info->dev, "can not activate %s -> %s\n",
+			info->dev_active ? dev_name(info->dev_active->dev) : NULL,
+			dev ? dev_name(dev->dev) : NULL);
+		ret = -EINVAL;
+	} else {
+		info->dev_active = dev;
+		/* switch domain pagefault handler and arg depending on device */
+		iommu_set_fault_handler(info->domain, dev->fault_handler ?
+					dev->fault_handler : mpp_iommu_handle, dev);
+
+		dev_dbg(info->dev, "activate -> %p %s\n", dev, dev_name(dev->dev));
+	}
+
+	spin_unlock_irqrestore(&info->dev_lock, flags);
+
+	return ret;
+}
+
+int mpp_iommu_dev_deactivate(struct mpp_iommu_info *info, struct mpp_dev *dev)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&info->dev_lock, flags);
+
+	if (info->dev_active != dev)
+		dev_err(info->dev, "can not deactivate %s when %s activated\n",
+			dev_name(dev->dev),
+			info->dev_active ? dev_name(info->dev_active->dev) : NULL);
+
+	dev_dbg(info->dev, "deactivate %p\n", info->dev_active);
+	info->dev_active = NULL;
+	spin_unlock_irqrestore(&info->dev_lock, flags);
 
 	return 0;
 }

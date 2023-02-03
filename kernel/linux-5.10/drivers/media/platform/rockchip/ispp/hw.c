@@ -392,6 +392,9 @@ static int rkispp_hw_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&hw_dev->list);
 	hw_dev->is_idle = true;
 	hw_dev->is_single = true;
+	/* for frame end reset and config reg */
+	if (hw_dev->ispp_ver == ISPP_V10)
+		hw_dev->is_single = false;
 	hw_dev->is_fec_ext = false;
 	hw_dev->is_dma_contig = true;
 	hw_dev->is_dma_sg_ops = true;
@@ -469,8 +472,6 @@ static int __maybe_unused rkispp_runtime_resume(struct device *dev)
 }
 
 static const struct dev_pm_ops rkispp_hw_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-				pm_runtime_force_resume)
 	SET_RUNTIME_PM_OPS(rkispp_runtime_suspend,
 			   rkispp_runtime_resume, NULL)
 };

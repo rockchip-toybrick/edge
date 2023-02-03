@@ -20,6 +20,7 @@
 #define ATAG_PUB_KEY		0x54410056
 #define ATAG_SOC_INFO		0x54410057
 #define ATAG_BOOT1_PARAM	0x54410058
+#define ATAG_PSTORE		0x54410059
 #define ATAG_MAX		0x544100ff
 
 /* Tag size and offset */
@@ -58,9 +59,7 @@
 #define SERIAL_M_MODE_M2	0x2
 
 /* tag_soc_info.flags */
-#define SOC_FLAGS_ET00		0x45543030
-#define SOC_FLAGS_ET01		0x45543031
-#define SOC_FLAGS_ET02		0x45543032
+#define SOC_FLAGS_TDBT		(1 << 0)
 
 /* pub key programmed magic */
 #define PUBKEY_FUSE_PROGRAMMED	0x4B415352
@@ -175,6 +174,15 @@ struct tag_boot1p {
 	u32 hash;
 } __packed;
 
+struct tag_pstore {
+	u32 version;
+	struct {
+		u32 addr;
+		u32 size;
+	} buf[16];
+	u32 hash;
+} __packed;
+
 struct tag_core {
 	u32 flags;
 	u32 pagesize;
@@ -200,6 +208,7 @@ struct tag {
 		struct tag_pub_key	pub_key;
 		struct tag_soc_info	soc;
 		struct tag_boot1p	boot1p;
+		struct tag_pstore	pstore;
 	} u;
 } __aligned(4);
 

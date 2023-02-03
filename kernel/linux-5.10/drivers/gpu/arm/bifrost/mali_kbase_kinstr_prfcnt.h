@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  *
- * (C) COPYRIGHT 2021 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2021-2022 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -26,7 +26,7 @@
 #ifndef _KBASE_KINSTR_PRFCNT_H_
 #define _KBASE_KINSTR_PRFCNT_H_
 
-#include "mali_kbase_hwcnt_types.h"
+#include "hwcnt/mali_kbase_hwcnt_types.h"
 #include <uapi/gpu/arm/bifrost/mali_kbase_hwcnt_reader.h>
 
 struct kbase_kinstr_prfcnt_context;
@@ -80,7 +80,6 @@ void kbase_kinstr_prfcnt_suspend(struct kbase_kinstr_prfcnt_context *kinstr_ctx)
  */
 void kbase_kinstr_prfcnt_resume(struct kbase_kinstr_prfcnt_context *kinstr_ctx);
 
-#if MALI_KERNEL_TEST_API
 /**
  * kbasep_kinstr_prfcnt_get_block_info_list() - Get list of all block types
  *                                              with their information.
@@ -124,7 +123,7 @@ size_t kbasep_kinstr_prfcnt_get_sample_md_count(const struct kbase_hwcnt_metadat
 int kbasep_kinstr_prfcnt_set_block_meta_items(struct kbase_hwcnt_enable_map *enable_map,
 					      struct kbase_hwcnt_dump_buffer *dst,
 					      struct prfcnt_metadata **block_meta_base,
-					      u64 base_addr, u8 counter_set);
+					      u8 *base_addr, u8 counter_set);
 
 /**
  * kbasep_kinstr_prfcnt_client_create() - Create a kinstr_prfcnt client.
@@ -158,7 +157,6 @@ int kbasep_kinstr_prfcnt_cmd(struct kbase_kinstr_prfcnt_client *cli,
  * @cli: kinstr_prfcnt client. Must not be attached to a kinstr_prfcnt context.
  */
 void kbasep_kinstr_prfcnt_client_destroy(struct kbase_kinstr_prfcnt_client *cli);
-#endif /* MALI_KERNEL_TEST_API */
 
 /**
  * kbase_kinstr_prfcnt_enum_info - Enumerate performance counter information.

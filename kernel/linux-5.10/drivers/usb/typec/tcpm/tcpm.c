@@ -1526,7 +1526,21 @@ static bool svdm_consume_svids(struct tcpm_port *port, const u32 *p, int cnt)
 		pmdata->svids[pmdata->nsvids++] = svid;
 		tcpm_log(port, "SVID %d: 0x%x", pmdata->nsvids, svid);
 	}
-	return true;
+
+	/*
+	 * PD3.0 Spec 6.4.4.3.2: The SVIDs are returned 2 per VDO (see Table
+	 * 6-43), and can be returned maximum 6 VDOs per response (see Figure
+	 * 6-19). If the Respondersupports 12 or more SVID then the Discover
+	 * SVIDs Command Shall be executed multiple times until a Discover
+	 * SVIDs VDO is returned ending either with a SVID value of 0x0000 in
+	 * the last part of the last VDO or with a VDO containing two SVIDs
+	 * with values of 0x0000.
+	 *
+	 * However, some odd dockers support SVIDs less than 12 but without
+	 * 0x0000 in the last VDO, so we need to break the Discover SVIDs
+	 * request and return false here.
+	 */
+	return cnt == 7 ? true : false;
 abort:
 	tcpm_log(port, "SVID_DISCOVERY_MAX(%d) too low!", SVID_DISCOVERY_MAX);
 	return false;
@@ -2424,7 +2438,7 @@ static void tcpm_pd_data_request(struct tcpm_port *port,
 		}
 
 		if (rev < PD_MAX_REV)
-			port->negotiated_rev = rev;
+			port->negotiated_rev = min_t(u16, rev, port->negotiated_rev);
 
 		if (port->pwr_role == TYPEC_SOURCE) {
 			if (port->ams == GET_SOURCE_CAPABILITIES)
@@ -2476,7 +2490,7 @@ static void tcpm_pd_data_request(struct tcpm_port *port,
 		}
 
 		if (rev < PD_MAX_REV)
-			port->negotiated_rev = rev;
+			port->negotiated_rev = min_t(u16, rev, port->negotiated_rev);
 
 		if (port->pwr_role != TYPEC_SOURCE || cnt != 1) {
 			tcpm_pd_handle_msg(port,
@@ -3979,7 +3993,7 @@ static void run_state_machine(struct tcpm_port *port)
 		typec_set_pwr_opmode(port->typec_port, opmode);
 		port->pwr_opmode = TYPEC_PWR_MODE_USB;
 		port->caps_count = 0;
-		port->negotiated_rev = PD_MAX_REV;
+		port->negotiated_rev = (((port->typec_caps.pd_revision >> 8) & 0xff) - 1);
 		port->message_id = 0;
 		port->rx_msgid = -1;
 		port->explicit_contract = false;
@@ -4169,12 +4183,9 @@ static void run_state_machine(struct tcpm_port *port)
 				       0);
 			port->debouncing = false;
 		} else {
-			/* Wait for VBUS, but not forever */
-			tcpm_set_state(port, PORT_RESET, PD_T_PS_SOURCE_ON);
 			port->debouncing = false;
 		}
 		break;
-
 	case SRC_TRY:
 		port->try_src_count++;
 		tcpm_set_cc(port, tcpm_rp_cc(port));
@@ -4233,7 +4244,7 @@ static void run_state_machine(struct tcpm_port *port)
 					      port->cc2 : port->cc1);
 		typec_set_pwr_opmode(port->typec_port, opmode);
 		port->pwr_opmode = TYPEC_PWR_MODE_USB;
-		port->negotiated_rev = PD_MAX_REV;
+		port->negotiated_rev = (((port->typec_caps.pd_revision >> 8) & 0xff) - 1);
 		port->message_id = 0;
 		port->rx_msgid = -1;
 		port->explicit_contract = false;
@@ -4972,6 +4983,7 @@ static void _tcpm_cc_change(struct tcpm_port *port, enum typec_cc_status cc1,
 			tcpm_set_state(port, SRC_ATTACH_WAIT, 0);
 		break;
 	case SRC_ATTACHED:
+	case SRC_STARTUP:
 	case SRC_SEND_CAPABILITIES:
 	case SRC_READY:
 		if (tcpm_port_is_disconnected(port) ||
@@ -5254,8 +5266,9 @@ static void _tcpm_pd_vbus_off(struct tcpm_port *port)
 	case SNK_TRYWAIT_DEBOUNCE:
 		break;
 	case SNK_ATTACH_WAIT:
+	case SNK_DEBOUNCED:
 		port->debouncing = false;
-		tcpm_set_state(port, SNK_UNATTACHED, 0);
+		/* Do nothing, as TCPM is still waiting for vbus to reaach VSAFE5V to connect */
 		break;
 
 	case SNK_NEGOTIATE_CAPABILITIES:
@@ -6034,7 +6047,7 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
 {
 	const char *cap_str;
 	int ret;
-	u32 mw, frs_current;
+	u32 mw, frs_current, pd_revision;
 
 	if (!fwnode)
 		return -EINVAL;
@@ -6141,6 +6154,13 @@ sink:
 		if (ret < 0)
 			return ret;
 	}
+
+	ret = fwnode_property_read_u32(fwnode, "pd-revision",
+				       &pd_revision);
+	if (ret < 0)
+		port->typec_caps.pd_revision = 0x0300;
+	else
+		port->typec_caps.pd_revision = pd_revision & 0xffff;
 
 	return 0;
 }
@@ -6280,6 +6300,27 @@ static int tcpm_psy_get_current_now(struct tcpm_port *port,
 	return 0;
 }
 
+static int tcpm_psy_get_input_power_limit(struct tcpm_port *port,
+					  union power_supply_propval *val)
+{
+	unsigned int src_mv, src_ma, max_src_mw = 0;
+	unsigned int i, tmp;
+
+	for (i = 0; i < port->nr_source_caps; i++) {
+		u32 pdo = port->source_caps[i];
+
+		if (pdo_type(pdo) == PDO_TYPE_FIXED) {
+			src_mv = pdo_fixed_voltage(pdo);
+			src_ma = pdo_max_current(pdo);
+			tmp = src_mv * src_ma / 1000;
+			max_src_mw = tmp > max_src_mw ? tmp : max_src_mw;
+		}
+	}
+
+	val->intval = max_src_mw;
+	return 0;
+}
+
 static int tcpm_psy_get_prop(struct power_supply *psy,
 			     enum power_supply_property psp,
 			     union power_supply_propval *val)
@@ -6308,6 +6349,9 @@ static int tcpm_psy_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
 		ret = tcpm_psy_get_current_now(port, val);
+		break;
+	case POWER_SUPPLY_PROP_INPUT_POWER_LIMIT:
+		tcpm_psy_get_input_power_limit(port, val);
 		break;
 	default:
 		ret = -EINVAL;
@@ -6513,7 +6557,6 @@ struct tcpm_port *tcpm_register_port(struct device *dev, struct tcpc_dev *tcpc)
 
 	port->typec_caps.fwnode = tcpc->fwnode;
 	port->typec_caps.revision = 0x0120;	/* Type-C spec release 1.2 */
-	port->typec_caps.pd_revision = 0x0300;	/* USB-PD spec release 3.0 */
 	port->typec_caps.svdm_version = SVDM_VER_2_0;
 	port->typec_caps.driver_data = port;
 	port->typec_caps.ops = &tcpm_ops;

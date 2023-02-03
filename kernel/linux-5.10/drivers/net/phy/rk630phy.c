@@ -16,6 +16,7 @@
 #include <linux/mfd/core.h>
 #include <linux/mii.h>
 #include <linux/netdevice.h>
+#include <linux/nvmem-consumer.h>
 #include <linux/of_irq.h>
 #include <linux/phy.h>
 #include <linux/platform_device.h>
@@ -52,6 +53,7 @@
 #define REG_PAGE6_CP_CURRENT			0x17
 #define REG_PAGE6_ADC_OP_BIAS			0x18
 #define REG_PAGE6_RX_DECTOR			0x19
+#define REG_PAGE6_TX_MOS_DRV			0x1B
 #define REG_PAGE6_AFE_PDCW			0x1c
 
 /* PAGE 8 */
@@ -63,15 +65,51 @@
  * Addr: 1 --- RK630@S40
  *       2 --- RV1106@T22
  */
-#define PHY_ADDR_S40 1
-#define PHY_ADDR_T22 2
+#define PHY_ADDR_S40				1
+#define PHY_ADDR_T22				2
+
+#define T22_TX_LEVEL_100M			0x2d
+#define T22_TX_LEVEL_10M			0x32
 
 struct rk630_phy_priv {
 	struct phy_device *phydev;
 	bool ieee;
 	int wol_irq;
 	struct wake_lock wol_wake_lock;
+	int tx_level_100M;
+	int tx_level_10M;
 };
+
+static void rk630_phy_t22_get_tx_level_from_efuse(struct phy_device *phydev)
+{
+	struct rk630_phy_priv *priv = phydev->priv;
+	unsigned int tx_level_100M = T22_TX_LEVEL_100M;
+	unsigned int tx_level_10M = T22_TX_LEVEL_10M;
+	unsigned char *efuse_buf;
+	struct nvmem_cell *cell;
+	size_t len;
+
+	cell = nvmem_cell_get(&phydev->mdio.dev, "txlevel");
+	if (IS_ERR(cell)) {
+		phydev_err(phydev, "failed to get txlevel cell: %ld, use default\n",
+			   PTR_ERR(cell));
+	} else {
+		efuse_buf = nvmem_cell_read(cell, &len);
+		nvmem_cell_put(cell);
+		if (!IS_ERR(efuse_buf)) {
+			if (len == 2 && efuse_buf[0] > 0 && efuse_buf[1] > 0) {
+				tx_level_100M = efuse_buf[1];
+				tx_level_10M = efuse_buf[0];
+			}
+			kfree(efuse_buf);
+		} else {
+			phydev_err(phydev, "failed to get efuse buf, use default\n");
+		}
+	}
+
+	priv->tx_level_100M = tx_level_100M;
+	priv->tx_level_10M = tx_level_10M;
+}
 
 static void rk630_phy_wol_enable(struct phy_device *phydev)
 {
@@ -166,8 +204,12 @@ static void rk630_phy_s40_config_init(struct phy_device *phydev)
 
 static void rk630_phy_t22_config_init(struct phy_device *phydev)
 {
+	struct rk630_phy_priv *priv = phydev->priv;
+
 	/* Switch to page 1 */
 	phy_write(phydev, REG_PAGE_SEL, 0x0100);
+	/* Enable offset clock */
+	phy_write(phydev, 0x10, 0xfbfe);
 	/* Disable APS */
 	phy_write(phydev, REG_PAGE1_APS_CTRL, 0x4824);
 	/* Switch to page 2 */
@@ -182,8 +224,13 @@ static void rk630_phy_t22_config_init(struct phy_device *phydev)
 	phy_write(phydev, REG_PAGE6_GAIN_ANONTROL, 0x0400);
 	/* PHYAFE EQ optimization */
 	phy_write(phydev, REG_PAGE6_AFE_TX_CTRL, 0x1088);
+
+	if (priv->tx_level_100M <= 0 || priv->tx_level_10M <= 0)
+		rk630_phy_t22_get_tx_level_from_efuse(phydev);
+
 	/* PHYAFE TX optimization */
-	phy_write(phydev, REG_PAGE6_AFE_DRIVER2, 0x3030);
+	phy_write(phydev, REG_PAGE6_AFE_DRIVER2,
+		  (priv->tx_level_100M << 8) | priv->tx_level_10M);
 	/* PHYAFE CP current optimization */
 	phy_write(phydev, REG_PAGE6_CP_CURRENT, 0x0575);
 	/* ADC OP BIAS optimization */
@@ -192,11 +239,15 @@ static void rk630_phy_t22_config_init(struct phy_device *phydev)
 	phy_write(phydev, REG_PAGE6_RX_DECTOR, 0x0408);
 	/* PHYAFE PDCW optimization */
 	phy_write(phydev, REG_PAGE6_AFE_PDCW, 0x8880);
+	/* Add PHY Tx mos drive, reduce power noise/jitter */
+	phy_write(phydev, REG_PAGE6_TX_MOS_DRV, 0x888e);
 
 	/* Switch to page 8 */
 	phy_write(phydev, REG_PAGE_SEL, 0x0800);
 	/* Disable auto-cal */
 	phy_write(phydev, REG_PAGE8_AUTO_CAL, 0x0844);
+	/* Reatart offset calibration */
+	phy_write(phydev, 0x13, 0xc096);
 
 	/* Switch to page 0 */
 	phy_write(phydev, REG_PAGE_SEL, 0x0000);

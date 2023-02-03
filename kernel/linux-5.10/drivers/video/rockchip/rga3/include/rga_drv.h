@@ -49,6 +49,7 @@
 #include <linux/iommu.h>
 #include <linux/iova.h>
 #include <linux/dma-iommu.h>
+#include <linux/pagemap.h>
 
 #ifdef CONFIG_DMABUF_CACHE
 #include <linux/dma-buf-cache.h>
@@ -86,14 +87,14 @@
 
 #define DRIVER_MAJOR_VERISON		1
 #define DRIVER_MINOR_VERSION		2
-#define DRIVER_REVISION_VERSION		13
+#define DRIVER_REVISION_VERSION		23
+#define DRIVER_PATCH_VERSION
 
 #define DRIVER_VERSION (STR(DRIVER_MAJOR_VERISON) "." STR(DRIVER_MINOR_VERSION) \
-			"." STR(DRIVER_REVISION_VERSION))
+			"." STR(DRIVER_REVISION_VERSION) STR(DRIVER_PATCH_VERSION))
 
 /* time limit */
-#define RGA_ASYNC_TIMEOUT_DELAY		500
-#define RGA_SYNC_TIMEOUT_DELAY		HZ
+#define RGA_JOB_TIMEOUT_DELAY		HZ
 #define RGA_RESET_TIMEOUT			1000
 
 #define RGA_MAX_SCHEDULER	3
@@ -130,11 +131,35 @@ enum iommu_dma_cookie_type {
 	IOMMU_DMA_MSI_COOKIE,
 };
 
+enum rga_scheduler_status {
+	RGA_SCHEDULER_IDLE = 0,
+	RGA_SCHEDULER_WORKING,
+	RGA_SCHEDULER_ABORT,
+};
+
+enum rga_job_state {
+	RGA_JOB_STATE_PENDING = 0,
+	RGA_JOB_STATE_PREPARE,
+	RGA_JOB_STATE_RUNNING,
+	RGA_JOB_STATE_FINISH,
+	RGA_JOB_STATE_DONE,
+	RGA_JOB_STATE_INTR_ERR,
+	RGA_JOB_STATE_HW_TIMEOUT,
+	RGA_JOB_STATE_ABORT,
+};
+
 struct rga_iommu_dma_cookie {
 	enum iommu_dma_cookie_type  type;
 
 	/* Full allocator for IOMMU_DMA_IOVA_COOKIE */
 	struct iova_domain  iovad;
+};
+
+struct rga_iommu_info {
+	struct device *dev;
+	struct device *default_dev;		/* for dma-buf_api */
+	struct iommu_domain *domain;
+	struct iommu_group *group;
 };
 
 struct rga_dma_buffer {
@@ -145,7 +170,6 @@ struct rga_dma_buffer {
 	void *vmap_ptr;
 
 	struct iommu_domain *domain;
-	struct rga_iommu_dma_cookie *cookie;
 
 	enum dma_data_direction dir;
 
@@ -158,10 +182,8 @@ struct rga_dma_buffer {
 	 */
 	size_t offset;
 
-	/* The core of the mapping */
-	int core;
-
-	struct device *dev;
+	/* The scheduler of the mapping */
+	struct rga_scheduler_t *scheduler;
 };
 
 struct rga_virt_addr {
@@ -181,13 +203,15 @@ struct rga_virt_addr {
 struct rga_internal_buffer {
 	/* DMA buffer */
 	struct rga_dma_buffer *dma_buffer;
-	uint32_t dma_buffer_size;
 
 	/* virtual address */
 	struct rga_virt_addr *virt_addr;
 
 	/* physical address */
 	uint64_t phys_addr;
+
+	/* buffer size */
+	unsigned long size;
 
 	struct rga_memory_parm memory_parm;
 
@@ -259,9 +283,6 @@ struct rga_job {
 	/* for rga2 virtual_address */
 	struct mm_struct *mm;
 
-	struct dma_fence *out_fence;
-	struct dma_fence *in_fence;
-	spinlock_t fence_lock;
 	/* job time stamp */
 	ktime_t timestamp;
 	/* The time when the job is actually executed on the hardware */
@@ -275,6 +296,12 @@ struct rga_job {
 	int ret;
 	pid_t pid;
 	bool use_batch_mode;
+
+	struct kref refcount;
+	unsigned long state;
+	uint32_t intr_status;
+	uint32_t hw_status;
+	uint32_t cmd_status;
 };
 
 struct rga_backend_ops {
@@ -282,6 +309,9 @@ struct rga_backend_ops {
 	int (*set_reg)(struct rga_job *job, struct rga_scheduler_t *scheduler);
 	int (*init_reg)(struct rga_job *job);
 	void (*soft_reset)(struct rga_scheduler_t *scheduler);
+	int (*read_back_reg)(struct rga_job *job, struct rga_scheduler_t *scheduler);
+	int (*irq)(struct rga_scheduler_t *scheduler);
+	int (*isr_thread)(struct rga_job *job, struct rga_scheduler_t *scheduler);
 };
 
 struct rga_timer {
@@ -289,13 +319,23 @@ struct rga_timer {
 	u32 busy_time_record;
 };
 
+struct rga_grf_info {
+	uint32_t offset;
+	uint32_t open_val;
+	uint32_t close_val;
+	struct regmap *grf;
+};
+
 struct rga_scheduler_t {
 	struct device *dev;
 	void __iomem *rga_base;
+	struct rga_iommu_info *iommu_info;
+	struct rga_grf_info grf_info;
 
 	struct clk *clks[RGA_MAX_BUS_CLK];
 	int num_clks;
 
+	enum rga_scheduler_status status;
 	int pd_refcount;
 
 	struct rga_job *running_job;
@@ -316,9 +356,12 @@ struct rga_request {
 	struct rga_req *task_list;
 	int task_count;
 	uint32_t finished_task_count;
+	uint32_t failed_task_count;
 
 	bool use_batch_mode;
 	bool is_running;
+	bool is_done;
+	int ret;
 	uint32_t sync_mode;
 
 	int32_t acquire_fence_fd;
@@ -337,6 +380,13 @@ struct rga_request {
 	struct kref refcount;
 
 	pid_t pid;
+
+	/*
+	 * The mapping of virtual addresses to obtain physical addresses requires
+	 * the memory mapping information of the current process.
+	 */
+	struct mm_struct *current_mm;
+
 	/* TODO: add some common work */
 };
 
@@ -368,6 +418,9 @@ struct rga_drvdata_t {
 
 	struct rga_scheduler_t *scheduler[RGA_MAX_SCHEDULER];
 	int num_of_scheduler;
+	/* The scheduler_index used by default for memory mapping. */
+	int map_scheduler_index;
+	struct rga_mmu_base *mmu_base;
 
 	struct delayed_work power_off_work;
 
@@ -396,8 +449,6 @@ struct rga_irqs_data_t {
 struct rga_match_data_t {
 	const char * const *clks;
 	int num_clks;
-	const struct rga_irqs_data_t *irqs;
-	int num_irqs;
 };
 
 static inline int rga_read(int offset, struct rga_scheduler_t *scheduler)

@@ -42,6 +42,7 @@
 #define	RKVENC_SESSION_MAX_BUFFERS		40
 #define RKVENC_MAX_CORE_NUM			4
 #define RKVENC_MAX_DCHS_ID			4
+#define RKVENC_MAX_SLICE_FIFO_LEN		256
 
 #define to_rkvenc_info(info)		\
 		container_of(info, struct rkvenc_hw_info, hw)
@@ -55,10 +56,12 @@ enum RKVENC_FORMAT_TYPE {
 	RKVENC_FMT_BASE		= 0x0000,
 	RKVENC_FMT_H264E	= RKVENC_FMT_BASE + 0,
 	RKVENC_FMT_H265E	= RKVENC_FMT_BASE + 1,
+	RKVENC_FMT_JPEGE	= RKVENC_FMT_BASE + 2,
 
 	RKVENC_FMT_OSD_BASE	= 0x1000,
 	RKVENC_FMT_H264E_OSD	= RKVENC_FMT_OSD_BASE + 0,
 	RKVENC_FMT_H265E_OSD	= RKVENC_FMT_OSD_BASE + 1,
+	RKVENC_FMT_JPEGE_OSD	= RKVENC_FMT_OSD_BASE + 2,
 	RKVENC_FMT_BUTT,
 };
 
@@ -115,6 +118,15 @@ struct rkvenc_hw_info {
 	u32 err_mask;
 };
 
+#define INT_STA_ENC_DONE_STA	BIT(0)
+#define INT_STA_SCLR_DONE_STA	BIT(2)
+#define INT_STA_SLC_DONE_STA	BIT(3)
+#define INT_STA_BSF_OFLW_STA	BIT(4)
+#define INT_STA_BRSP_OTSD_STA	BIT(5)
+#define INT_STA_WBUS_ERR_STA	BIT(6)
+#define INT_STA_RBUS_ERR_STA	BIT(7)
+#define INT_STA_WDG_STA		BIT(8)
+
 #define DCHS_REG_OFFSET		(0x304)
 #define DCHS_CLASS_OFFSET	(33)
 #define DCHS_TXE		(0x10)
@@ -150,7 +162,12 @@ union rkvenc2_dual_core_handshake_id {
 #define RKVENC2_REG_INT_MASK		(9)
 #define RKVENC2_BIT_SLICE_DONE_MASK	BIT(3)
 
+#define RKVENC2_REG_EXT_LINE_BUF_BASE	(22)
+
 #define RKVENC2_REG_ENC_PIC		(32)
+#define RKVENC2_BIT_ENC_STND		BIT(0)
+#define RKVENC2_BIT_VAL_H264		0
+#define RKVENC2_BIT_VAL_H265		1
 #define RKVENC2_BIT_SLEN_FIFO		BIT(30)
 
 #define RKVENC2_REG_SLI_SPLIT		(56)
@@ -160,12 +177,21 @@ union rkvenc2_dual_core_handshake_id {
 #define RKVENC2_REG_SLICE_NUM_BASE	(0x4034)
 #define RKVENC2_REG_SLICE_LEN_BASE	(0x4038)
 
+union rkvenc2_slice_len_info {
+	u32 val;
+
+	struct {
+		u32 slice_len	: 31;
+		u32 last	: 1;
+	};
+};
+
 struct rkvenc_poll_slice_cfg {
 	s32 poll_type;
 	s32 poll_ret;
 	s32 count_max;
 	s32 count_ret;
-	s32 slice_len[];
+	union rkvenc2_slice_len_info slice_info[];
 };
 
 struct rkvenc_task {
@@ -196,7 +222,10 @@ struct rkvenc_task {
 	/* split output / slice mode info */
 	u32 task_split;
 	u32 task_split_done;
-	DECLARE_KFIFO(slice_len, u32, 64);
+	u32 last_slice_found;
+	u32 slice_wr_cnt;
+	u32 slice_rd_cnt;
+	DECLARE_KFIFO(slice_info, union rkvenc2_slice_len_info, RKVENC_MAX_SLICE_FIFO_LEN);
 };
 
 #define RKVENC_MAX_RCB_NUM		(4)
@@ -241,7 +270,6 @@ struct rkvenc_dev {
 	/* for ccu */
 	struct rkvenc_ccu *ccu;
 	struct list_head core_link;
-	u32 disable_work;
 
 	/* internal rcb-memory */
 	u32 sram_size;
@@ -332,6 +360,75 @@ static struct rkvenc_hw_info rkvenc_v2_hw_info = {
 	.err_mask = 0x03f0,
 };
 
+static struct rkvenc_hw_info rkvenc_540c_hw_info = {
+	.hw = {
+		.reg_num = 254,
+		.reg_id = 0,
+		.reg_en = 4,
+		.reg_start = 160,
+		.reg_end = 253,
+	},
+	.reg_class = RKVENC_CLASS_BUTT,
+	.reg_msg[RKVENC_CLASS_BASE] = {
+		.base_s = 0x0000,
+		.base_e = 0x0120,
+	},
+	.reg_msg[RKVENC_CLASS_PIC] = {
+		.base_s = 0x0270,
+		.base_e = 0x0480,
+	},
+	.reg_msg[RKVENC_CLASS_RC] = {
+		.base_s = 0x1000,
+		.base_e = 0x110c,
+	},
+	.reg_msg[RKVENC_CLASS_PAR] = {
+		.base_s = 0x1700,
+		.base_e = 0x19cc,
+	},
+	.reg_msg[RKVENC_CLASS_SQI] = {
+		.base_s = 0x2000,
+		.base_e = 0x20fc,
+	},
+	.reg_msg[RKVENC_CLASS_SCL] = {
+		.base_s = 0x21e0,
+		.base_e = 0x2dfc,
+	},
+	.reg_msg[RKVENC_CLASS_OSD] = {
+		.base_s = 0x3000,
+		.base_e = 0x326c,
+	},
+	.reg_msg[RKVENC_CLASS_ST] = {
+		.base_s = 0x4000,
+		.base_e = 0x424c,
+	},
+	.reg_msg[RKVENC_CLASS_DEBUG] = {
+		.base_s = 0x5000,
+		.base_e = 0x5354,
+	},
+	.fd_class = RKVENC_CLASS_FD_BUTT,
+	.fd_reg[RKVENC_CLASS_FD_BASE] = {
+		.class = RKVENC_CLASS_PIC,
+		.base_fmt = RKVENC_FMT_BASE,
+	},
+	.fd_reg[RKVENC_CLASS_FD_OSD] = {
+		.class = RKVENC_CLASS_OSD,
+		.base_fmt = RKVENC_FMT_OSD_BASE,
+	},
+	.fmt_reg = {
+		.class = RKVENC_CLASS_PIC,
+		.base = 0x0300,
+		.bitpos = 0,
+		.bitlen = 2,
+	},
+	.enc_start_base = 0x0010,
+	.enc_clr_base = 0x0014,
+	.int_en_base = 0x0020,
+	.int_mask_base = 0x0024,
+	.int_clr_base = 0x0028,
+	.int_sta_base = 0x002c,
+	.enc_wdg_base = 0x0038,
+	.err_mask = 0x27d0,
+};
 /*
  * file handle translate information for v2
  */
@@ -355,6 +452,41 @@ static const u16 trans_tbl_h265e_v2_osd[] = {
 	20, 21, 22, 23, 24, 25, 26, 27,
 };
 
+/*
+ * file handle translate information for 540c
+ */
+static const u16 trans_tbl_h264e_540c[] = {
+	4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+	14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+	// /* renc and ref wrap */
+	// 24, 25, 26, 27,
+};
+
+static const u16 trans_tbl_h264e_540c_osd[] = {
+	3, 4, 12, 13, 21, 22, 30, 31,
+	39, 40, 48, 49, 57, 58, 66, 67,
+};
+
+static const u16 trans_tbl_h265e_540c[] = {
+	4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+	14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+};
+
+static const u16 trans_tbl_h265e_540c_osd[] = {
+	3, 4, 12, 13, 21, 22, 30, 31,
+	39, 40, 48, 49, 57, 58, 66, 67,
+};
+
+static const u16 trans_tbl_jpege[] = {
+	100, 101, 102, 103, 104, 105, 106, 107,
+	108, 109, 110,
+};
+
+static const u16 trans_tbl_jpege_osd[] = {
+	81, 82, 90, 91, 99, 100, 108, 109,
+	117, 118, 126, 127, 135, 136, 144, 145,
+};
+
 static struct mpp_trans_info trans_rkvenc_v2[] = {
 	[RKVENC_FMT_H264E] = {
 		.count = ARRAY_SIZE(trans_tbl_h264e_v2),
@@ -371,6 +503,33 @@ static struct mpp_trans_info trans_rkvenc_v2[] = {
 	[RKVENC_FMT_H265E_OSD] = {
 		.count = ARRAY_SIZE(trans_tbl_h265e_v2_osd),
 		.table = trans_tbl_h265e_v2_osd,
+	},
+};
+
+static struct mpp_trans_info trans_rkvenc_540c[] = {
+	[RKVENC_FMT_H264E] = {
+		.count = ARRAY_SIZE(trans_tbl_h264e_540c),
+		.table = trans_tbl_h264e_540c,
+	},
+	[RKVENC_FMT_H264E_OSD] = {
+		.count = ARRAY_SIZE(trans_tbl_h264e_540c_osd),
+		.table = trans_tbl_h264e_540c_osd,
+	},
+	[RKVENC_FMT_H265E] = {
+		.count = ARRAY_SIZE(trans_tbl_h265e_540c),
+		.table = trans_tbl_h265e_540c,
+	},
+	[RKVENC_FMT_H265E_OSD] = {
+		.count = ARRAY_SIZE(trans_tbl_h265e_540c_osd),
+		.table = trans_tbl_h265e_540c_osd,
+	},
+	[RKVENC_FMT_JPEGE] = {
+		.count = ARRAY_SIZE(trans_tbl_jpege),
+		.table = trans_tbl_jpege,
+	},
+	[RKVENC_FMT_JPEGE_OSD] = {
+		.count = ARRAY_SIZE(trans_tbl_jpege_osd),
+		.table = trans_tbl_jpege_osd,
 	},
 };
 
@@ -397,6 +556,7 @@ static int rkvenc_free_class_msg(struct rkvenc_task *task)
 
 	for (i = 0; i < reg_class; i++) {
 		kfree(task->reg[i].data);
+		task->reg[i].data = NULL;
 		task->reg[i].size = 0;
 	}
 
@@ -541,8 +701,11 @@ static int rkvenc_extract_task_msg(struct mpp_session *session,
 				wreq = &task->w_reqs[task->w_req_cnt];
 				rkvenc_update_req(task, j, req, wreq);
 				data = rkvenc_get_class_reg(task, wreq->offset);
-				if (!data)
+				if (!data) {
+					mpp_err("get class reg fail, offset %08x\n", wreq->offset);
+					ret = -EINVAL;
 					goto fail;
+				}
 				if (copy_from_user(data, wreq->data, wreq->size)) {
 					mpp_err("copy_from_user fail, offset %08x\n", wreq->offset);
 					ret = -EIO;
@@ -685,45 +848,33 @@ static void rkvenc2_setup_task_id(u32 session_id, struct rkvenc_task *task)
 	task->dchs_id.rxe_map = task->dchs_id.rxe;
 }
 
-static int rkvenc2_is_split_task(struct rkvenc_task *task)
+static void rkvenc2_check_split_task(struct rkvenc_task *task)
 {
-	u32 slc_done_en;
-	u32 slc_done_msk;
-	u32 slen_fifo_en;
-	u32 sli_split_en;
-	u32 sli_flsh_en;
-
-	if (task->reg[RKVENC_CLASS_BASE].valid) {
-		u32 *reg = task->reg[RKVENC_CLASS_BASE].data;
-
-		slc_done_en  = (reg[RKVENC2_REG_INT_EN] & RKVENC2_BIT_SLICE_DONE_EN) ? 1 : 0;
-		slc_done_msk = (reg[RKVENC2_REG_INT_MASK] & RKVENC2_BIT_SLICE_DONE_MASK) ? 1 : 0;
-	} else {
-		slc_done_en  = 0;
-		slc_done_msk = 0;
-	}
+	u32 slen_fifo_en = 0;
+	u32 sli_split_en = 0;
 
 	if (task->reg[RKVENC_CLASS_PIC].valid) {
 		u32 *reg = task->reg[RKVENC_CLASS_PIC].data;
+		u32 enc_stnd = reg[RKVENC2_REG_ENC_PIC] & RKVENC2_BIT_ENC_STND;
 
 		slen_fifo_en = (reg[RKVENC2_REG_ENC_PIC] & RKVENC2_BIT_SLEN_FIFO) ? 1 : 0;
 		sli_split_en = (reg[RKVENC2_REG_SLI_SPLIT] & RKVENC2_BIT_SLI_SPLIT) ? 1 : 0;
-		sli_flsh_en  = (reg[RKVENC2_REG_SLI_SPLIT] & RKVENC2_BIT_SLI_FLUSH) ? 1 : 0;
-	} else {
-		slen_fifo_en = 0;
-		sli_split_en = 0;
-		sli_flsh_en  = 0;
+
+		/*
+		 * FIXUP: rkvenc2 hardware bug:
+		 * H.264 encoding has bug when external line buffer and slice flush both
+		 * are enabled.
+		 */
+		if (sli_split_en && slen_fifo_en &&
+		    enc_stnd == RKVENC2_BIT_VAL_H264 &&
+		    reg[RKVENC2_REG_EXT_LINE_BUF_BASE])
+			reg[RKVENC2_REG_SLI_SPLIT] &= ~RKVENC2_BIT_SLI_FLUSH;
 	}
 
-	if (sli_split_en && slen_fifo_en && sli_flsh_en) {
-		if (!slc_done_en || slc_done_msk)
-			mpp_dbg_slice("task %d slice output enabled but irq disabled!\n",
-				      task->mpp_task.task_id);
+	task->task_split = sli_split_en && slen_fifo_en;
 
-		return 1;
-	}
-
-	return 0;
+	if (task->task_split)
+		INIT_KFIFO(task->slice_info);
 }
 
 static void *rkvenc_alloc_task(struct mpp_session *session,
@@ -783,12 +934,9 @@ static void *rkvenc_alloc_task(struct mpp_session *session,
 			}
 		}
 	}
-	rkvenc2_set_rcbbuf(mpp, session, task);
 	rkvenc2_setup_task_id(session->index, task);
 	task->clk_mode = CLK_MODE_NORMAL;
-	task->task_split = rkvenc2_is_split_task(task);
-	if (task->task_split)
-		INIT_KFIFO(task->slice_len);
+	rkvenc2_check_split_task(task);
 
 	mpp_debug_leave();
 
@@ -809,23 +957,36 @@ free_task:
 static void *rkvenc2_prepare(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 {
 	struct mpp_taskqueue *queue = mpp->queue;
+	unsigned long core_idle;
 	unsigned long flags;
+	u32 core_id_max;
 	s32 core_id;
+	u32 i;
 
 	spin_lock_irqsave(&queue->running_lock, flags);
 
-	core_id = find_first_bit(&queue->core_idle, queue->core_count);
+	core_idle = queue->core_idle;
+	core_id_max = queue->core_id_max;
 
-	if (core_id >= queue->core_count) {
+	for (i = 0; i <= core_id_max; i++) {
+		struct mpp_dev *mpp = queue->cores[i];
+
+		if (mpp && mpp->disable)
+			clear_bit(i, &core_idle);
+	}
+
+	core_id = find_first_bit(&core_idle, core_id_max + 1);
+
+	if (core_id >= core_id_max + 1 || !queue->cores[core_id]) {
 		mpp_task = NULL;
-		mpp_dbg_core("core %d all busy %lx\n", core_id, queue->core_idle);
+		mpp_dbg_core("core %d all busy %lx\n", core_id, core_idle);
 	} else {
-		unsigned long core_idle = queue->core_idle;
+		struct rkvenc_task *task = to_rkvenc_task(mpp_task);
 
 		clear_bit(core_id, &queue->core_idle);
 		mpp_task->mpp = queue->cores[core_id];
 		mpp_task->core_id = core_id;
-
+		rkvenc2_set_rcbbuf(mpp_task->mpp, mpp_task->session, task);
 		mpp_dbg_core("core %d set idle %lx -> %lx\n", core_id,
 			     core_idle, queue->core_idle);
 	}
@@ -994,8 +1155,15 @@ static int rkvenc_run(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 	u32 start_val = 0;
 	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
 	struct rkvenc_task *task = to_rkvenc_task(mpp_task);
+	struct rkvenc_hw_info *hw = enc->hw_info;
+	u32 timing_en = mpp->srv->timing_en;
 
 	mpp_debug_enter();
+
+	/* Add force clear to avoid pagefault */
+	mpp_write(mpp, hw->enc_clr_base, 0x2);
+	udelay(5);
+	mpp_write(mpp, hw->enc_clr_base, 0x0);
 
 	/* clear hardware counter */
 	mpp_write_relaxed(mpp, 0x5300, 0x2);
@@ -1037,9 +1205,14 @@ static int rkvenc_run(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 	/* init current task */
 	mpp->cur_task = mpp_task;
 
+	mpp_task_run_begin(mpp_task, timing_en, MPP_WORK_TIMEOUT_DELAY);
+
 	/* Flush the register before the start the device */
 	wmb();
+
 	mpp_write(mpp, enc->hw_info->enc_start_base, start_val);
+
+	mpp_task_run_end(mpp_task, timing_en);
 
 	mpp_debug_leave();
 
@@ -1048,24 +1221,38 @@ static int rkvenc_run(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 
 static void rkvenc2_read_slice_len(struct mpp_dev *mpp, struct rkvenc_task *task)
 {
+	u32 last = mpp_read_relaxed(mpp, 0x002c) & INT_STA_ENC_DONE_STA;
 	u32 sli_num = mpp_read_relaxed(mpp, RKVENC2_REG_SLICE_NUM_BASE);
+	union rkvenc2_slice_len_info slice_info;
+	u32 task_id = task->mpp_task.task_id;
 	u32 i;
 
+	mpp_dbg_slice("task %d wr %3d len start %s\n", task_id,
+		      sli_num, last ? "last" : "");
+
 	for (i = 0; i < sli_num; i++) {
-		u32 sli_len = mpp_read_relaxed(mpp, RKVENC2_REG_SLICE_LEN_BASE);
+		slice_info.val = mpp_read_relaxed(mpp, RKVENC2_REG_SLICE_LEN_BASE);
 
-		mpp_dbg_slice("task %d wr len %d %d:%d\n",
-			      task->mpp_task.task_id, sli_len, sli_num, i);
-		kfifo_in(&task->slice_len, &sli_len, 1);
+		if (last && i == sli_num - 1) {
+			task->last_slice_found = 1;
+			slice_info.last = 1;
+		}
+
+		mpp_dbg_slice("task %d wr %3d len %d %s\n", task_id,
+			      task->slice_wr_cnt, slice_info.slice_len,
+			      slice_info.last ? "last" : "");
+
+		kfifo_in(&task->slice_info, &slice_info, 1);
+		task->slice_wr_cnt++;
 	}
-}
 
-static void rkvenc2_last_slice(struct rkvenc_task *task)
-{
-	u32 sli_len = 0;
-
-	mpp_dbg_slice("task %d last slice found\n", task->mpp_task.task_id);
-	kfifo_in(&task->slice_len, &sli_len, 1);
+	/* Fixup for async between last flag and slice number register */
+	if (last && !task->last_slice_found) {
+		mpp_dbg_slice("task %d mark last slice\n", task_id);
+		slice_info.last = 1;
+		slice_info.slice_len = 0;
+		kfifo_in(&task->slice_info, &slice_info, 1);
+	}
 }
 
 static int rkvenc_irq(struct mpp_dev *mpp)
@@ -1082,35 +1269,34 @@ static int rkvenc_irq(struct mpp_dev *mpp)
 	if (!mpp->irq_status)
 		return ret;
 
-	mpp_task = mpp->cur_task;
-
-	if (mpp_task) {
+	if (mpp->cur_task) {
+		mpp_task = mpp->cur_task;
 		task = to_rkvenc_task(mpp_task);
-
-		if (task->task_split) {
-			mpp_time_part_diff(mpp_task);
-
-			rkvenc2_read_slice_len(mpp, task);
-			mpp_write(mpp, hw->int_clr_base, 0x8);
-			wake_up(&mpp_task->wait);
-		}
 	}
 
-	if (mpp->irq_status & 1) {
+	if (mpp->irq_status & INT_STA_ENC_DONE_STA) {
+		if (task) {
+			if (task->task_split)
+				rkvenc2_read_slice_len(mpp, task);
+
+			wake_up(&mpp_task->wait);
+		}
+
 		mpp_write(mpp, hw->int_mask_base, 0x100);
 		mpp_write(mpp, hw->int_clr_base, 0xffffffff);
 		udelay(5);
 		mpp_write(mpp, hw->int_sta_base, 0);
 
 		ret = IRQ_WAKE_THREAD;
+	} else if (mpp->irq_status & INT_STA_SLC_DONE_STA) {
+		if (task && task->task_split) {
+			mpp_time_part_diff(mpp_task);
 
-		if (task) {
-			if (task->task_split) {
-				rkvenc2_read_slice_len(mpp, task);
-				rkvenc2_last_slice(task);
-			}
+			rkvenc2_read_slice_len(mpp, task);
 			wake_up(&mpp_task->wait);
 		}
+
+		mpp_write(mpp, hw->int_clr_base, INT_STA_SLC_DONE_STA);
 	}
 
 	mpp_debug_leave();
@@ -1151,10 +1337,12 @@ static int rkvenc_isr(struct mpp_dev *mpp)
 
 	if (task->irq_status & enc->hw_info->err_mask) {
 		atomic_inc(&mpp->reset_request);
-		/* dump register */
 
-		mpp_task_dump_hw_reg(mpp);
+		/* dump register */
+		if (mpp_debug_unlikely(DEBUG_DUMP_ERR_REG))
+			mpp_task_dump_hw_reg(mpp);
 	}
+
 	mpp_task_finish(mpp_task->session, mpp_task);
 
 	core_idle = queue->core_idle;
@@ -1344,7 +1532,7 @@ static int rkvenc_dump_session(struct mpp_session *session, struct seq_file *seq
 	}
 	seq_puts(seq, "\n");
 	/* item data*/
-	seq_printf(seq, "|%8p|", session);
+	seq_printf(seq, "|%8d|", session->index);
 	seq_printf(seq, "%8s|", mpp_device_name[session->device_type]);
 	for (i = ENC_INFO_BASE; i < ENC_INFO_BUTT; i++) {
 		u32 flag = priv->codec_info[i].flag;
@@ -1377,7 +1565,7 @@ static int rkvenc_show_session_info(struct seq_file *seq, void *offset)
 	mutex_lock(&mpp->srv->session_lock);
 	list_for_each_entry_safe(session, n,
 				 &mpp->srv->session_list,
-				 session_link) {
+				 service_link) {
 		if (session->device_type != MPP_DEVICE_RKVENC)
 			continue;
 		if (!session->priv)
@@ -1408,6 +1596,10 @@ static int rkvenc_procfs_init(struct mpp_dev *mpp)
 		enc->procfs = NULL;
 		return -EIO;
 	}
+
+	/* for common mpp_dev options */
+	mpp_procfs_create_common(enc->procfs, mpp);
+
 	/* for debug */
 	mpp_procfs_create_u32("aclk", 0644,
 			      enc->procfs, &enc->aclk_info.debug_rate_hz);
@@ -1429,8 +1621,6 @@ static int rkvenc_procfs_ccu_init(struct mpp_dev *mpp)
 	if (!enc->procfs)
 		goto done;
 
-	mpp_procfs_create_u32("disable_work", 0644,
-			      enc->procfs, &enc->disable_work);
 done:
 	return 0;
 }
@@ -1592,6 +1782,9 @@ static int rkvenc2_task_default_process(struct mpp_dev *mpp,
 	return ret;
 }
 
+#define RKVENC2_TIMEOUT_DUMP_REG_START	(0x5100)
+#define RKVENC2_TIMEOUT_DUMP_REG_END	(0x5160)
+
 static void rkvenc2_task_timeout_process(struct mpp_session *session,
 					 struct mpp_task *task)
 {
@@ -1601,6 +1794,18 @@ static void rkvenc2_task_timeout_process(struct mpp_session *session,
 	mpp_err("session %d:%d count %d task %d ref %d timeout\n",
 		session->pid, session->index, atomic_read(&session->task_count),
 		task->task_id, kref_read(&task->ref));
+
+	if (task->mpp) {
+		struct mpp_dev *mpp = task->mpp;
+		u32 start = RKVENC2_TIMEOUT_DUMP_REG_START;
+		u32 end = RKVENC2_TIMEOUT_DUMP_REG_END;
+		u32 offset;
+
+		dev_err(mpp->dev, "core %d dump timeout status:\n", mpp->core_id);
+
+		for (offset = start; offset < end; offset += sizeof(u32))
+			mpp_reg_show(mpp, offset);
+	}
 
 	rkvenc2_task_pop_pending(task);
 }
@@ -1613,7 +1818,7 @@ static int rkvenc2_wait_result(struct mpp_session *session,
 	struct mpp_request *req;
 	struct mpp_task *task;
 	struct mpp_dev *mpp;
-	u32 slice_len = 0;
+	union rkvenc2_slice_len_info slice_info;
 	u32 task_id;
 	int ret = 0;
 
@@ -1650,12 +1855,16 @@ task_done_ret:
 	if (!req) {
 		do {
 			ret = wait_event_timeout(task->wait,
-						 kfifo_out(&enc_task->slice_len, &slice_len, 1),
+						 kfifo_out(&enc_task->slice_info, &slice_info, 1),
 						 msecs_to_jiffies(RKVENC2_WORK_TIMEOUT_DELAY));
 			if (ret > 0) {
-				mpp_dbg_slice("task %d skip slice len %d\n",
-					      task_id, slice_len);
-				if (slice_len == 0)
+				mpp_dbg_slice("task %d rd %3d len %d %s\n",
+					      task_id, enc_task->slice_rd_cnt, slice_info.slice_len,
+					      slice_info.last ? "last" : "");
+
+				enc_task->slice_rd_cnt++;
+
+				if (slice_info.last)
 					goto task_done_ret;
 
 				continue;
@@ -1676,33 +1885,41 @@ task_done_ret:
 	cfg.count_ret = 0;
 
 	/* handle slice mode poll return */
-	ret = wait_event_timeout(task->wait,
-				 kfifo_out(&enc_task->slice_len, &slice_len, 1),
-				 msecs_to_jiffies(RKVENC2_WORK_TIMEOUT_DELAY));
-	if (ret > 0) {
-		mpp_dbg_slice("task %d rd len %d\n", task_id, slice_len);
+	do {
+		ret = wait_event_timeout(task->wait,
+					 kfifo_out(&enc_task->slice_info, &slice_info, 1),
+					 msecs_to_jiffies(RKVENC2_WORK_TIMEOUT_DELAY));
+		if (ret > 0) {
+			mpp_dbg_slice("core %d task %d rd %3d len %d %s\n", task_id,
+				      mpp->core_id, enc_task->slice_rd_cnt, slice_info.slice_len,
+				      slice_info.last ? "last" : "");
+			enc_task->slice_rd_cnt++;
+			if (cfg.count_ret < cfg.count_max) {
+				struct rkvenc_poll_slice_cfg __user *ucfg =
+					(struct rkvenc_poll_slice_cfg __user *)(req->data);
+				u32 __user *dst = (u32 __user *)(ucfg + 1);
 
-		if (cfg.count_ret < cfg.count_max) {
-			struct rkvenc_poll_slice_cfg __user *ucfg =
-				(struct rkvenc_poll_slice_cfg __user *)(req->data);
-			u32 __user *dst = (u32 __user *)(ucfg + 1);
+				/* Do NOT return here when put_user error. Just continue */
+				if (put_user(slice_info.val, dst + cfg.count_ret))
+					ret = -EFAULT;
 
-			/* Do NOT return here when put_user error. Just continue */
-			if (put_user(slice_len, dst + cfg.count_ret))
-				ret = -EFAULT;
+				cfg.count_ret++;
+				if (put_user(cfg.count_ret, &ucfg->count_ret))
+					ret = -EFAULT;
+			}
 
-			cfg.count_ret++;
-			if (put_user(cfg.count_ret, &ucfg->count_ret))
-				ret = -EFAULT;
+			if (slice_info.last) {
+				enc_task->task_split_done = 1;
+				goto task_done_ret;
+			}
+
+			if (cfg.count_ret >= cfg.count_max)
+				return 0;
+
+			if (ret < 0)
+				return ret;
 		}
-
-		if (!slice_len) {
-			enc_task->task_split_done = 1;
-			goto task_done_ret;
-		}
-
-		return ret < 0 ? ret : 0;
-	}
+	} while (ret > 0);
 
 	rkvenc2_task_timeout_process(session, task);
 
@@ -1757,6 +1974,14 @@ static const struct mpp_dev_var rkvenc_v2_data = {
 	.dev_ops = &rkvenc_dev_ops_v2,
 };
 
+static const struct mpp_dev_var rkvenc_540c_data = {
+	.device_type = MPP_DEVICE_RKVENC,
+	.hw_info = &rkvenc_540c_hw_info.hw,
+	.trans_info = trans_rkvenc_540c,
+	.hw_ops = &rkvenc_hw_ops,
+	.dev_ops = &rkvenc_dev_ops_v2,
+};
+
 static const struct mpp_dev_var rkvenc_ccu_data = {
 	.device_type = MPP_DEVICE_RKVENC,
 	.hw_info = &rkvenc_v2_hw_info.hw,
@@ -1770,6 +1995,12 @@ static const struct of_device_id mpp_rkvenc_dt_match[] = {
 		.compatible = "rockchip,rkv-encoder-v2",
 		.data = &rkvenc_v2_data,
 	},
+#ifdef CONFIG_CPU_RK3528
+	{
+		.compatible = "rockchip,rkv-encoder-rk3528",
+		.data = &rkvenc_540c_data,
+	},
+#endif
 #ifdef CONFIG_CPU_RK3588
 	{
 		.compatible = "rockchip,rkv-encoder-v2-core",
@@ -2001,14 +2232,13 @@ static int rkvenc_core_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	rkvenc2_alloc_rcbbuf(pdev, enc);
-
 	/* attach core to ccu */
 	ret = rkvenc_attach_ccu(dev, enc);
 	if (ret) {
 		dev_err(dev, "attach ccu failed\n");
 		return ret;
 	}
+	rkvenc2_alloc_rcbbuf(pdev, enc);
 
 	ret = devm_request_threaded_irq(dev, mpp->irq,
 					mpp_dev_irq,

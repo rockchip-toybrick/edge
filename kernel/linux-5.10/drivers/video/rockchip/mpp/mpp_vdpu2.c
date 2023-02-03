@@ -343,6 +343,7 @@ static int vdpu_run(struct mpp_dev *mpp,
 	u32 i;
 	u32 reg_en;
 	struct vdpu_task *task = to_vdpu_task(mpp_task);
+	u32 timing_en = mpp->srv->timing_en;
 
 	mpp_debug_enter();
 
@@ -359,14 +360,26 @@ static int vdpu_run(struct mpp_dev *mpp,
 	}
 	/* init current task */
 	mpp->cur_task = mpp_task;
+
+	mpp_task_run_begin(mpp_task, timing_en, MPP_WORK_TIMEOUT_DELAY);
+
 	/* Flush the registers */
 	wmb();
 	mpp_write(mpp, VDPU2_REG_DEC_EN,
 		  task->reg[reg_en] | VDPU2_DEC_START);
 
+	mpp_task_run_end(mpp_task, timing_en);
+
 	mpp_debug_leave();
 
 	return 0;
+}
+
+static int vdpu_px30_run(struct mpp_dev *mpp,
+		    struct mpp_task *mpp_task)
+{
+	mpp_iommu_flush_tlb(mpp->iommu_info);
+	return vdpu_run(mpp, mpp_task);
 }
 
 static int vdpu_finish(struct mpp_dev *mpp,
@@ -459,6 +472,10 @@ static int vdpu_procfs_init(struct mpp_dev *mpp)
 		dec->procfs = NULL;
 		return -EIO;
 	}
+
+	/* for common mpp_dev options */
+	mpp_procfs_create_common(dec->procfs, mpp);
+
 	mpp_procfs_create_u32("aclk", 0644,
 			      dec->procfs, &dec->aclk_info.debug_rate_hz);
 	mpp_procfs_create_u32("session_buffers", 0644,
@@ -648,6 +665,16 @@ static struct mpp_dev_ops vdpu_v2_dev_ops = {
 	.free_task = vdpu_free_task,
 };
 
+static struct mpp_dev_ops vdpu_px30_dev_ops = {
+	.alloc_task = vdpu_alloc_task,
+	.run = vdpu_px30_run,
+	.irq = vdpu_irq,
+	.isr = vdpu_isr,
+	.finish = vdpu_finish,
+	.result = vdpu_result,
+	.free_task = vdpu_free_task,
+};
+
 static const struct mpp_dev_var vdpu_v2_data = {
 	.device_type = MPP_DEVICE_VDPU2,
 	.hw_info = &vdpu_v2_hw_info,
@@ -661,7 +688,7 @@ static const struct mpp_dev_var vdpu_px30_data = {
 	.hw_info = &vdpu_v2_hw_info,
 	.trans_info = vdpu_v2_trans,
 	.hw_ops = &vdpu_px30_hw_ops,
-	.dev_ops = &vdpu_v2_dev_ops,
+	.dev_ops = &vdpu_px30_dev_ops,
 };
 
 static const struct of_device_id mpp_vdpu2_dt_match[] = {

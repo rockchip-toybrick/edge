@@ -464,6 +464,8 @@ static const struct vop_win_phy rk3368_win23_data = {
 	.src_alpha_ctl = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0xffff, 0),
 	.global_alpha_val = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0xff, 16),
 	.dst_alpha_ctl = VOP_REG(RK3368_WIN2_DST_ALPHA_CTRL, 0xffffffff, 0),
+	.color_key = VOP_REG(RK3368_WIN2_COLOR_KEY, 0xffffff, 0),
+	.color_key_en = VOP_REG(RK3368_WIN2_COLOR_KEY, 0x1, 24),
 };
 
 static const struct vop_win_phy rk3368_area1_data = {
@@ -679,6 +681,8 @@ static const struct vop_win_phy rk3399_win01_data = {
 	.global_alpha_val = VOP_REG(RK3288_WIN0_SRC_ALPHA_CTRL, 0xff, 16),
 	.dst_alpha_ctl = VOP_REG(RK3288_WIN0_DST_ALPHA_CTRL, 0xffffffff, 0),
 	.channel = VOP_REG_VER(RK3288_WIN0_CTRL2, 0xff, 0, 3, 8, 8),
+	.color_key = VOP_REG(RK3288_WIN0_COLOR_KEY, 0x3fffffff, 0),
+	.color_key_en = VOP_REG(RK3288_WIN0_COLOR_KEY, 0x1, 31),
 };
 
 static const struct vop_win_data rk3399_vop_win_data[] = {
@@ -1235,19 +1239,27 @@ static const struct vop_intr rk3036_intr = {
 
 static const struct vop_ctrl rk3036_ctrl_data = {
 	.standby = VOP_REG(RK3036_SYS_CTRL, 0x1, 30),
+	.sw_dac_sel = VOP_REG(RK3036_SYS_CTRL, 0x1, 29),
 	.out_mode = VOP_REG(RK3036_DSP_CTRL0, 0xf, 0),
+	.dsp_interlace = VOP_REG(RK3036_DSP_CTRL0, 0x1, 12),
 	.dsp_blank = VOP_REG(RK3036_DSP_CTRL1, 0x1, 24),
+	.dsp_background = VOP_REG(RK3036_DSP_CTRL1, 0xffffff, 0),
 	.dclk_pol = VOP_REG(RK3036_DSP_CTRL0, 0x1, 7),
 	.pin_pol = VOP_REG(RK3036_DSP_CTRL0, 0x7, 4),
 	.dither_down_sel = VOP_REG(RK3036_DSP_CTRL0, 0x1, 27),
+	.tve_sw_mode = VOP_REG(RK3036_DSP_CTRL0, 0x1, 25),
+	.dsp_interlace_pol = VOP_REG(RK3036_DSP_CTRL0, 0x1, 13),
 	.dither_down_en = VOP_REG(RK3036_DSP_CTRL0, 0x1, 11),
 	.dither_down_mode = VOP_REG(RK3036_DSP_CTRL0, 0x1, 10),
 	.dither_up_en = VOP_REG(RK3036_DSP_CTRL0, 0x1, 9),
 	.dsp_layer_sel = VOP_REG(RK3036_DSP_CTRL0, 0x1, 8),
 	.htotal_pw = VOP_REG(RK3036_DSP_HTOTAL_HS_END, 0x1fff1fff, 0),
 	.hact_st_end = VOP_REG(RK3036_DSP_HACT_ST_END, 0x1fff1fff, 0),
+	.tve_dclk_en = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 20),
+	.tve_dclk_pol = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 21),
 	.hdmi_en = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 22),
 	.hdmi_dclk_pol = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 23),
+	.core_dclk_div = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 30),
 	.hdmi_pin_pol = VOP_REG(RK3036_INT_SCALER, 0x7, 4),
 	.rgb_en = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 24),
 	.rgb_dclk_pol = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 25),
@@ -1257,6 +1269,8 @@ static const struct vop_ctrl rk3036_ctrl_data = {
 	.mipi_dclk_pol = VOP_REG(RK3036_AXI_BUS_CTRL, 0x1, 29),
 	.vtotal_pw = VOP_REG(RK3036_DSP_VTOTAL_VS_END, 0x1fff1fff, 0),
 	.vact_st_end = VOP_REG(RK3036_DSP_VACT_ST_END, 0x1fff1fff, 0),
+	.vs_st_end_f1 = VOP_REG(RK3036_DSP_VS_ST_END_F1, 0x1fff1fff, 0),
+	.vact_st_end_f1 = VOP_REG(RK3036_DSP_VACT_ST_END_F1, 0x1fff1fff, 0),
 	.cfg_done = VOP_REG(RK3036_REG_CFG_DONE, 0x1, 0),
 };
 
@@ -1423,8 +1437,9 @@ static const struct vop_win_phy rk3366_lit_win0_data = {
 	.alpha_mode = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0x1, 1),
 	.alpha_en = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0x1, 0),
 	.global_alpha_val = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0xff, 4),
-	.key_color = VOP_REG(RK3366_LIT_WIN0_COLOR_KEY, 0xffffff, 0),
-	.key_en = VOP_REG(RK3366_LIT_WIN0_COLOR_KEY, 0x1, 24),
+	.color_key = VOP_REG(RK3366_LIT_WIN0_COLOR_KEY, 0xffffff, 0),
+	.color_key_en = VOP_REG(RK3366_LIT_WIN0_COLOR_KEY, 0x1, 24),
+	.channel = VOP_REG(RK3366_LIT_WIN0_CTRL0, 0xff, 12),
 };
 
 static const struct vop_win_phy rk3366_lit_win1_data = {
@@ -1444,8 +1459,9 @@ static const struct vop_win_phy rk3366_lit_win1_data = {
 	.alpha_mode = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0x1, 1),
 	.alpha_en = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0x1, 0),
 	.global_alpha_val = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0xff, 4),
-	.key_color = VOP_REG(RK3366_LIT_WIN1_COLOR_KEY, 0xffffff, 0),
-	.key_en = VOP_REG(RK3366_LIT_WIN1_COLOR_KEY, 0x1, 24),
+	.color_key = VOP_REG(RK3366_LIT_WIN1_COLOR_KEY, 0xffffff, 0),
+	.color_key_en = VOP_REG(RK3366_LIT_WIN1_COLOR_KEY, 0x1, 24),
+	.channel = VOP_REG(RK3366_LIT_WIN1_CTRL1, 0xf, 8),
 };
 
 static const struct vop_win_data rk3366_vop_lit_win_data[] = {
@@ -1599,6 +1615,8 @@ static const struct vop_win_phy px30_win23_data = {
 	.alpha_en = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0x1, 0),
 	.global_alpha_val = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0xff, 4),
 	.channel = VOP_REG(RK3368_WIN2_CTRL1, 0xf, 8),
+	.color_key = VOP_REG(RK3368_WIN2_COLOR_KEY, 0xffffff, 0),
+	.color_key_en = VOP_REG(RK3368_WIN2_COLOR_KEY, 0x1, 24),
 };
 
 static const struct vop_win_data px30_vop_big_win_data[] = {

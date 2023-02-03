@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 #
-# (C) COPYRIGHT 2012-2021 ARM Limited. All rights reserved.
+# (C) COPYRIGHT 2012-2022 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the
 # GNU General Public License version 2 as published by the Free Software
@@ -65,8 +65,7 @@ config MALI_CSF_SUPPORT
 config MALI_BIFROST_DEVFREQ
 	bool "Enable devfreq support for Mali"
 	depends on MALI_BIFROST
-	default y if PLATFORM_JUNO
-	default y if PLATFORM_CUSTOM
+	default y
 	help
 	  Support devfreq for Mali.
 
@@ -98,16 +97,6 @@ config MALI_BIFROST_ENABLE_TRACE
 	  Enables tracing in kbase. Trace log available through
 	  the "mali_trace" debugfs file, when the CONFIG_DEBUG_FS is enabled
 
-config MALI_BIFROST_DMA_FENCE
-	bool "Enable DMA_BUF fence support for Mali"
-	depends on MALI_BIFROST
-	default n
-	help
-	  Support DMA_BUF fences for Mali.
-
-	  This option should only be enabled if the Linux Kernel has built in
-	  support for DMA_BUF fences.
-
 config MALI_ARBITER_SUPPORT
 	bool "Enable arbiter support for Mali"
 	depends on MALI_BIFROST && !MALI_CSF_SUPPORT
@@ -130,7 +119,7 @@ config MALI_DMA_BUF_MAP_ON_DEMAND
 	default n
 	default y if !DMA_BUF_SYNC_IOCTL_SUPPORTED
 	help
-	  This option caused kbase to set up the GPU mapping of imported
+	  This option will cause kbase to set up the GPU mapping of imported
 	  dma-buf when needed to run atoms. This is the legacy behavior.
 
 	  This is intended for testing and the option will get removed in the
@@ -158,17 +147,6 @@ menuconfig MALI_BIFROST_EXPERT
 	  Enabling this option and modifying the default settings may produce
 	  a driver with performance or other limitations.
 
-config MALI_2MB_ALLOC
-	bool "Attempt to allocate 2MB pages"
-	depends on MALI_BIFROST && MALI_BIFROST_EXPERT
-	default n
-	help
-	  Rather than allocating all GPU memory page-by-page, attempt to
-	  allocate 2MB pages from the kernel. This reduces TLB pressure and
-	  helps to prevent memory fragmentation.
-
-	  If in doubt, say N
-
 config MALI_MEMORY_FULLY_BACKED
 	bool "Enable memory fully physically-backed"
 	depends on MALI_BIFROST && MALI_BIFROST_EXPERT
@@ -191,6 +169,20 @@ config MALI_CORESTACK
 	  This feature is currently only supported on t-Six and t-HEx GPUs.
 
 	  If unsure, say N.
+
+config MALI_FW_CORE_DUMP
+	bool "Enable support for FW core dump"
+	depends on MALI_BIFROST && MALI_BIFROST_EXPERT && MALI_CSF_SUPPORT
+	default n
+	help
+	  Adds ability to request firmware core dump
+
+	  Example:
+	  * To explicitly request core dump:
+	  echo 1 >/sys/kernel/debug/mali0/fw_core_dump
+	  * To output current core dump (after explicitly requesting a core dump,
+	  or kernel driver reported an internal firmware error):
+	  cat /sys/kernel/debug/mali0/fw_core_dump
 
 choice
 	prompt "Error injection level"
@@ -330,5 +322,5 @@ config MALI_HW_ERRATA_1485982_USE_CLOCK_ALTERNATIVE
 	  slowest clock will be selected.
 
 
-source "kernel/drivers/gpu/arm/midgard/arbitration/Mconfig"
+source "kernel/drivers/gpu/arm/arbitration/Mconfig"
 source "kernel/drivers/gpu/arm/midgard/tests/Mconfig"

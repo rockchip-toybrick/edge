@@ -20,6 +20,7 @@
 #include <linux/mfd/syscon.h>
 #include <linux/pm_runtime.h>
 #include <linux/regulator/consumer.h>
+#include <linux/rockchip/cpu.h>
 #include <soc/rockchip/pm_domains.h>
 #include <soc/rockchip/rockchip_dmc.h>
 #include <dt-bindings/power/px30-power.h>
@@ -35,6 +36,7 @@
 #include <dt-bindings/power/rk3366-power.h>
 #include <dt-bindings/power/rk3368-power.h>
 #include <dt-bindings/power/rk3399-power.h>
+#include <dt-bindings/power/rk3528-power.h>
 #include <dt-bindings/power/rk3568-power.h>
 #include <dt-bindings/power/rk3588-power.h>
 
@@ -51,6 +53,7 @@ struct rockchip_domain_info {
 	int mem_status_mask;
 	int repair_status_mask;
 	bool keepon_startup;
+	bool always_on;
 	u32 pwr_offset;
 	u32 mem_offset;
 	u32 req_offset;
@@ -91,10 +94,12 @@ struct rockchip_pm_domain {
 	int num_qos;
 	struct regmap **qos_regmap;
 	u32 *qos_save_regs[MAX_QOS_REGS_NUM];
+	bool *qos_is_need_init[MAX_QOS_REGS_NUM];
 	int num_clks;
 	struct clk_bulk_data *clks;
 	bool is_ignore_pwr;
 	bool is_qos_saved;
+	bool is_qos_need_init;
 	struct regulator *supply;
 };
 
@@ -113,6 +118,35 @@ static bool pm_domain_always_on;
 module_param_named(always_on, pm_domain_always_on, bool, 0644);
 MODULE_PARM_DESC(always_on,
 		 "Always keep pm domains power on except for system suspend.");
+
+#ifdef MODULE
+static bool keepon_startup = true;
+static void rockchip_pd_keepon_do_release(void);
+
+static int pd_param_set_keepon_startup(const char *val,
+				       const struct kernel_param *kp)
+{
+	int ret;
+
+	ret = param_set_bool(val, kp);
+	if (ret)
+		return ret;
+
+	if (!keepon_startup)
+		rockchip_pd_keepon_do_release();
+
+	return 0;
+}
+
+static const struct kernel_param_ops pd_keepon_startup_ops = {
+	.set	= pd_param_set_keepon_startup,
+	.get	= param_get_bool,
+};
+
+module_param_cb(keepon_startup, &pd_keepon_startup_ops, &keepon_startup, 0644);
+MODULE_PARM_DESC(keepon_startup,
+		 "Keep pm domains power on during system startup.");
+#endif
 
 static void rockchip_pmu_lock(struct rockchip_pm_domain *pd)
 {
@@ -150,6 +184,20 @@ static void rockchip_pmu_unlock(struct rockchip_pm_domain *pd)
 	.req_mask = (req),				\
 	.idle_mask = (idle),				\
 	.ack_mask = (ack),				\
+	.active_wakeup = wakeup,			\
+	.keepon_startup = keepon,			\
+}
+
+#define DOMAIN_M_A(pwr, status, req, idle, ack, always, wakeup, keepon)	\
+{							\
+	.pwr_w_mask = (pwr) << 16,			\
+	.pwr_mask = (pwr),				\
+	.status_mask = (status),			\
+	.req_w_mask = (req) << 16,			\
+	.req_mask = (req),				\
+	.idle_mask = (idle),				\
+	.ack_mask = (ack),				\
+	.always_on = always,				\
 	.active_wakeup = wakeup,			\
 	.keepon_startup = keepon,			\
 }
@@ -234,6 +282,9 @@ static void rockchip_pmu_unlock(struct rockchip_pm_domain *pd)
 
 #define DOMAIN_RK3399_PROTECT(name, pwr, status, req, wakeup)	\
 	DOMAIN(name, pwr, status, req, req, req, wakeup, true)
+
+#define DOMAIN_RK3528(pwr, req, always, wakeup) \
+	DOMAIN_M_A(pwr, pwr, req, req, req, always, wakeup, false)
 
 #define DOMAIN_RK3568(name, pwr, req, wakeup)			\
 	DOMAIN_M(name, pwr, pwr, req, req, req, wakeup, false)
@@ -392,6 +443,45 @@ static int rockchip_pmu_restore_qos(struct rockchip_pm_domain *pd)
 	return 0;
 }
 
+static void rockchip_pmu_init_qos(struct rockchip_pm_domain *pd)
+{
+	int i;
+
+	if (!pd->is_qos_need_init)
+		return;
+
+	for (i = 0; i < pd->num_qos; i++) {
+		if (pd->qos_is_need_init[0][i])
+			regmap_write(pd->qos_regmap[i],
+				     QOS_PRIORITY,
+				     pd->qos_save_regs[0][i]);
+
+		if (pd->qos_is_need_init[1][i])
+			regmap_write(pd->qos_regmap[i],
+				     QOS_MODE,
+				     pd->qos_save_regs[1][i]);
+
+		if (pd->qos_is_need_init[2][i])
+			regmap_write(pd->qos_regmap[i],
+				     QOS_BANDWIDTH,
+				     pd->qos_save_regs[2][i]);
+
+		if (pd->qos_is_need_init[3][i])
+			regmap_write(pd->qos_regmap[i],
+				     QOS_SATURATION,
+				     pd->qos_save_regs[3][i]);
+
+		if (pd->qos_is_need_init[4][i])
+			regmap_write(pd->qos_regmap[i],
+				     QOS_EXTCONTROL,
+				     pd->qos_save_regs[4][i]);
+	}
+
+	kfree(pd->qos_is_need_init[0]);
+	pd->qos_is_need_init[0] = NULL;
+	pd->is_qos_need_init = false;
+}
+
 int rockchip_save_qos(struct device *dev)
 {
 	struct generic_pm_domain *genpd;
@@ -477,6 +567,8 @@ static int rockchip_pmu_domain_mem_reset(struct rockchip_pm_domain *pd)
 			genpd->name, is_on);
 		goto error;
 	}
+
+	udelay(60);
 
 	regmap_write(pmu->regmap, pmu->info->mem_pwr_offset + pd->info->pwr_offset,
 		     (pd->info->pwr_mask | pd->info->pwr_w_mask));
@@ -588,6 +680,11 @@ static int rockchip_pd_power(struct rockchip_pm_domain *pd, bool power_on)
 	if (pm_domain_always_on && !power_on)
 		return 0;
 
+	if (!power_on && soc_is_px30s()) {
+		if (genpd->name && !strcmp(genpd->name, "gpu"))
+			return 0;
+	}
+
 	rockchip_pmu_lock(pd);
 
 	if (rockchip_pmu_domain_is_on(pd) != power_on) {
@@ -644,6 +741,8 @@ static int rockchip_pd_power(struct rockchip_pm_domain *pd, bool power_on)
 
 			if (pd->is_qos_saved)
 				rockchip_pmu_restore_qos(pd);
+			if (pd->is_qos_need_init)
+				rockchip_pmu_init_qos(pd);
 		}
 
 out:
@@ -774,44 +873,46 @@ static void rockchip_pd_detach_dev(struct generic_pm_domain *genpd,
 	pm_clk_destroy(dev);
 }
 
-static void rockchip_pd_qos_init(struct rockchip_pm_domain *pd,
-				 bool **qos_is_need_init)
+static void rockchip_pd_qos_init(struct rockchip_pm_domain *pd)
 {
-	int i, is_pd_on;
+	int is_pd_on, ret = 0;
 
-	is_pd_on = rockchip_pmu_domain_is_on(pd);
-	if (!is_pd_on)
-		rockchip_pd_power(pd, true);
-
-	for (i = 0; i < pd->num_qos; i++) {
-		if (qos_is_need_init[0][i])
-			regmap_write(pd->qos_regmap[i],
-				     QOS_PRIORITY,
-				     pd->qos_save_regs[0][i]);
-
-		if (qos_is_need_init[1][i])
-			regmap_write(pd->qos_regmap[i],
-				     QOS_MODE,
-				     pd->qos_save_regs[1][i]);
-
-		if (qos_is_need_init[2][i])
-			regmap_write(pd->qos_regmap[i],
-				     QOS_BANDWIDTH,
-				     pd->qos_save_regs[2][i]);
-
-		if (qos_is_need_init[3][i])
-			regmap_write(pd->qos_regmap[i],
-				     QOS_SATURATION,
-				     pd->qos_save_regs[3][i]);
-
-		if (qos_is_need_init[4][i])
-			regmap_write(pd->qos_regmap[i],
-				     QOS_EXTCONTROL,
-				     pd->qos_save_regs[4][i]);
+	if (!pd->is_qos_need_init) {
+		kfree(pd->qos_is_need_init[0]);
+		pd->qos_is_need_init[0] = NULL;
+		return;
 	}
 
-	if (!is_pd_on)
-		rockchip_pd_power(pd, false);
+	is_pd_on = rockchip_pmu_domain_is_on(pd);
+	if (is_pd_on) {
+		ret = clk_bulk_enable(pd->num_clks, pd->clks);
+		if (ret < 0) {
+			dev_err(pd->pmu->dev, "failed to enable clocks\n");
+			return;
+		}
+		rockchip_pmu_init_qos(pd);
+		clk_bulk_disable(pd->num_clks, pd->clks);
+	}
+}
+
+static int rockchip_pd_add_alwasy_on_flag(struct rockchip_pm_domain *pd)
+{
+	int error;
+
+	if (pd->genpd.flags & GENPD_FLAG_ALWAYS_ON)
+		return 0;
+	pd->genpd.flags |= GENPD_FLAG_ALWAYS_ON;
+	if (!rockchip_pmu_domain_is_on(pd)) {
+		error = rockchip_pd_power(pd, true);
+		if (error) {
+			dev_err(pd->pmu->dev,
+				"failed to power on domain '%s': %d\n",
+				pd->genpd.name, error);
+			return error;
+		}
+	}
+
+	return 0;
 }
 
 static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
@@ -824,8 +925,6 @@ static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
 	int i, j;
 	u32 id, val;
 	int error;
-	bool *qos_is_need_init[MAX_QOS_REGS_NUM] = { NULL };
-	bool is_qos_need_init = false;
 
 	error = of_property_read_u32(node, "reg", &id);
 	if (error) {
@@ -913,18 +1012,19 @@ static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
 			error = -ENOMEM;
 			goto err_unprepare_clocks;
 		}
-		qos_is_need_init[0] = kzalloc(sizeof(bool) *
-					      MAX_QOS_REGS_NUM *
-					      pd->num_qos,
-					      GFP_KERNEL);
-		if (!qos_is_need_init[0]) {
+		pd->qos_is_need_init[0] = kzalloc(sizeof(bool) *
+						  MAX_QOS_REGS_NUM *
+						  pd->num_qos,
+						  GFP_KERNEL);
+		if (!pd->qos_is_need_init[0]) {
 			error = -ENOMEM;
 			goto err_unprepare_clocks;
 		}
 		for (i = 1; i < MAX_QOS_REGS_NUM; i++) {
 			pd->qos_save_regs[i] = pd->qos_save_regs[i - 1] +
 					       num_qos;
-			qos_is_need_init[i] = qos_is_need_init[i - 1] + num_qos;
+			pd->qos_is_need_init[i] = pd->qos_is_need_init[i - 1] +
+						  num_qos;
 		}
 
 		for (j = 0; j < num_qos; j++) {
@@ -945,47 +1045,49 @@ static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
 							  "priority-init",
 							  &val)) {
 					pd->qos_save_regs[0][j] = val;
-					qos_is_need_init[0][j] = true;
-					is_qos_need_init = true;
+					pd->qos_is_need_init[0][j] = true;
+					pd->is_qos_need_init = true;
 				}
 
 				if (!of_property_read_u32(qos_node,
 							  "mode-init",
 							  &val)) {
 					pd->qos_save_regs[1][j] = val;
-					qos_is_need_init[1][j] = true;
-					is_qos_need_init = true;
+					pd->qos_is_need_init[1][j] = true;
+					pd->is_qos_need_init = true;
 				}
 
 				if (!of_property_read_u32(qos_node,
 							  "bandwidth-init",
 							  &val)) {
 					pd->qos_save_regs[2][j] = val;
-					qos_is_need_init[2][j] = true;
-					is_qos_need_init = true;
+					pd->qos_is_need_init[2][j] = true;
+					pd->is_qos_need_init = true;
 				}
 
 				if (!of_property_read_u32(qos_node,
 							  "saturation-init",
 							  &val)) {
 					pd->qos_save_regs[3][j] = val;
-					qos_is_need_init[3][j] = true;
-					is_qos_need_init = true;
+					pd->qos_is_need_init[3][j] = true;
+					pd->is_qos_need_init = true;
 				}
 
 				if (!of_property_read_u32(qos_node,
 							  "extcontrol-init",
 							  &val)) {
 					pd->qos_save_regs[4][j] = val;
-					qos_is_need_init[4][j] = true;
-					is_qos_need_init = true;
+					pd->qos_is_need_init[4][j] = true;
+					pd->is_qos_need_init = true;
 				}
 
 				num_qos_reg++;
 			}
 			of_node_put(qos_node);
-			if (num_qos_reg > pd->num_qos)
+			if (num_qos_reg > pd->num_qos) {
+				error = -EINVAL;
 				goto err_unprepare_clocks;
+			}
 		}
 	}
 
@@ -999,24 +1101,12 @@ static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
 	pd->genpd.detach_dev = rockchip_pd_detach_dev;
 	if (pd_info->active_wakeup)
 		pd->genpd.flags |= GENPD_FLAG_ACTIVE_WAKEUP;
-#ifndef MODULE
-	if (pd_info->keepon_startup) {
-		pd->genpd.flags |= GENPD_FLAG_ALWAYS_ON;
-		if (!rockchip_pmu_domain_is_on(pd)) {
-			error = rockchip_pd_power(pd, true);
-			if (error) {
-				dev_err(pmu->dev,
-					"failed to power on domain '%s': %d\n",
-					node->name, error);
-				goto err_unprepare_clocks;
-			}
-		}
+	if (pd_info->always_on || pd_info->keepon_startup) {
+		error = rockchip_pd_add_alwasy_on_flag(pd);
+		if (error)
+			goto err_unprepare_clocks;
 	}
-#endif
-	if (is_qos_need_init)
-		rockchip_pd_qos_init(pd, &qos_is_need_init[0]);
-
-	kfree(qos_is_need_init[0]);
+	rockchip_pd_qos_init(pd);
 
 	pm_genpd_init(&pd->genpd, NULL, !rockchip_pmu_domain_is_on(pd));
 
@@ -1024,7 +1114,8 @@ static int rockchip_pm_add_one_domain(struct rockchip_pmu *pmu,
 	return 0;
 
 err_unprepare_clocks:
-	kfree(qos_is_need_init[0]);
+	kfree(pd->qos_is_need_init[0]);
+	pd->qos_is_need_init[0] = NULL;
 	clk_bulk_unprepare(pd->num_clks, pd->clks);
 err_put_clocks:
 	clk_bulk_put(pd->num_clks, pd->clks);
@@ -1149,46 +1240,36 @@ err_out:
 	return error;
 }
 
-#ifndef MODULE
-static void rockchip_pd_keepon_do_release(struct generic_pm_domain *genpd,
-					  struct rockchip_pm_domain *pd)
-{
-	struct pm_domain_data *pm_data;
-	int enable_count;
-
-	pd->genpd.flags &= (~GENPD_FLAG_ALWAYS_ON);
-	list_for_each_entry(pm_data, &genpd->dev_list, list_node) {
-		if (!atomic_read(&pm_data->dev->power.usage_count)) {
-			enable_count = 0;
-			if (!pm_runtime_enabled(pm_data->dev)) {
-				pm_runtime_enable(pm_data->dev);
-				enable_count = 1;
-			}
-			pm_runtime_get_sync(pm_data->dev);
-			pm_runtime_put_sync(pm_data->dev);
-			if (enable_count)
-				pm_runtime_disable(pm_data->dev);
-		}
-	}
-}
-
-static int __init rockchip_pd_keepon_release(void)
+static void rockchip_pd_keepon_do_release(void)
 {
 	struct generic_pm_domain *genpd;
 	struct rockchip_pm_domain *pd;
 	int i;
 
 	if (!g_pmu)
-		return 0;
+		return;
 
 	for (i = 0; i < g_pmu->genpd_data.num_domains; i++) {
 		genpd = g_pmu->genpd_data.domains[i];
 		if (genpd) {
 			pd = to_rockchip_pd(genpd);
-			if (pd->info->keepon_startup)
-				rockchip_pd_keepon_do_release(genpd, pd);
+			if (pd->info->always_on)
+				continue;
+			if (!pd->info->keepon_startup)
+				continue;
+			if (!(genpd->flags & GENPD_FLAG_ALWAYS_ON))
+				continue;
+			genpd->flags &= (~GENPD_FLAG_ALWAYS_ON);
+			queue_work(pm_wq, &genpd->power_off_work);
 		}
 	}
+}
+
+#ifndef MODULE
+static int __init rockchip_pd_keepon_release(void)
+{
+	rockchip_pd_keepon_do_release();
+
 	return 0;
 }
 late_initcall_sync(rockchip_pd_keepon_release);
@@ -1476,6 +1557,18 @@ static const struct rockchip_domain_info rk3399_pm_domains[] = {
 	[RK3399_PD_SDIOAUDIO]	= DOMAIN_RK3399("sdioaudio",    BIT(31), BIT(31), BIT(29), true),
 };
 
+static const struct rockchip_domain_info rk3528_pm_domains[] = {
+	[RK3528_PD_PMU]		= DOMAIN_RK3528(0, BIT(0), true, false),
+	[RK3528_PD_BUS]		= DOMAIN_RK3528(0, BIT(1), true, false),
+	[RK3528_PD_DDR]		= DOMAIN_RK3528(0, BIT(2), true, false),
+	[RK3528_PD_MSCH]	= DOMAIN_RK3528(0, BIT(3), true, false),
+	[RK3528_PD_GPU]		= DOMAIN_RK3528(BIT(0), BIT(4), true, false),
+	[RK3528_PD_RKVDEC]	= DOMAIN_RK3528(0, BIT(5), true, false),
+	[RK3528_PD_RKVENC]	= DOMAIN_RK3528(0, BIT(6), true, false),
+	[RK3528_PD_VO]		= DOMAIN_RK3528(0,  BIT(7), true, false),
+	[RK3528_PD_VPU]		= DOMAIN_RK3528(0, BIT(8), true, false),
+};
+
 static const struct rockchip_domain_info rk3568_pm_domains[] = {
 	[RK3568_PD_NPU]		= DOMAIN_RK3568("npu",        BIT(1), BIT(2),  false),
 	[RK3568_PD_GPU]		= DOMAIN_RK3568("gpu",        BIT(0), BIT(1),  false),
@@ -1678,6 +1771,17 @@ static const struct rockchip_pmu_info rk3399_pmu = {
 	.domain_info = rk3399_pm_domains,
 };
 
+static const struct rockchip_pmu_info rk3528_pmu = {
+	.pwr_offset = 0x1210,
+	.status_offset = 0x1230,
+	.req_offset = 0x1110,
+	.idle_offset = 0x1128,
+	.ack_offset = 0x1120,
+
+	.num_domains = ARRAY_SIZE(rk3528_pm_domains),
+	.domain_info = rk3528_pm_domains,
+};
+
 static const struct rockchip_pmu_info rk3568_pmu = {
 	.pwr_offset = 0xa0,
 	.status_offset = 0x98,
@@ -1757,6 +1861,12 @@ static const struct of_device_id rockchip_pm_domain_dt_match[] = {
 		.compatible = "rockchip,rk3399-power-controller",
 		.data = (void *)&rk3399_pmu,
 	},
+#ifdef CONFIG_CPU_RK3528
+	{
+		.compatible = "rockchip,rk3528-power-controller",
+		.data = (void *)&rk3528_pmu,
+	},
+#endif
 	{
 		.compatible = "rockchip,rk3568-power-controller",
 		.data = (void *)&rk3568_pmu,

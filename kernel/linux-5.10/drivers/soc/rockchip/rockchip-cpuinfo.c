@@ -108,6 +108,16 @@ static struct platform_driver rockchip_cpuinfo_driver = {
 	},
 };
 
+static void rockchip_set_cpu_version_from_os_reg(u32 reg)
+{
+	void __iomem *r = ioremap(reg, 0x4);
+
+	if (r) {
+		rockchip_set_cpu_version(readl_relaxed(r) & GENMASK(2, 0));
+		iounmap(r);
+	}
+}
+
 static void px30_init(void)
 {
 	void __iomem *base;
@@ -123,6 +133,19 @@ static void px30_init(void)
 			rockchip_soc_id = ROCKCHIP_SOC_PX30S;
 		iounmap(base);
 	}
+}
+
+#define RV1106_OS_REG1	0xff020204
+static void rv1103_init(void)
+{
+	rockchip_soc_id = ROCKCHIP_SOC_RV1103;
+	rockchip_set_cpu_version_from_os_reg(RV1106_OS_REG1);
+}
+
+static void rv1106_init(void)
+{
+	rockchip_soc_id = ROCKCHIP_SOC_RV1106;
+	rockchip_set_cpu_version_from_os_reg(RV1106_OS_REG1);
 }
 
 static void rv1109_init(void)
@@ -189,6 +212,11 @@ static void rk3308_init(void)
 	}
 }
 
+static void rk3528_init(void)
+{
+	rockchip_soc_id = ROCKCHIP_SOC_RK3528;
+}
+
 #define RK356X_PMU_GRF_PHYS		0xfdc20000
 #define RK356X_PMU_GRF_SOC_CON0		0x00000100
 #define RK356X_CHIP_VERSION_MASK	0x00008000
@@ -216,7 +244,7 @@ static void rk3568_init(void)
 	rk356x_set_cpu_version();
 }
 
-int __init rockchip_soc_id_init(void)
+int rockchip_soc_id_init(void)
 {
 	if (rockchip_soc_id)
 		return 0;
@@ -230,11 +258,17 @@ int __init rockchip_soc_id_init(void)
 			rk3126_init();
 	} else if (cpu_is_rk3308()) {
 		rk3308_init();
+	} else if (cpu_is_rv1103()) {
+		rv1103_init();
+	} else if (cpu_is_rv1106()) {
+		rv1106_init();
 	} else if (cpu_is_rv1109()) {
 		rv1109_init();
 	} else if (cpu_is_rv1126()) {
 		rv1126_init();
-	} else if (cpu_is_rk3566()) {
+	} else if (cpu_is_rk3528()) {
+		rk3528_init();
+	}  else if (cpu_is_rk3566()) {
 		rk3566_init();
 	} else if (cpu_is_rk3568()) {
 		rk3568_init();
@@ -244,6 +278,7 @@ int __init rockchip_soc_id_init(void)
 
 	return 0;
 }
+EXPORT_SYMBOL(rockchip_soc_id_init);
 #ifndef MODULE
 pure_initcall(rockchip_soc_id_init);
 #endif

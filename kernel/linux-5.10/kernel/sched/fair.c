@@ -3389,7 +3389,6 @@ void set_task_rq_fair(struct sched_entity *se,
 	se->avg.last_update_time = n_last_update_time;
 }
 
-
 /*
  * When on migration a sched_entity joins/leaves the PELT hierarchy, we need to
  * propagate its contribution. The key to this propagation is the invariant
@@ -3457,7 +3456,6 @@ void set_task_rq_fair(struct sched_entity *se,
  * XXX: only do this for the part of runnable > running ?
  *
  */
-
 static inline void
 update_tg_cfs_util(struct cfs_rq *cfs_rq, struct sched_entity *se, struct cfs_rq *gcfs_rq)
 {
@@ -3688,6 +3686,18 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
 		r = removed_util;
 		sub_positive(&sa->util_avg, r);
 		sub_positive(&sa->util_sum, r * divider);
+		/*
+		 * Because of rounding, se->util_sum might ends up being +1 more than
+		 * cfs->util_sum. Although this is not a problem by itself, detaching
+		 * a lot of tasks with the rounding problem between 2 updates of
+		 * util_avg (~1ms) can make cfs->util_sum becoming null whereas
+		 * cfs_util_avg is not.
+		 * Check that util_sum is still above its lower bound for the new
+		 * util_avg. Given that period_contrib might have moved since the last
+		 * sync, we are only sure that util_sum must be above or equal to
+		 *    util_avg * minimum possible divider
+		 */
+		sa->util_sum = max_t(u32, sa->util_sum, sa->util_avg * PELT_MIN_DIVIDER);
 
 		r = removed_runnable;
 		sub_positive(&sa->runnable_avg, r);
@@ -4607,7 +4617,6 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
 
 	if (cfs_rq->nr_running > 1)
 		check_preempt_tick(cfs_rq, curr);
-	trace_android_rvh_entity_tick(cfs_rq, curr);
 }
 
 
@@ -5180,7 +5189,7 @@ static void do_sched_cfs_slack_timer(struct cfs_bandwidth *cfs_b)
 /*
  * When a group wakes up we want to make sure that its quota is not already
  * expired/exceeded, otherwise it may be allowed to steal additional ticks of
- * runtime as update_curr() throttling can not not trigger until it's on-rq.
+ * runtime as update_curr() throttling can not trigger until it's on-rq.
  */
 static void check_enqueue_throttle(struct cfs_rq *cfs_rq)
 {
@@ -6326,8 +6335,10 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
 	 * pattern is IO completions.
 	 */
 	if (is_per_cpu_kthread(current) &&
+	    in_task() &&
 	    prev == smp_processor_id() &&
-	    this_rq()->nr_running <= 1) {
+	    this_rq()->nr_running <= 1 &&
+	    asym_fits_capacity(task_util, prev)) {
 		return prev;
 	}
 
@@ -6345,6 +6356,11 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
 		 */
 		p->recent_used_cpu = prev;
 		return recent_used_cpu;
+	}
+
+	if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+		if (rockchip_perf_get_level() == ROCKCHIP_PERFORMANCE_HIGH)
+			goto sd_llc;
 	}
 
 	/*
@@ -6367,6 +6383,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
 		}
 	}
 
+sd_llc:
 	sd = rcu_dereference(per_cpu(sd_llc, target));
 	if (!sd)
 		return target;
@@ -6664,6 +6681,7 @@ compute_energy(struct task_struct *p, int dst_cpu, struct perf_domain *pd)
 static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sync)
 {
 	unsigned long prev_delta = ULONG_MAX, best_delta = ULONG_MAX;
+	unsigned long best_delta2 = ULONG_MAX;
 	struct root_domain *rd = cpu_rq(smp_processor_id())->rd;
 	int max_spare_cap_cpu_ls = prev_cpu, best_idle_cpu = -1;
 	unsigned long max_spare_cap_ls = 0, target_cap;
@@ -6760,8 +6778,10 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
 				max_spare_cap_cpu = cpu;
 			}
 
-			if (!latency_sensitive)
-				continue;
+			if (!IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+				if (!latency_sensitive)
+					continue;
+			}
 
 			if (idle_cpu(cpu)) {
 				cpu_cap = capacity_orig_of(cpu);
@@ -6778,9 +6798,19 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu, int sy
 					min_exit_lat = idle->exit_latency;
 				target_cap = cpu_cap;
 				best_idle_cpu = cpu;
+				if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+					best_delta2 = compute_energy(p, cpu, pd);
+					best_delta2 -= base_energy_pd;
+				}
 			} else if (spare_cap > max_spare_cap_ls) {
 				max_spare_cap_ls = spare_cap;
 				max_spare_cap_cpu_ls = cpu;
+				if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+					if (best_idle_cpu == -1) {
+						best_delta2 = compute_energy(p, cpu, pd);
+						best_delta2 -= base_energy_pd;
+					}
+				}
 			}
 		}
 
@@ -6808,13 +6838,33 @@ unlock:
 	if (prev_delta == ULONG_MAX)
 		return best_energy_cpu;
 
-	if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
-		if (rockchip_perf_get_level() == 0)
-			return best_energy_cpu;
-	}
-
 	if ((prev_delta - best_delta) > ((prev_delta + base_energy) >> 4))
 		return best_energy_cpu;
+
+	if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+		struct cpumask *cpul_mask = rockchip_perf_get_cpul_mask();
+		struct cpumask *cpub_mask = rockchip_perf_get_cpub_mask();
+		int level = rockchip_perf_get_level();
+
+		/*
+		 * when select ROCKCHIP_PERFORMANCE_LOW:
+		 * Pick best_energy_cpu if prev_cpu is big cpu and best_energy_cpu
+		 * is little cpu, so that tasks can migrate from big cpu to little
+		 * cpu easier to save power.
+		 */
+		if ((level == ROCKCHIP_PERFORMANCE_LOW) && cpul_mask &&
+		    cpub_mask && cpumask_test_cpu(prev_cpu, cpub_mask) &&
+		    cpumask_test_cpu(best_energy_cpu, cpul_mask)) {
+			return best_energy_cpu;
+		}
+
+		/*
+		 * Pick the idlest cpu if it is a little power increased(<3.1%).
+		 */
+		if ((best_delta2 <= prev_delta) ||
+			((best_delta2 - prev_delta) < ((prev_delta + base_energy) >> 5)))
+			return best_idle_cpu >= 0 ? best_idle_cpu : max_spare_cap_cpu_ls;
+	}
 
 	return prev_cpu;
 
@@ -6857,6 +6907,11 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 	if (sd_flag & SD_BALANCE_WAKE) {
 		record_wakee(p);
 
+		if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+			if (rockchip_perf_get_level() == ROCKCHIP_PERFORMANCE_HIGH)
+				goto no_eas;
+		}
+
 		if (sched_energy_enabled()) {
 			new_cpu = find_energy_efficient_cpu(p, prev_cpu, sync);
 			if (new_cpu >= 0)
@@ -6864,6 +6919,7 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 			new_cpu = prev_cpu;
 		}
 
+no_eas:
 		want_affine = !wake_wide(p) && cpumask_test_cpu(cpu, p->cpus_ptr);
 	}
 
@@ -6895,6 +6951,23 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		/* Fast path */
 
 		new_cpu = select_idle_sibling(p, prev_cpu, new_cpu);
+
+		if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+			struct root_domain *rd = cpu_rq(cpu)->rd;
+			struct cpumask *cpul_mask = rockchip_perf_get_cpul_mask();
+			struct cpumask *cpub_mask = rockchip_perf_get_cpub_mask();
+			int level = rockchip_perf_get_level();
+
+			if ((level == ROCKCHIP_PERFORMANCE_HIGH) && !READ_ONCE(rd->overutilized) &&
+			    cpul_mask && cpub_mask && cpumask_intersects(p->cpus_ptr, cpub_mask) &&
+			    cpumask_test_cpu(new_cpu, cpul_mask)) {
+				for_each_domain(cpu, tmp) {
+					sd = tmp;
+				}
+				if (sd)
+					new_cpu = find_idlest_cpu(sd, p, cpu, prev_cpu, sd_flag);
+			}
+		}
 
 		if (want_affine)
 			current->recent_used_cpu = cpu;
@@ -7073,12 +7146,8 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 	int scale = cfs_rq->nr_running >= sched_nr_latency;
 	int next_buddy_marked = 0;
 	bool preempt = false, nopreempt = false;
-	bool ignore = false;
 
 	if (unlikely(se == pse))
-		return;
-	trace_android_rvh_check_preempt_wakeup_ignore(curr, &ignore);
-	if (ignore)
 		return;
 
 	/*
@@ -8975,6 +9044,17 @@ find_idlest_group(struct sched_domain *sd, struct task_struct *p, int this_cpu)
 	do {
 		int local_group;
 
+		if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+			struct root_domain *rd = cpu_rq(this_cpu)->rd;
+			struct cpumask *cpub_mask = rockchip_perf_get_cpub_mask();
+			int level = rockchip_perf_get_level();
+
+			if ((level == ROCKCHIP_PERFORMANCE_HIGH) && !READ_ONCE(rd->overutilized) &&
+			    cpub_mask && cpumask_intersects(p->cpus_ptr, cpub_mask) &&
+			    !cpumask_intersects(sched_group_span(group), cpub_mask))
+				continue;
+		}
+
 		/* Skip over this group if it has no CPUs allowed */
 		if (!cpumask_intersects(sched_group_span(group),
 					p->cpus_ptr))
@@ -9700,6 +9780,16 @@ static int should_we_balance(struct lb_env *env)
 {
 	struct sched_group *sg = env->sd->groups;
 	int cpu;
+
+	if (IS_ENABLED(CONFIG_ROCKCHIP_PERFORMANCE)) {
+		struct root_domain *rd = env->dst_rq->rd;
+		struct cpumask *cpul_mask = rockchip_perf_get_cpul_mask();
+		int level = rockchip_perf_get_level();
+
+		if ((level == ROCKCHIP_PERFORMANCE_HIGH) && !READ_ONCE(rd->overutilized) &&
+		    cpul_mask && cpumask_test_cpu(env->dst_cpu, cpul_mask))
+			return 0;
+	}
 
 	/*
 	 * Ensure the balancing environment is consistent; can happen

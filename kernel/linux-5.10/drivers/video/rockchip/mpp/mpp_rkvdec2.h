@@ -35,10 +35,10 @@
 
 #define	RKVDEC_SESSION_MAX_BUFFERS	40
 /* The maximum registers number of all the version */
-#define RKVDEC_REG_NUM			278
+#define RKVDEC_REG_NUM			279
 #define RKVDEC_REG_HW_ID_INDEX		0
 #define RKVDEC_REG_START_INDEX		0
-#define RKVDEC_REG_END_INDEX		277
+#define RKVDEC_REG_END_INDEX		278
 
 #define REVDEC_GET_PROD_NUM(x)		(((x) >> 16) & 0xffff)
 #define RKVDEC_REG_FORMAT_INDEX		9
@@ -73,6 +73,7 @@
 					RKVDEC_BUF_EMPTY_STA |\
 					RKVDEC_TIMEOUT_STA |\
 					RKVDEC_ERROR_STA)
+#define RKVDEC_PERF_WORKING_CNT		0x41c
 
 /* perf sel reference register */
 #define RKVDEC_PERF_SEL_OFFSET		0x20000
@@ -185,6 +186,17 @@ struct rkvdec2_dev {
 	struct reset_control *rst_cabac;
 	struct reset_control *rst_hevc_cabac;
 
+#ifdef CONFIG_PM_DEVFREQ
+	struct regulator *vdd;
+	struct devfreq *devfreq;
+	unsigned long volt;
+	unsigned long core_rate_hz;
+	unsigned long core_last_rate_hz;
+	struct ipa_power_model_data *model_data;
+	struct thermal_cooling_device *devfreq_cooling;
+	struct monitor_dev_info *mdev_info;
+#endif
+
 	/* internal rcb-memory */
 	u32 sram_size;
 	u32 rcb_size;
@@ -199,7 +211,6 @@ struct rkvdec2_dev {
 	/* for ccu link mode */
 	struct rkvdec2_ccu *ccu;
 	u32 core_mask;
-	bool disable_work;
 	u32 task_index;
 };
 
@@ -216,5 +227,7 @@ int rkvdec2_free_session(struct mpp_session *session);
 int rkvdec2_result(struct mpp_dev *mpp, struct mpp_task *mpp_task,
 		   struct mpp_task_msgs *msgs);
 int rkvdec2_reset(struct mpp_dev *mpp);
+
+void mpp_devfreq_set_core_rate(struct mpp_dev *mpp, enum MPP_CLOCK_MODE mode);
 
 #endif

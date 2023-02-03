@@ -14,6 +14,7 @@
 #include <linux/xarray.h>
 #include <linux/list.h>
 #include <linux/slab.h>
+#include <linux/nospec.h>
 #include <linux/uaccess.h>
 #include <linux/syscalls.h>
 #include <linux/dma-heap.h>
@@ -155,8 +156,22 @@ static long dma_heap_ioctl_allocate(struct file *file, void *data)
 	return 0;
 }
 
+static int dma_heap_ioctl_get_phys(struct file *file, void *data)
+{
+#if IS_ENABLED(CONFIG_NO_GKI)
+	struct dma_heap *heap = file->private_data;
+	struct dma_heap_phys_data *phys = data;
+
+	if (heap->ops->get_phys)
+		return heap->ops->get_phys(heap, phys);
+#endif
+
+	return -EINVAL;
+}
+
 static unsigned int dma_heap_ioctl_cmds[] = {
 	DMA_HEAP_IOCTL_ALLOC,
+	DMA_HEAP_IOCTL_GET_PHYS,
 };
 
 static long dma_heap_ioctl(struct file *file, unsigned int ucmd,
@@ -172,6 +187,7 @@ static long dma_heap_ioctl(struct file *file, unsigned int ucmd,
 	if (nr >= ARRAY_SIZE(dma_heap_ioctl_cmds))
 		return -EINVAL;
 
+	nr = array_index_nospec(nr, ARRAY_SIZE(dma_heap_ioctl_cmds));
 	/* Get the kernel ioctl cmd that matches */
 	kcmd = dma_heap_ioctl_cmds[nr];
 
@@ -204,6 +220,9 @@ static long dma_heap_ioctl(struct file *file, unsigned int ucmd,
 	switch (kcmd) {
 	case DMA_HEAP_IOCTL_ALLOC:
 		ret = dma_heap_ioctl_allocate(file, kdata);
+		break;
+	case DMA_HEAP_IOCTL_GET_PHYS:
+		ret = dma_heap_ioctl_get_phys(file, kdata);
 		break;
 	default:
 		ret = -ENOTTY;

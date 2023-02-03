@@ -40,10 +40,10 @@
 #include "pcie-rockchip.h"
 #include "rockchip-pcie-dma.h"
 
-static void rk_pcie_start_dma_rk3399(struct dma_trx_obj *obj)
+static void rk_pcie_start_dma_rk3399(struct dma_trx_obj *obj, struct dma_table *cur)
 {
 	struct rockchip_pcie *rockchip = dev_get_drvdata(obj->dev);
-	struct dma_table *tbl = obj->cur;
+	struct dma_table *tbl = cur;
 	int chn = tbl->chn;
 
 	rockchip_pcie_write(rockchip, (u32)(tbl->phys_descs & 0xffffffff),
@@ -1083,6 +1083,8 @@ static int rockchip_pcie_really_probe(struct rockchip_pcie *rockchip)
 	rockchip->bridge->sysdata = rockchip;
 	rockchip->bridge->ops = &rockchip_pcie_ops;
 
+	device_init_wakeup(rockchip->dev, true);
+
 	return pci_host_probe(rockchip->bridge);
 }
 
@@ -1280,6 +1282,8 @@ static int rockchip_pcie_remove(struct platform_device *pdev)
 		regulator_disable(rockchip->vpcie3v3);
 	regulator_disable(rockchip->vpcie1v8);
 	regulator_disable(rockchip->vpcie0v9);
+
+	device_init_wakeup(rockchip->dev, false);
 
 	return 0;
 }

@@ -51,7 +51,7 @@ void rga_fence_context_remove(struct rga_fence_context **ctx)
 	*ctx = NULL;
 }
 
-struct dma_fence *rga_dma_fence_alloc(spinlock_t *lock)
+struct dma_fence *rga_dma_fence_alloc(void)
 {
 	struct rga_fence_context *fence_ctx = rga_drvdata->fence_ctx;
 	struct dma_fence *fence = NULL;
@@ -65,8 +65,8 @@ struct dma_fence *rga_dma_fence_alloc(spinlock_t *lock)
 	if (!fence)
 		return ERR_PTR(-ENOMEM);
 
-	dma_fence_init(fence, &rga_fence_ops, lock,
-			 fence_ctx->context, ++fence_ctx->seqno);
+	dma_fence_init(fence, &rga_fence_ops, &fence_ctx->spinlock,
+		       fence_ctx->context, ++fence_ctx->seqno);
 
 	return fence;
 }
@@ -84,8 +84,10 @@ int rga_dma_fence_get_fd(struct dma_fence *fence)
 		return fence_fd;
 
 	sync_file = sync_file_create(fence);
-	if (!sync_file)
+	if (!sync_file) {
+		put_unused_fd(fence_fd);
 		return -ENOMEM;
+	}
 
 	fd_install(fence_fd, sync_file->file);
 

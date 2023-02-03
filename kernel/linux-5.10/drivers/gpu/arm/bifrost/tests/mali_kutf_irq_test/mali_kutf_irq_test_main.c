@@ -40,7 +40,7 @@
  */
 
 /* KUTF test application pointer for this test */
-struct kutf_application *irq_app;
+static struct kutf_application *irq_app;
 
 /**
  * struct kutf_irq_fixture_data - test fixture used by the test functions.
@@ -50,8 +50,6 @@ struct kutf_application *irq_app;
 struct kutf_irq_fixture_data {
 	struct kbase_device *kbdev;
 };
-
-#define SEC_TO_NANO(s)	      ((s)*1000000000LL)
 
 /* ID for the GPU IRQ */
 #define GPU_IRQ_HANDLER 2
@@ -212,6 +210,11 @@ static void mali_kutf_irq_latency(struct kutf_context *context)
 		average_time += irq_time - start_time;
 
 		udelay(10);
+		/* Sleep for a ms, every 10000 iterations, to avoid misleading warning
+		 * of CPU softlockup when all GPU IRQs keep going to the same CPU.
+		 */
+		if (!(i % 10000))
+			msleep(1);
 	}
 
 	/* Go back to default handler */

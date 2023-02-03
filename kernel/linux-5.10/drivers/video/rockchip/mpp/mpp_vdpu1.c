@@ -25,6 +25,7 @@
 #include "mpp_debug.h"
 #include "mpp_common.h"
 #include "mpp_iommu.h"
+#include <soc/rockchip/rockchip_iommu.h>
 
 #define VDPU1_DRIVER_NAME		"mpp_vdpu1"
 
@@ -390,6 +391,7 @@ static int vdpu_run(struct mpp_dev *mpp,
 	u32 i;
 	u32 reg_en;
 	struct vdpu_task *task = to_vdpu_task(mpp_task);
+	u32 timing_en = mpp->srv->timing_en;
 
 	mpp_debug_enter();
 
@@ -406,10 +408,15 @@ static int vdpu_run(struct mpp_dev *mpp,
 	}
 	/* init current task */
 	mpp->cur_task = mpp_task;
+
+	mpp_task_run_begin(mpp_task, timing_en, MPP_WORK_TIMEOUT_DELAY);
+
 	/* Flush the register before the start the device */
 	wmb();
 	mpp_write(mpp, VDPU1_REG_DEC_INT_EN,
 		  task->reg[reg_en] | VDPU1_DEC_START);
+
+	mpp_task_run_end(mpp_task, timing_en);
 
 	mpp_debug_leave();
 
@@ -506,6 +513,10 @@ static int vdpu_procfs_init(struct mpp_dev *mpp)
 		dec->procfs = NULL;
 		return -EIO;
 	}
+
+	/* for common mpp_dev options */
+	mpp_procfs_create_common(dec->procfs, mpp);
+
 	mpp_procfs_create_u32("aclk", 0644,
 			      dec->procfs, &dec->aclk_info.debug_rate_hz);
 	mpp_procfs_create_u32("session_buffers", 0644,
@@ -550,6 +561,13 @@ static int vdpu_init(struct mpp_dev *mpp)
 	if (!dec->rst_h)
 		mpp_err("No hclk reset resource define\n");
 
+	return 0;
+}
+
+static int vdpu_3036_init(struct mpp_dev *mpp)
+{
+	vdpu_init(mpp);
+	set_bit(mpp->var->device_type, &mpp->queue->dev_active_flags);
 	return 0;
 }
 
@@ -689,6 +707,46 @@ static int vdpu_reset(struct mpp_dev *mpp)
 	return 0;
 }
 
+static int vdpu_3036_set_grf(struct mpp_dev *mpp)
+{
+	int grf_changed;
+	struct mpp_dev *loop = NULL, *n;
+	struct mpp_taskqueue *queue = mpp->queue;
+	bool pd_is_on;
+
+	grf_changed = mpp_grf_is_changed(mpp->grf_info);
+	if (grf_changed) {
+
+		/*
+		 * in this case, devices share the queue also share the same pd&clk,
+		 * so use mpp->dev's pd to control all the process is okay
+		 */
+		pd_is_on = rockchip_pmu_pd_is_on(mpp->dev);
+		if (!pd_is_on)
+			rockchip_pmu_pd_on(mpp->dev);
+		mpp->hw_ops->clk_on(mpp);
+
+		list_for_each_entry_safe(loop, n, &queue->dev_list, queue_link) {
+			if (test_bit(loop->var->device_type, &queue->dev_active_flags)) {
+				if (loop->hw_ops->reset)
+					loop->hw_ops->reset(loop);
+				rockchip_iommu_disable(loop->dev);
+				clear_bit(loop->var->device_type, &queue->dev_active_flags);
+			}
+		}
+
+		mpp_set_grf(mpp->grf_info);
+		rockchip_iommu_enable(mpp->dev);
+		set_bit(mpp->var->device_type, &queue->dev_active_flags);
+
+		mpp->hw_ops->clk_off(mpp);
+		if (!pd_is_on)
+			rockchip_pmu_pd_off(mpp->dev);
+	}
+
+	return 0;
+}
+
 static struct mpp_hw_ops vdpu_v1_hw_ops = {
 	.init = vdpu_init,
 	.clk_on = vdpu_clk_on,
@@ -696,6 +754,17 @@ static struct mpp_hw_ops vdpu_v1_hw_ops = {
 	.set_freq = vdpu_set_freq,
 	.reduce_freq = vdpu_reduce_freq,
 	.reset = vdpu_reset,
+	.set_grf = vdpu_3036_set_grf,
+};
+
+static struct mpp_hw_ops vdpu_3036_hw_ops = {
+	.init = vdpu_3036_init,
+	.clk_on = vdpu_clk_on,
+	.clk_off = vdpu_clk_off,
+	.set_freq = vdpu_set_freq,
+	.reduce_freq = vdpu_reduce_freq,
+	.reset = vdpu_reset,
+	.set_grf = vdpu_3036_set_grf,
 };
 
 static struct mpp_hw_ops vdpu_3288_hw_ops = {
@@ -736,6 +805,14 @@ static const struct mpp_dev_var vdpu_v1_data = {
 	.dev_ops = &vdpu_v1_dev_ops,
 };
 
+static const struct mpp_dev_var vdpu_3036_data = {
+	.device_type = MPP_DEVICE_VDPU1,
+	.hw_info = &vdpu_v1_hw_info,
+	.trans_info = vdpu_v1_trans,
+	.hw_ops = &vdpu_3036_hw_ops,
+	.dev_ops = &vdpu_v1_dev_ops,
+};
+
 static const struct mpp_dev_var vdpu_3288_data = {
 	.device_type = MPP_DEVICE_VDPU1,
 	.hw_info = &vdpu_v1_hw_info,
@@ -769,6 +846,12 @@ static const struct of_device_id mpp_vdpu1_dt_match[] = {
 	{
 		.compatible = "rockchip,vpu-decoder-rk3288",
 		.data = &vdpu_3288_data,
+	},
+#endif
+#ifdef CONFIG_CPU_RK3036
+	{
+		.compatible = "rockchip,vpu-decoder-rk3036",
+		.data = &vdpu_3036_data,
 	},
 #endif
 #ifdef CONFIG_CPU_RK3368
