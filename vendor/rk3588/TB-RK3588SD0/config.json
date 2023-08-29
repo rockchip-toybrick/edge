@@ -2,15 +2,21 @@
   "board": "TB-RK3588SD0",
   "chip": "rk3588",
   "arch": "arm64",
-  "bootmode": "extlinux",
+  "bootmode": "flash",
   "uboot": {
-    "config": "rk3588s-toybrick"
+    "config": "rk3588-toybrick-sd0"
   },
   "kernel": {
     "version": "5.10",
-    "config": "rk3588_edge.config rk3588s_toybrick.config",
+    "config": "rk3588_edge.config rk3588_toybrick.config rk3588_toybrick_sd0.config",
     "dtbname": "rk3588s-toybrick-d0-linux",
-    "docker": true, 
     "debug": "0xfeb50000"
+  },
+  "rootfs": {
+    "osname": "debian",
+    "version": "11",
+    "type": "gnome",
+    "user": "toybrick",
+    "password": "toybrick"
   }
 }

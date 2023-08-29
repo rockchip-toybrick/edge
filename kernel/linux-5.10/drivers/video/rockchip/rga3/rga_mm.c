@@ -181,9 +181,12 @@ static struct sg_table *rga_alloc_sgt(struct rga_virt_addr *virt_addr)
 	}
 
 	/* get sg form pages. */
-	ret = sg_alloc_table_from_pages(sgt, virt_addr->pages,
+	/* iova requires minimum page alignment, so sgt cannot have offset */
+	ret = sg_alloc_table_from_pages(sgt,
+					virt_addr->pages,
 					virt_addr->page_count,
-					0, virt_addr->size,
+					0,
+					virt_addr->size,
 					GFP_KERNEL);
 	if (ret) {
 		pr_err("sg_alloc_table_from_pages failed");
@@ -255,9 +258,15 @@ static int rga_alloc_virt_addr(struct rga_virt_addr **virt_addr_p,
 
 	/* alloc pages and page_table */
 	order = get_order(count * sizeof(struct page *));
+	if (order >= MAX_ORDER) {
+		pr_err("Can not alloc pages with order[%d] for viraddr pages, max_order = %d\n",
+		       order, MAX_ORDER);
+		return -ENOMEM;
+	}
+
 	pages = (struct page **)__get_free_pages(GFP_KERNEL, order);
 	if (pages == NULL) {
-		pr_err("%s can not alloc pages for pages\n", __func__);
+		pr_err("%s can not alloc pages for viraddr pages\n", __func__);
 		return -ENOMEM;
 	}
 
@@ -568,6 +577,13 @@ static int rga_mm_map_virt_addr(struct rga_external_buffer *external_buffer,
 		mm_flag |= RGA_MEM_PHYSICAL_CONTIGUOUS;
 	}
 
+	/*
+	 * Some userspace virtual addresses do not have an
+	 * interface for flushing the cache, so it is mandatory
+	 * to flush the cache when the virtual address is used.
+	 */
+	mm_flag |= RGA_MEM_FORCE_FLUSH_CACHE;
+
 	if (!rga_mm_check_memory_limit(scheduler, mm_flag)) {
 		pr_err("scheduler core[%d] unsupported mm_flag[0x%x]!\n",
 		       scheduler->core, mm_flag);
@@ -618,7 +634,7 @@ static int rga_mm_map_virt_addr(struct rga_external_buffer *external_buffer,
 	internal_buffer->virt_addr = virt_addr;
 	internal_buffer->dma_buffer = buffer;
 	internal_buffer->mm_flag = mm_flag;
-	internal_buffer->phys_addr = phys_addr ? phys_addr : 0;
+	internal_buffer->phys_addr = phys_addr ? phys_addr + virt_addr->offset : 0;
 
 	return 0;
 
@@ -704,7 +720,7 @@ static int rga_mm_map_phys_addr(struct rga_external_buffer *external_buffer,
 		ret = rga_iommu_map(phys_addr, buffer_size, buffer, scheduler->dev);
 		if (ret < 0) {
 			pr_err("%s core[%d] map phys_addr error!\n", __func__, scheduler->core);
-			return ret;
+			goto free_dma_buffer;
 		}
 	}
 
@@ -716,6 +732,11 @@ static int rga_mm_map_phys_addr(struct rga_external_buffer *external_buffer,
 	internal_buffer->dma_buffer = buffer;
 
 	return 0;
+
+free_dma_buffer:
+	kfree(buffer);
+
+	return ret;
 }
 
 static int rga_mm_unmap_buffer(struct rga_internal_buffer *internal_buffer)
@@ -1160,9 +1181,15 @@ static int rga_mm_set_mmu_base(struct rga_job *job,
 
 		if (job->flags & RGA_JOB_USE_HANDLE) {
 			order = get_order(page_count * sizeof(uint32_t *));
+			if (order >= MAX_ORDER) {
+				pr_err("Can not alloc pages with order[%d] for page_table, max_order = %d\n",
+				       order, MAX_ORDER);
+				return -ENOMEM;
+			}
+
 			page_table = (uint32_t *)__get_free_pages(GFP_KERNEL | GFP_DMA32, order);
 			if (page_table == NULL) {
-				pr_err("%s can not alloc pages for pages, order = %d\n",
+				pr_err("%s can not alloc pages for page_table, order = %d\n",
 				       __func__, order);
 				return -ENOMEM;
 			}
@@ -1219,9 +1246,15 @@ static int rga_mm_set_mmu_base(struct rga_job *job,
 
 		if (job->flags & RGA_JOB_USE_HANDLE) {
 			order = get_order(page_count * sizeof(uint32_t *));
+			if (order >= MAX_ORDER) {
+				pr_err("Can not alloc pages with order[%d] for page_table, max_order = %d\n",
+				       order, MAX_ORDER);
+				return -ENOMEM;
+			}
+
 			page_table = (uint32_t *)__get_free_pages(GFP_KERNEL | GFP_DMA32, order);
 			if (page_table == NULL) {
-				pr_err("%s can not alloc pages for pages, order = %d\n",
+				pr_err("%s can not alloc pages for page_table, order = %d\n",
 				       __func__, order);
 				return -ENOMEM;
 			}
@@ -1408,7 +1441,7 @@ static int rga_mm_get_buffer(struct rga_mm *mm,
 		goto put_internal_buffer;
 	}
 
-	if (internal_buffer->type == RGA_VIRTUAL_ADDRESS) {
+	if (internal_buffer->mm_flag & RGA_MEM_FORCE_FLUSH_CACHE) {
 		/*
 		 * Some userspace virtual addresses do not have an
 		 * interface for flushing the cache, so it is mandatory
@@ -1437,7 +1470,7 @@ static void rga_mm_put_buffer(struct rga_mm *mm,
 			      struct rga_internal_buffer *internal_buffer,
 			      enum dma_data_direction dir)
 {
-	if (internal_buffer->type == RGA_VIRTUAL_ADDRESS && dir != DMA_NONE)
+	if (internal_buffer->mm_flag & RGA_MEM_FORCE_FLUSH_CACHE && dir != DMA_NONE)
 		if (rga_mm_sync_dma_sg_for_cpu(internal_buffer, job, dir))
 			pr_err("sync sgt for cpu error!\n");
 
@@ -1548,6 +1581,53 @@ static int rga_mm_get_handle_info(struct rga_job *job)
 
 	req = &job->rga_command_base;
 	mm = rga_drvdata->mm;
+
+	switch (req->render_mode) {
+	case BITBLT_MODE:
+	case COLOR_PALETTE_MODE:
+		if (unlikely(req->src.yrgb_addr <= 0)) {
+			pr_err("render_mode[0x%x] src0 channel handle[%ld] must is valid!",
+			       req->render_mode, (unsigned long)req->src.yrgb_addr);
+			return -EINVAL;
+		}
+
+		if (unlikely(req->dst.yrgb_addr <= 0)) {
+			pr_err("render_mode[0x%x] dst channel handle[%ld] must is valid!",
+			       req->render_mode, (unsigned long)req->dst.yrgb_addr);
+			return -EINVAL;
+		}
+
+		if (req->bsfilter_flag) {
+			if (unlikely(req->pat.yrgb_addr <= 0)) {
+				pr_err("render_mode[0x%x] src1/pat channel handle[%ld] must is valid!",
+				       req->render_mode, (unsigned long)req->pat.yrgb_addr);
+				return -EINVAL;
+			}
+		}
+
+		break;
+	case COLOR_FILL_MODE:
+		if (unlikely(req->dst.yrgb_addr <= 0)) {
+			pr_err("render_mode[0x%x] dst channel handle[%ld] must is valid!",
+			       req->render_mode, (unsigned long)req->dst.yrgb_addr);
+			return -EINVAL;
+		}
+
+		break;
+
+	case UPDATE_PALETTE_TABLE_MODE:
+	case UPDATE_PATTEN_BUF_MODE:
+		if (unlikely(req->pat.yrgb_addr <= 0)) {
+			pr_err("render_mode[0x%x] lut/pat channel handle[%ld] must is valid!, req->render_mode",
+			       req->render_mode, (unsigned long)req->pat.yrgb_addr);
+			return -EINVAL;
+		}
+
+		break;
+	default:
+		pr_err("%s, unknown render mode!\n", __func__);
+		break;
+	}
 
 	if (likely(req->src.yrgb_addr > 0)) {
 		ret = rga_mm_get_channel_handle_info(mm, job, &req->src,
@@ -1739,7 +1819,7 @@ static void rga_mm_unmap_channel_job_buffer(struct rga_job *job,
 					    struct rga_job_buffer *job_buffer,
 					    enum dma_data_direction dir)
 {
-	if (job_buffer->addr->type == RGA_VIRTUAL_ADDRESS && dir != DMA_NONE)
+	if (job_buffer->addr->mm_flag & RGA_MEM_FORCE_FLUSH_CACHE && dir != DMA_NONE)
 		if (rga_mm_sync_dma_sg_for_cpu(job_buffer->addr, job, dir))
 			pr_err("sync sgt for cpu error!\n");
 
@@ -1776,12 +1856,7 @@ static int rga_mm_map_channel_job_buffer(struct rga_job *job,
 		goto error_unmap_buffer;
 	}
 
-	if (buffer->type == RGA_VIRTUAL_ADDRESS) {
-		/*
-		 * Some userspace virtual addresses do not have an
-		 * interface for flushing the cache, so it is mandatory
-		 * to flush the cache when the virtual address is used.
-		 */
+	if (buffer->mm_flag & RGA_MEM_FORCE_FLUSH_CACHE) {
 		ret = rga_mm_sync_dma_sg_for_device(buffer, job, dir);
 		if (ret < 0) {
 			pr_err("sync sgt for device error!\n");

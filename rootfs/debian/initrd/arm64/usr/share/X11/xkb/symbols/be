@@ -1,0 +1,239 @@
+
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+ include "latin"
+
+ name[Group1]="Belgian";
+
+ key <AE01> { [ ampersand, 1, bar, exclamdown ] };
+ key <AE02> { [ eacute, 2, at, oneeighth ] };
+ key <AE03> { [ quotedbl, 3, numbersign, sterling ] };
+ key <AE04> { [apostrophe, 4, onequarter, dollar ] };
+ key <AE05> { [ parenleft, 5, onehalf, threeeighths ] };
+ key <AE06> { [ section, 6, asciicircum, fiveeighths ] };
+ key <AE07> { [ egrave, 7, braceleft, seveneighths ] };
+ key <AE08> { [ exclam, 8, bracketleft, trademark ] };
+ key <AE09> { [ ccedilla, 9, braceleft, plusminus ] };
+ key <AE10> { [ agrave, 0, braceright, degree ] };
+ key <AE11> { [parenright, degree, backslash, questiondown ] };
+ key <AE12> { [ minus, underscore, dead_cedilla, dead_ogonek ] };
+
+ key <AD01> { [ a, A, at, Greek_OMEGA ] };
+ key <AD02> { [ z, Z, lstroke, Lstroke ] };
+ key <AD03> { [ e, E, EuroSign, cent ] };
+ key <AD09> { [ o, O, oe, OE ] }; 
+ key <AD11> { [dead_circumflex, dead_diaeresis, bracketleft, dead_abovering ] };
+ key <AD12> { [ dollar, asterisk, bracketright, dead_macron ] };
+
+ key <AC01> { [ q, Q, ae, AE ] };
+ key <AC10> { [ m, M, dead_acute, dead_doubleacute ] };
+ key <AC11> { [ ugrave, percent, dead_acute, dead_caron ] };
+ key <TLDE> { [twosuperior, threesuperior, notsign, notsign ] };
+
+ key <BKSL> { [ mu, sterling, dead_grave, dead_breve ] };
+ key <AB01> { [ w, W, guillemotleft, less ] };
+ key <AB07> { [ comma, question, dead_cedilla, masculine ] };
+ key <AB08> { [ semicolon, period, horizconnector, multiply ] };
+ key <AB09> { [ colon, slash, periodcentered, division ] };
+ key <AB10> { [ equal, plus, dead_tilde, dead_abovedot] };
+ key <LSGT> { [ less, greater, backslash, backslash ] };
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "oss" {
+
+ include "fr(oss)"
+ include "be(oss_frbe)"
+
+ name[Group1]="Belgian (alt.)";
+};
+
+partial alphanumeric_keys
+xkb_symbols "oss_frbe" {
+ 
+ key <TLDE> { [ twosuperior, threesuperior, onesuperior, lessthanequal ] }; 
+ key <AE01> { [ ampersand, 1, bar, greaterthanequal ] }; 
+ key <AE02> { [ eacute, 2, at, Eacute ] }; 
+ key <AE04> { [ apostrophe, 4, dead_cedilla, 0x1002014 ] }; 
+ key <AE05> { [ parenleft, 5, dead_caron, 0x1002013 ] }; 
+ key <AE06> { [ section, 6, asciicircum, trademark ] }; 
+ key <AE08> { [ exclam, 8, asciitilde, exclamdown ] }; 
+ key <AE09> { [ ccedilla, 9, braceleft, Ccedilla ] }; 
+ key <AE10> { [ agrave, 0, braceright, Agrave ] }; 
+ key <AE11> { [ parenright, degree, oslash, Ooblique ] }; 
+ key <AE12> { [ minus, underscore, 0x1002011, plusminus ] }; 
+
+ 
+ key <AD11> { [ dead_circumflex, dead_diaeresis, bracketleft, dead_abovering ] }; 
+ key <AD12> { [ dollar, asterisk, bracketright, dead_ogonek ] }; 
+
+ 
+ key <AC09> { [ l, L, dead_stroke ] };
+ key <BKSL> { [ mu, sterling, dead_grave, dead_macron ] }; 
+
+ 
+ key <LSGT> { [ less, greater, backslash, notequal ] }; 
+ key <AB10> { [ equal, plus, dead_tilde, 0x1002212 ] }; 
+};
+
+
+partial alphanumeric_keys
+xkb_symbols "oss_latin9" {
+
+ 
+
+ include "fr(oss_latin9)"
+ include "be(oss_frbe)"
+ include "keypad(oss_latin9)"
+
+ name[Group1]="Belgian (alt., Latin-9 only)";
+
+ 
+ key <TLDE> { [ twosuperior, threesuperior, onesuperior, less ] }; 
+ key <AE01> { [ ampersand, 1, bar, greater ] }; 
+ key <AE04> { [ apostrophe, 4, dead_cedilla, minus ] }; 
+ key <AE05> { [ parenleft, 5, dead_caron, minus ] }; 
+ key <AE06> { [ section, 6, asciicircum, asciicircum ] }; 
+ key <AE12> { [ minus, underscore, minus, plusminus ] }; 
+
+ 
+ key <AD12> { [ dollar, asterisk, bracketright, dead_cedilla ] }; 
+
+ 
+ key <AC09> { [ l, L, l, L ] }; 
+ key <BKSL> { [ mu, sterling, dead_grave, dead_circumflex ] }; 
+
+ 
+ key <LSGT> { [ less, greater, backslash, equal ] }; 
+ key <AB10> { [ equal, plus, dead_tilde, minus ] }; 
+};
+
+
+partial alphanumeric_keys
+xkb_symbols "oss_Sundeadkeys" {
+
+ 
+
+ include "be(oss)"
+
+ 
+ key <AE04> { [ apostrophe, 4, dead_cedilla, 0x1002014 ] }; 
+
+ 
+ key <AD11> { [ dead_circumflex, dead_diaeresis, bracketleft, dead_abovering ] }; 
+
+ 
+ key <AC11> { [ ugrave, percent, dead_acute, Ugrave ] }; 
+ key <BKSL> { [ mu, sterling, dead_grave, dead_macron ] }; 
+
+ 
+ key <AB10> { [ equal, plus, dead_tilde, 0x1002212 ] }; 
+};
+
+partial alphanumeric_keys
+xkb_symbols "oss_sundeadkeys" {
+
+ include "be(oss_Sundeadkeys)"
+
+ name[Group1]="Belgian (alt., with Sun dead keys)";
+};
+
+
+partial alphanumeric_keys
+xkb_symbols "iso-alternate" {
+ include "be(basic)"
+ name[Group1]="Belgian (alt. ISO)";
+
+ key <AD01> { [ a, A, ae, AE ] };
+ key <AD02> { [ z, Z, guillemotleft, less ] };
+ key <AC01> { [ q, Q, at, Greek_OMEGA ] };
+ key <AC10> { [ m, M, mu, masculine ] };
+ key <AB01> { [ w, W, lstroke, Lstroke ] };
+ key <AB07> { [ comma, question, dead_cedilla, dead_doubleacute ] };
+};
+
+partial alphanumeric_keys
+xkb_symbols "sundeadkeys" {
+
+ 
+
+ include "be(basic)"
+ name[Group1]="Belgian (with Sun dead keys)";
+
+ key <AD11> { [dead_circumflex, dead_diaeresis, bracketleft, bracketleft] };
+ key <AC11> { [ ugrave, percent, dead_acute, dead_acute ] };
+ key <BKSL> { [ mu, sterling, dead_grave, dead_grave ] };
+ key <AB07> { [ comma, question, dead_cedilla, dead_cedilla] };
+ key <AB10> { [ equal, plus, dead_tilde, dead_tilde ] };
+};
+
+partial alphanumeric_keys
+xkb_symbols "Sundeadkeys" {
+
+ 
+
+ include "be(sundeadkeys)"
+
+};
+
+partial alphanumeric_keys
+xkb_symbols "nodeadkeys" {
+
+ 
+
+ include "be(basic)"
+ name[Group1]="Belgian (no dead keys)";
+
+ key <AE12> { [ minus, underscore, cedilla, ogonek ] };
+ key <AD11> { [asciicircum, diaeresis, bracketleft, bracketleft] };
+ key <AD12> { [ dollar, asterisk, bracketright, macron ] };
+ key <AC10> { [ m, M, acute, doubleacute ] };
+ key <AC11> { [ ugrave, percent, apostrophe, apostrophe ] };
+ key <BKSL> { [ mu, sterling, grave, grave ] };
+ key <AB07> { [ comma, question, cedilla, masculine ] };
+ key <AB10> { [ equal, plus, asciitilde, asciitilde ] };
+};
+
+
+partial alphanumeric_keys
+xkb_symbols "wang" {
+
+ include "be(basic)"
+ include "keypad(legacy_wang)"
+ name[Group1]="Belgian (Wang 724 AZERTY)";
+
+ 
+ key <TLDE> { [ twosuperior, threesuperior, notsign, asciitilde ] };
+ key <LSGT> { [ less, greater, backslash, brokenbar ] };
+};
+
+
+
+partial alphanumeric_keys
+ xkb_symbols "sun_type6" {
+ include "sun_vndr/be(sun_type6)"
+};

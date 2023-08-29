@@ -36,8 +36,6 @@
 #include "mpp_common.h"
 #include "mpp_iommu.h"
 
-#define MPP_WAIT_TIMEOUT_DELAY		(2000)
-
 /* Use 'v' as magic number */
 #define MPP_IOC_MAGIC		'v'
 
@@ -71,6 +69,7 @@ const char *mpp_device_name[MPP_DEVICE_BUTT] = {
 	[MPP_DEVICE_HEVC_DEC]		= "HEVC_DEC",
 	[MPP_DEVICE_RKVDEC]		= "RKVDEC",
 	[MPP_DEVICE_AVSPLUS_DEC]	= "AVSPLUS_DEC",
+	[MPP_DEVICE_RKJPEGD]		= "RKJPEGD",
 	[MPP_DEVICE_RKVENC]		= "RKVENC",
 	[MPP_DEVICE_VEPU1]		= "VEPU1",
 	[MPP_DEVICE_VEPU2]		= "VEPU2",
@@ -141,9 +140,7 @@ mpp_taskqueue_is_running(struct mpp_taskqueue *queue)
 	return flag;
 }
 
-static int
-mpp_taskqueue_pending_to_run(struct mpp_taskqueue *queue,
-			     struct mpp_task *task)
+int mpp_taskqueue_pending_to_run(struct mpp_taskqueue *queue, struct mpp_task *task)
 {
 	unsigned long flags;
 
@@ -356,9 +353,9 @@ void mpp_session_cleanup_detach(struct mpp_taskqueue *queue, struct kthread_work
 		mutex_unlock(&queue->session_lock);
 
 		if (task_count) {
-			mpp_dbg_session("session %d:%d task not finished %d\n",
-					session->pid, session->index,
-					atomic_read(&queue->detach_count));
+			mpp_dbg_session("session %d:%d not finished %d task cnt %d\n",
+					session->device_type, session->index,
+					atomic_read(&queue->detach_count), task_count);
 
 			mpp_session_clear_pending(session);
 		} else {
@@ -578,6 +575,12 @@ static void mpp_task_timeout_work(struct work_struct *work_s)
 
 	mpp = mpp_get_task_used_device(task, session);
 
+	/* disable core irq */
+	disable_irq(mpp->irq);
+	/* disable mmu irq */
+	if (mpp->iommu_info && mpp->iommu_info->got_irq)
+		disable_irq(mpp->iommu_info->irq);
+
 	/* hardware maybe dead, reset it */
 	mpp_reset_up_read(mpp->reset_group);
 	mpp_dev_reset(mpp);
@@ -590,6 +593,13 @@ static void mpp_task_timeout_work(struct work_struct *work_s)
 
 	/* remove task from taskqueue running list */
 	mpp_taskqueue_pop_running(mpp->queue, task);
+
+	/* enable core irq */
+	enable_irq(mpp->irq);
+	/* enable mmu irq */
+	if (mpp->iommu_info && mpp->iommu_info->got_irq)
+		enable_irq(mpp->iommu_info->irq);
+
 	mpp_taskqueue_trigger_work(mpp);
 }
 
@@ -910,23 +920,15 @@ static int mpp_wait_result_default(struct mpp_session *session,
 	}
 	mpp = mpp_get_task_used_device(task, session);
 
-	ret = wait_event_timeout(task->wait,
-				 test_bit(TASK_STATE_DONE, &task->state),
-				 msecs_to_jiffies(MPP_WAIT_TIMEOUT_DELAY));
-	if (ret > 0) {
-		if (mpp->dev_ops->result)
-			ret = mpp->dev_ops->result(mpp, task, msgs);
-	} else {
-		atomic_inc(&task->abort_request);
-		set_bit(TASK_STATE_ABORT, &task->state);
-		mpp_err("timeout, pid %d session %d:%d count %d cur_task %p id %d\n",
-			session->pid, session->pid, session->index,
-			atomic_read(&session->task_count), task,
-			task->task_id);
-	}
+	ret = wait_event_interruptible(task->wait, test_bit(TASK_STATE_DONE, &task->state));
+	if (ret == -ERESTARTSYS)
+		mpp_err("wait task break by signal\n");
 
-	mpp_debug_func(DEBUG_TASK_INFO, "task %d kref_%d\n",
-		       task->task_id, kref_read(&task->ref));
+	if (mpp->dev_ops->result)
+		ret = mpp->dev_ops->result(mpp, task, msgs);
+	mpp_debug_func(DEBUG_TASK_INFO, "wait done session %d:%d count %d task %d state %lx\n",
+		       session->device_type, session->index, atomic_read(&session->task_count),
+		       task->task_index, task->state);
 
 	mpp_session_pop_pending(session, task);
 
@@ -2009,7 +2011,7 @@ int mpp_task_dump_mem_region(struct mpp_dev *mpp,
 	if (!task)
 		return -EIO;
 
-	mpp_err("--- dump mem region ---\n");
+	mpp_err("--- dump task %d mem region ---\n", task->task_index);
 	if (!list_empty(&task->mem_region_list)) {
 		list_for_each_entry_safe(mem, n,
 					 &task->mem_region_list,
@@ -2118,15 +2120,9 @@ int mpp_dev_probe(struct mpp_dev *mpp,
 		return -ENODEV;
 	}
 
-	if (mpp->task_capacity == 1) {
-		/* power domain autosuspend delay 2s */
-		pm_runtime_set_autosuspend_delay(dev, 2000);
-		pm_runtime_use_autosuspend(dev);
-	} else {
-		dev_info(dev, "link mode task capacity %d\n",
-			 mpp->task_capacity);
-		/* do not setup autosuspend on multi task device */
-	}
+	/* power domain autosuspend delay 2s */
+	pm_runtime_set_autosuspend_delay(dev, 2000);
+	pm_runtime_use_autosuspend(dev);
 
 	kthread_init_work(&mpp->work, mpp_task_worker_default);
 
@@ -2137,7 +2133,6 @@ int mpp_dev_probe(struct mpp_dev *mpp,
 
 	device_init_wakeup(dev, true);
 	pm_runtime_enable(dev);
-
 	mpp->irq = platform_get_irq(pdev, 0);
 	if (mpp->irq < 0) {
 		dev_err(dev, "No interrupt resource found\n");
@@ -2164,6 +2159,7 @@ int mpp_dev_probe(struct mpp_dev *mpp,
 		ret = -ENOMEM;
 		goto failed;
 	}
+	mpp->io_base = res->start;
 
 	/*
 	 * TODO: here or at the device itself, some device does not
@@ -2260,7 +2256,7 @@ irqreturn_t mpp_dev_irq(int irq, void *param)
 		irq_ret = mpp->dev_ops->irq(mpp);
 
 	if (task) {
-		if (irq_ret != IRQ_NONE) {
+		if (irq_ret == IRQ_WAKE_THREAD) {
 			/* if wait or delayed work timeout, abort request will turn on,
 			 * isr should not to response, and handle it in delayed work
 			 */
@@ -2278,7 +2274,9 @@ irqreturn_t mpp_dev_irq(int irq, void *param)
 			/* normal condition, set state and wake up isr thread */
 			set_bit(TASK_STATE_IRQ, &task->state);
 		}
-		mpp_iommu_dev_deactivate(mpp->iommu_info, mpp);
+
+		if (irq_ret == IRQ_WAKE_THREAD)
+			mpp_iommu_dev_deactivate(mpp->iommu_info, mpp);
 	} else {
 		mpp_debug(DEBUG_IRQ_CHECK, "error, task is null\n");
 	}

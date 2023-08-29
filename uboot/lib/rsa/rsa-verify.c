@@ -86,11 +86,17 @@ static int rsa_mod_exp_hw(struct key_prop *prop, const uint8_t *sig,
 	uint8_t buf[sig_len];
 	rsa_key rsa_key;
 	int i, ret;
+#ifdef CONFIG_FIT_ENABLE_RSA4096_SUPPORT
+	if (key_len != RSA4096_BYTES)
+		return -EINVAL;
 
+	rsa_key.algo = CRYPTO_RSA4096;
+#else
 	if (key_len != RSA2048_BYTES)
 		return -EINVAL;
 
 	rsa_key.algo = CRYPTO_RSA2048;
+#endif
 	rsa_key.n = malloc(key_len);
 	rsa_key.e = malloc(key_len);
 	rsa_key.c = malloc(key_len);
@@ -599,7 +605,7 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 	struct udevice *dev;
 	struct key_prop prop;
 	char name[100] = {0};
-	u16 secure_boot_enable = 0;
+	u16 secure_flags = 0;
 	const void *blob = info->fdt_blob;
 	uint8_t digest[FIT_MAX_HASH_LEN];
 	uint8_t digest_read[FIT_MAX_HASH_LEN];
@@ -610,11 +616,11 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 		return -ENODEV;
 
 	ret = misc_otp_read(dev, OTP_SECURE_BOOT_ENABLE_ADDR,
-			    &secure_boot_enable, OTP_SECURE_BOOT_ENABLE_SIZE);
+			    &secure_flags, OTP_SECURE_BOOT_ENABLE_SIZE);
 	if (ret)
 		return ret;
 
-	if (secure_boot_enable)
+	if (secure_flags == 0xff)
 		return 0;
 
 	sig_node = fdt_subnode_offset(blob, 0, FIT_SIG_NODENAME);
@@ -701,9 +707,9 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 		goto error;
 	}
 
-	secure_boot_enable = 0xff;
+	secure_flags = 0xff;
 	ret = misc_otp_write(dev, OTP_SECURE_BOOT_ENABLE_ADDR,
-			     &secure_boot_enable, OTP_SECURE_BOOT_ENABLE_SIZE);
+			     &secure_flags, OTP_SECURE_BOOT_ENABLE_SIZE);
 	if (ret)
 		goto error;
 

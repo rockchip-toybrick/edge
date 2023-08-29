@@ -39,6 +39,27 @@
 		};
 	};
 
+	bt_sco: bt-sco {
+		status = "disabled";
+		compatible = "delta,dfbmcs320";
+		#sound-dai-cells = <1>;
+	};
+
+	bt_sound: bt-sound {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "dsp_a";
+		simple-audio-card,bitclock-inversion = <0>;
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,name = "rockchip,bt";
+		simple-audio-card,cpu {
+			sound-dai = <&sai0>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&bt_sco 1>;
+		};
+	};
+
 	dc_12v: dc-12v {
 		compatible = "regulator-fixed";
 		regulator-name = "dc_12v";
@@ -48,12 +69,28 @@
 		regulator-max-microvolt = <12000000>;
 	};
 
+	es7243_sound: es7243-sound {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "rockchip,es7243";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <256>;
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&es7243e>;
+		};
+	};
+
 	hdmi_sound: hdmi-sound {
 		compatible = "rockchip,hdmi";
 		rockchip,mclk-fs = <128>;
 		rockchip,card-name = "rockchip,hdmi";
 		rockchip,cpu = <&sai3>;
 		rockchip,codec = <&hdmi>;
+		rockchip,jack-det;
 	};
 
 	pdmics: dummy-codec {
@@ -78,6 +115,7 @@
 		status = "okay";
 		compatible = "simple-audio-card";
 		simple-audio-card,name = "ROCKCHIP,SPDIF";
+		simple-audio-card,mclk-fs = <128>;
 		simple-audio-card,cpu {
 			sound-dai = <&spdif_8ch>;
 		};
@@ -254,7 +292,16 @@
 	status = "okay";
 };
 
+&dfi {
+	status = "okay";
+};
+
 &display_subsystem {
+	status = "okay";
+};
+
+&dmc {
+	center-supply = <&vdd_logic>;
 	status = "okay";
 };
 
@@ -264,6 +311,11 @@
 
 &gpu {
 	mali-supply = <&vdd_gpu>;
+	status = "okay";
+};
+
+&gpu_bus {
+	bus-supply = <&vdd_logic>;
 	status = "okay";
 };
 
@@ -277,6 +329,30 @@
 
 &hdmiphy {
 	status = "okay";
+};
+
+&i2c6 {
+	status = "disabled";
+	es7243e: es7243e@10 {
+		status = "okay";
+		#sound-dai-cells = <0>;
+		compatible = "ES7243E_MicArray_0";
+		reg = <0x10>;
+	};
+
+	es7243e_11: es7243e@11 {
+		status = "okay";
+		#sound-dai-cells = <0>;
+		compatible = "ES7243E_MicArray_1";
+		reg = <0x11>;
+	};
+
+	es7243e_12: es7243e@12 {
+		status = "okay";
+		#sound-dai-cells = <0>;
+		compatible = "ES7243E_MicArray_2";
+		reg = <0x12>;
+	};
 };
 
 &iep {
@@ -452,6 +528,10 @@
 	status = "okay";
 };
 
+&rkvtunnel {
+	status = "okay";
+};
+
 &rockchip_suspend {
 	status = "okay";
 	rockchip,sleep-debug-en = <1>;
@@ -473,6 +553,11 @@
 		| RKPM_PWM1_M0_REGULATOR_EN
 		)
 	>;
+};
+
+&sai0 {
+	pinctrl-0 = <&i2s0m1_lrck &i2s0m1_sclk &i2s0m1_sdi &i2s0m1_sdo>;
+	status = "disabled";
 };
 
 &sai2 {

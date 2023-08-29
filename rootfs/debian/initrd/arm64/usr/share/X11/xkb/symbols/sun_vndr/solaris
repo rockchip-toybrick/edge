@@ -1,0 +1,112 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial
+xkb_symbols "defaults_common" {
+
+ key <MUTE> { [ XF86AudioMute ] };
+ key <VOL-> { [ XF86AudioLowerVolume ] };
+ key <VOL+> { [ XF86AudioRaiseVolume ] };
+ key <POWR> { [ XF86PowerOff ] };
+ key <STOP> { [ Cancel ] };
+ key <AGAI> { [ Redo ] };
+ key <PROP> { [ SunProps ] };
+ key <UNDO> { [ Undo ] };
+ key <FRNT> { [ SunFront ] };
+ key <COPY> { [ XF86Copy ] };
+ key <OPEN> { [ SunOpen ] };
+ key <PAST> { [ XF86Paste ] };
+ key <FIND> { [ Find ] };
+ key <CUT> { [ XF86Cut ] };
+ key <HELP> { [ Help ] };
+ key <LNFD> { [ Linefeed ] };
+
+ key <LALT> { [ Alt_L, Alt_L ] };
+ key <LWIN> { [ Meta_L ] };
+ key <RWIN> { [ Meta_R ] };
+
+
+
+ key <I150> { [ XF86Sleep ] };
+ key <I160> { [ XF86ScreenSaver ] };
+ key <I235> { [ XF86Display ] };
+
+
+
+ modifier_map Shift { Shift_R, Shift_L };
+ modifier_map Mod2 { Num_Lock };
+ modifier_map Mod4 { Meta_L, Meta_R };
+
+};
+
+partial default
+xkb_symbols "defaults" {
+
+ include "sun_vndr/solaris(defaults_common)"
+
+ modifier_map Mod1 { Alt_L };
+
+};
+
+partial
+xkb_symbols "defaults_type7jp" {
+
+ include "sun_vndr/solaris(defaults_common)"
+
+ modifier_map Mod1 { Alt_L, Alt_R };
+
+};
+
+partial
+xkb_symbols "sun_compat" {
+
+ key <STOP> { [ L1, L1, SunStop ] };
+ key <AGAI> { [ L2, L2, SunAgain ] };
+ key <PROP> { [ L3, L3, SunProps ] };
+ key <UNDO> { [ L4, L4, SunUndo ] };
+ key <FRNT> { [ L5, L5, SunFront ] };
+ key <COPY> { [ L6, L6, SunCopy ] };
+ key <OPEN> { [ L7, L7, SunOpen ] };
+ key <PAST> { [ L8, L8, SunPaste ] };
+ key <FIND> { [ L9, L9, SunFind ] };
+ key <CUT> { [ L10, L10, SunCut ] };
+
+
+
+ key <FK11> { [ SunF36 ], [ F11 ] };
+ key <FK12> { [ SunF37 ], [ F12 ] };
+
+
+
+ key <HELP> { [ Help ] };
+ key <MUTE> { [ SunAudioMute, SunVideoDegauss ] };
+ key <VOL-> { [ SunAudioLowerVolume, SunVideoLowerBrightness ] };
+ key <VOL+> { [ SunAudioRaiseVolume, SunVideoRaiseBrightness ] };
+ key <POWR> { [ XF86Sleep, XF86Hibernate ] };
+};

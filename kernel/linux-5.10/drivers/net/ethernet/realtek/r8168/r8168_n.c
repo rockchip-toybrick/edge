@@ -24058,31 +24058,19 @@ rtl8168_release_board(struct pci_dev *pdev,
 }
 
 static void
-__rtl8168_get_mac_address(struct net_device *dev)
+get_mac_address_from_vendor(struct net_device *dev)
 {
-        u8 mac_addr[MAC_ADDR_LEN * 2] = { 0 };
-        int ret;
-
-        ret = rk_vendor_read(LAN_MAC_ID, mac_addr, MAC_ADDR_LEN * 2);
-        if (ret <= 0 || !is_valid_ether_addr(&mac_addr[6])) {
-                printk(KERN_ERR "r8168: Invalid ether addr %pM\n",
-                        &mac_addr[6]);
-
-                eth_hw_addr_random(dev);
-                ether_addr_copy(&mac_addr[6], dev->dev_addr);
-                printk(KERN_INFO "r8168: Random ether addr %pM\n",
-                        dev->dev_addr);
-
-                ret = rk_vendor_write(LAN_MAC_ID, mac_addr, MAC_ADDR_LEN * 2);
-                if (ret != 0)
-                        printk(KERN_ERR "r8168: Write ether addr failed\n");
-
-                ret = rk_vendor_read(LAN_MAC_ID, mac_addr, MAC_ADDR_LEN * 2);
-                if (ret != MAC_ADDR_LEN * 2)
-                        printk(KERN_ERR "r8168: Read ether addr failed\n");
-        } else {
-                ether_addr_copy(dev->dev_addr, &mac_addr[6]);
-        }
+	int ret;
+	u8 mac_addrs[MAC_ADDR_LEN * 2] = { 0 };
+	
+	ret = rk_vendor_read(LAN_MAC_ID, mac_addrs, MAC_ADDR_LEN * 2);
+	if (ret <= 0 || !is_valid_ether_addr(&mac_addrs[MAC_ADDR_LEN])) {
+		eth_hw_addr_random(dev);
+		ether_addr_copy(&mac_addrs[MAC_ADDR_LEN], dev->dev_addr);
+		rk_vendor_write(LAN_MAC_ID, mac_addrs, MAC_ADDR_LEN * 2);
+	} else {
+		ether_addr_copy(dev->dev_addr, &mac_addrs[MAC_ADDR_LEN]);
+	}
 }
 
 static int
@@ -24149,15 +24137,11 @@ rtl8168_get_mac_address(struct net_device *dev)
         if (!is_valid_ether_addr(mac_addr)) {
                 netif_err(tp, probe, dev, "Invalid ether addr %pM\n",
                           mac_addr);
-                __rtl8168_get_mac_address(dev);
+		get_mac_address_from_vendor(dev);
                 ether_addr_copy(mac_addr, dev->dev_addr);
-                if (!is_valid_ether_addr(mac_addr)) {
-                        eth_hw_addr_random(dev);
-                        ether_addr_copy(mac_addr, dev->dev_addr);
-                        netif_info(tp, probe, dev, "Random ether addr %pM\n",
-                                   mac_addr);
-                        tp->random_mac = 1;
-                }
+                netif_info(tp, probe, dev, "Random ether addr %pM\n",
+                           mac_addr);
+                tp->random_mac = 1;
         }
 
         rtl8168_rar_set(tp, mac_addr);
@@ -24194,9 +24178,11 @@ rtl8168_set_mac_address(struct net_device *dev,
 
         spin_lock_irqsave(&tp->lock, flags);
 
-        //memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
-
-        rtl8168_get_mac_address(dev);
+#if 0
+        memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
+#else
+	get_mac_address_from_vendor(dev);
+#endif
 
         rtl8168_rar_set(tp, dev->dev_addr);
 
@@ -25592,7 +25578,7 @@ rtl8168_init_one(struct pci_dev *pdev,
                 dev->vlan_features = NETIF_F_SG | NETIF_F_IP_CSUM |
                                      NETIF_F_HIGHDMA;
                 if ((tp->mcfg != CFG_METHOD_16) && (tp->mcfg != CFG_METHOD_17)) {
-                        //dev->features |= NETIF_F_TSO;
+                        dev->features |= NETIF_F_SG | NETIF_F_TSO;
                         dev->hw_features |= NETIF_F_TSO;
                         dev->vlan_features |= NETIF_F_TSO;
                 }
@@ -25616,7 +25602,7 @@ rtl8168_init_one(struct pci_dev *pdev,
                         dev->features |=  NETIF_F_IPV6_CSUM;
                         if ((tp->mcfg != CFG_METHOD_16) && (tp->mcfg != CFG_METHOD_17)) {
                                 dev->hw_features |= NETIF_F_TSO6;
-                                //dev->features |=  NETIF_F_TSO6;
+                                dev->features |=  NETIF_F_TSO6;
                         }
                         netif_set_gso_max_size(dev, LSO_64K);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,18,0)

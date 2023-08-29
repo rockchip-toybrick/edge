@@ -1,0 +1,541 @@
+Template: di-utils-shell/do-shell
+Type: note
+Description: Interactive shell
+ After this message, you will be running "ash", a Bourne-shell clone. 
+ .
+ The root file system is a RAM disk. The hard disk file systems are
+ mounted on "/target". The editor available to you is nano. It's very
+ small and easy to figure out. To get an idea of what Unix utilities
+ are available to you, use the "help" command.
+ .
+ Use the "exit" command to return to the installation menu.
+Description-am.UTF-8: እንካሰላንቲያ ቀፎ
+ ከዚህ መልዕክት በኋላ የቦርኔ-ሸል ዲቃል የሆነውን "ash" ያስኬዳሉ።
+ .
+ የስር ፋይል ስርዓቱ ግትር ዲስክ ነው። የተንቀሳቃሹ ዲስክ ፋይል ስርዓት "/target" ላይ ተጭኗል። ጽሑፍ አራሚው ናኖ ነው። ናኖ ትንሽና አጠቃቀሙን ለማወቅ ቀላል ነው። ምን ዓይነት የዩኒክስ መገልገያዎች እንዳሉ ለማወቅ የ"help" ትዕዛዝን ይጠቀሙ።
+ .
+ ወደ ተከላ ምናሌው ለመመለስ "exit" ትዕዛዝን ይጠቀሙ።
+Description-ar.UTF-8: سطر أوامر تفاعلي
+ بعد هذه الرسالة، ستكون تعمل على "ash"، وهو شبيه Bourne-shell.
+ .
+ نظام الملفات الجذري هو قرص ذاكرة مؤقتة. أنظمة ملفات القرص الصلب مركّبة على "target". المحرّر المتوفّر لك هو نانو. إنه صغير جداً وسهل الاستخدام. لتحصل على فكرة عن أدوات يونكس المتوفرة لك استخدم الأمر "help".
+ .
+ استخدم أمر "خروج" للرجوع لقائمة التثبيت.
+Description-ast.UTF-8: Intérprete d'órdenes interactivu
+ Dempués d'esti mensax, tienes d'executar "ash", un clon de Bourne-shell.
+ .
+ El sistema d'archivos raigón ye un discu RAM. Los sistemes d'archivos del discu duru tán montaos en «/target». Pue usar «nano» como editor. Ye un editor enforma pequeñu y cenciellu d'usar. Pa facese una idega de les ferramientes d'Unix que tien disponibles, execute la orde «help».
+ .
+ Use la orde «exit» pa tornar al menú d'instalación.
+Description-be.UTF-8: Камандная абалонка
+ Пасля гэтага паведамлення Вы запусціце "ash", клон Bourne-shell.
+ .
+ Каранёвая файлавая сістэма ёсць дыскам RAM. Файлавыя сыстэмы жорсткага дыска прымацаваныя да "/target". Даступны рэдактар nano, вельмі лёгкі і інтуітыўна зразумелы. Каб зразумець, якія прылады Unix даступныя ў сеансе, ужывайце каманду "help".
+ .
+ Скарыстайце каманду "Выхад", каб вярнуцца да меню ўсталявання.
+Description-bg.UTF-8: Интерактивна обвивка
+ След това съобщение ще сте вътре в „ash“, клонинг на обвивката bash.
+ .
+ Кореновата файлова система е RAM диск.  Файловите системи на твърдия диск са монтирани в „/target“. Наличният редактор е nano. Той е много малък и лесен за употреба. За да получите представа какви Unix инструменти са налични, изпълнете командата „help“.
+ .
+ Използвайте командата „exit“, за да се върнете в инсталационното меню.
+Description-bn.UTF-8: ইন্টারএকটিভ শেল
+ এই বার্তাটির পর আপনি "ash" চালাবেন, যা বর্ন-শেল এর একটি ক্লোন।
+ .
+ মূল ফাইল সিস্টেমটি একটি RAM ডিস্ক। হার্ড ডিস্কের ফাইল সিস্টেমগুলোকে "/target"-এ মাউন্ট করা হয়। আপনি nano নামের টেক্সট সম্পাদক ব্যবহার করতে পারবেন। এটি খুবই ছোট এবং এর ব্যবহার পদ্ধতিও বেশ সহজ। এখন যে ইউনিক্স ইউটিলিটিগুলো ব্যবহার করতে পারবেন, তাদের সম্পর্কে ধারনা পেতে, "help" কমান্ড ব্যবহার করুন।
+ .
+ ইনস্টলেশন মেনুতে ফিরে আসতে "exit" কমান্ড ব্যবহার করুন।
+Description-bo.UTF-8: ཕན་ཚུན་འབྲེལ་ཡོད་ཀྱི་འཇུག་ངོགས
+ བརྡ་འཕྲིན་འདིའི་རྗེས་སུ་ཁྱོད་ཀྱིས་"ash" འཁོར་སྐྱོད་བྱེད་རྒྱུ་ཡིན དེ་ནི་Bourne-shell འདྲ་བཟོས་ཤིག་ཡིན
+ .
+ རྩ་བའི་ཡིག་ཆ་མ་ལག་ནི་སྐབས་རེར་སྤྱོད་ནུས་ཀྱི་ཡིད་འཛིན་RAM གསོག་སྡེར་ཞིག་ཡིན། གསོག་སྡེར་གྱི་ཡིག་ཆ་མ་ལག་ནི་"/target" ཐོག་ཏུ་བཀར་ཡོད། ཁྱོད་ཀྱིས་སྤྱོད་རུང་བའི་རྩོམ་སྒྲིག་ཆས་ནི་nano ཡིན་པས་དེ་ཧ་ཅང་བག་ཡངས་པ་དང་ཤེས་སླ་བ་ཡོད། Unix ཡོ་བྱད་གང་ཞིག་རང་ཉིད་ཀྱིས་སྤྱོད་རུང་བར་ཤེས་དགོས་ན་ "help" བཀའ་བརྡ་སྤྱོད་དགོས
+ .
+ "exit" བཀའ་བརྡ་སྤྱད་ནས་སྒྲིག་འཇུག་གི་འདེམས་ཐོའི་ཐོག་ཏུ་ལོག་ཐུབ
+Description-bs.UTF-8: Interaktivni shell
+ Nakon ove poruke, radit ćete pod "ash", klonom Bourne-shella.
+ .
+ Root datotečni sistem je RAM disk. Datotečni sistemi hard diska su montirani na "/target". Editor koji Vam je dostupan je nano. On je veoma mal i lagan za upotrebu. Da biste stekli sliku o Unix korisnim programima koji su Vam dostupni, koristite naredbu "help".
+ .
+ Koristite se "exit" naredbom da bi ste se vratili u instalacioni meni.
+Description-ca.UTF-8: Intèrpret d'ordres interactiu
+ Després d'aquest missatge, estareu executant «ash», un clon de Bourne-shell.
+ .
+ El sistema de fitxers arrel és un disc RAM. Els sistemes de fitxers del disc dur estan muntats a «/target». L'editor disponible és nano. És molt petit i fàcil d'entendre. Per a fer-vos una idea de les utilitats de Unix que estan disponibles, feu servir l'ordre «help».
+ .
+ Empreu l'ordre «exit» per a tornar al menú d'instal·lació.
+Description-cs.UTF-8: Interaktivní shell
+ Po této zprávě budete mít spuštěn „ash“, klon Bourne shellu.
+ .
+ Kořenový souborový systém leží na RAMdisku, souborové systémy z pevného disku jsou připojeny pod „/target“. K dispozici máte malý a jednoduchý editor nano. Seznam všech dostupných unixových utilit získáte příkazem „help“.
+ .
+ Do instalačního menu se vrátíte příkazem „exit“.
+Description-cy.UTF-8: Cragen rhyngweithiol
+ Ar ôl y neges hon, fe fyddwch yn rhedeg "ash", copi o gragen-Bourne.
+ .
+ Mae'r system ffeil gwraidd yn ddisg RAM. Mae systemau ffeil y ddisg caled wedi eu clymu ar "/target". Nano yw'r golygydd sydd ar gael. Mae'n fach iawn ac yn hawdd i'w ddefnyddio. Er mwyn cael syniad o ba wasanaethau Unix sydd ar gael, defnyddiwch y gorchymyn "help".
+ .
+ Defnyddiwch y gorchymyn "exit" i ddychwelyd i'r ddewislen sefydlu.
+Description-da.UTF-8: Interaktiv skal
+ Efter denne besked kører du »ash«, en klon af Bourne-skallen.
+ .
+ Rodfilsystemet er en ramdisk. Harddisk-filsystemerne er monteret på »/target«. Den tilgængelige tekstbehandler hedder nano. Den er meget lille og nem at finde ud af. For at få en idé om, hvilke Unix-værktøjer, du har til rådighed, kan du bruge kommandoen »help«.
+ .
+ Brug kommandoen »exit« for at komme tilbage til installationsmenuen.
+Description-de.UTF-8: Interaktive Shell
+ Nach dieser Nachricht wird »ash«, ein Bourne-Shell-Klon ausgeführt.
+ .
+ Das Root-Dateisystem ist eine RAM-Disk. Die Festplatten-Dateisysteme sind unter »/target« eingebunden. Der zur Verfügung stehende Editor ist »nano«. Er ist sehr klein und sehr einfach zu verwenden. Um herauszufinden, welche UNIX-Werkzeuge zur Verfügung stehen, können Sie das Kommando »help« verwenden.
+ .
+ Benutzen Sie das »exit«-Kommando, um zum Installationsmenü zurückzugelangen.
+Description-dz.UTF-8: ཕན་ཚུན་འབྲེལ་བའི་ཤལ།
+ འཕྲིན་དོན་འདི་གི་ཤུལ་ལས་ ཁྱོད་ཀྱིས་ "ash" བོ་རན་ཤལ་ངོ་འདྲ་འདི་གཡོག་བཀོལ་དགོ
+ .
+ རྩ་བའི་ཡིག་སྣོད་རིམ་ལུགས་འདི་རེམ་ཌིཀས་ཨིན།ཧརཌི་ཌིཀིསི་ཡིག་སྣོད་རིམ་ལུགས་ཚུ་"/target"གུ་ལུ་སྦྱར་བརྩེགས་འབད་ནུག། ཁྱོད་ལུ་ཐོབ་ཚུགས་པའི་ཞུན་དགཔ་འདི་ན་ནོ་ཨིན། ན་ནོ་འདི་ན་མེད་ས་མེད་ཆུང་ཀུ་འབད་ནི་འདི་གི་འཇམ་ཏོང་ཏོ་འབད་ཐོབ་ཚུགས། ཡུནིཀིསི་ཡུཏིལིཏིས་ཐོབ་ནིའི་དོན་ལས་བརྡ་བཀོད ་"help" འདི་ལག་ལན་འཐབ།
+ .
+ གཞི་བཙུགས་རིམ་པ་ནང་ལོག་ནིའི་དོན་ལས་བརྡ་བཀོད་ "exit" དེ་ལག་ལེན་འཐབ།
+Description-el.UTF-8: Διαδραστικό κέλυφος
+ Μετά το μήνυμα αυτό, θα σας παρουσιαστεί το "ash", ένα κέλυφος τύπου Bourne.
+ .
+ Το ριζικό σύστημα αρχείων βρίσκεται σε ένα δίσκο μνήμης (RAM disk). Τα συστήματα αρχείων του σκληρού δίσκου βρίσκονται προσαρτημένα στο "/target". Σας είναι διαθέσιμος ο nano, ένας εύκολος και συμπαγής κειμενογράφος. Για να αποκτήσετε μια ιδέα των εργαλείων που είναι διαθέσιμα προς χρήση, χρησιμοποιήστε την εντολή "help" στο κέλυφος.
+ .
+ Δώστε την εντολή "exit" για επιστροφή στο μενού της εγκατάστασης.
+Description-eo.UTF-8: Interaga interpretilo (ŝelo)
+ Post tiu ĉi mesaĝo, vi estos uzanta 'ash'-on, klono de la ŝelo 'Bourne'.
+ .
+ La radikdosiera sistemo estas memordisko. La dosiersistemoj de la fiksita disko estas muntitaj sur '/target'. La disponebla redaktilo nomiĝas 'nano'. Ĝi estas eta kaj facile uzebla. Por ekhavi ideon pri la uniksaj util-rimedoj, kiujn vi disponas, uzu la komandon 'help'.
+ .
+ Uzu la komandon 'exit' por reveni al la instalada menuo.
+Description-es.UTF-8: Intérprete de órdenes interactivo
+ Después de este mensaje, estará ejecutando «ash», un clon del intérprete de órdenes Bourne.
+ .
+ El sistema de ficheros raíz es un disco RAM. Los sistemas de ficheros del disco duro están montados en «target». Puede utilizar «nano» como editor. Se trata de un editor muy pequeño y sencillo de usar. Para hacerse una idea de las utilidades de Unix que tiene disponibles, ejecute la orden «help».
+ .
+ Utilice la orden «exit» para volver al menú de instalación.
+Description-et.UTF-8: Interaktiivne kest
+ Pärast seda teadet jooksutad sa "ash"-i, Bourne-kesta klooni.
+ .
+ Juurfailisüsteem on RAM-kettal. Kõvaketta failisüsteemid on haagitud "/target" alla. Saadaval on väike ja lihtne tekstitoimeti nano. Mingi ülevaate saadaolevatest Unixi tööriistadest annab käsk "help".
+ .
+ Paigaldaja menüüsse naasmiseks kasuta käsku "exit".
+Description-eu.UTF-8: Shell elkarreragilea
+ Mezu honen ondoren, "ash" exekutatuko duzu, Bourne-shell-aren klona.
+ .
+ Erroko fitxategi-sistema RAM disko bat da. Disko gogorreko fitxategi-sistemak "/target"-en muntatuta daude. Erabilgarri duzun editorea "nano" da: oso arina eta erabiltzeko erraza. Erabilgarri dauden Unix-eko tresnak jakiteko erabili "help" komandoa.
+ .
+ Erabili "exit" komandoa instalazioaren menura itzultzeko.
+Description-fa.UTF-8: پوسته‌ٔ محاوره‌ای
+ بعد از این پیغام، شما «ash»، یک مشابه Bourne-shell را در حال اجرا خواهید داشت.
+ .
+ سیستم‌فایل ریشه یک دیسک RAM است. سیستم‌فایل‌های دیسک سخت در «/target» ماونت شده‌اند. ویرایش‌گر در اختیار شما نانو است. بسیار کوچک بوده و با آسانی قابل فهمیدن است. برای آنکه بدانید چه ابزارهای یونیکسی در اختیار دارید، از فرمان «help» استفاده کنید.
+ .
+ برای بازگشت به منوی نصب از فرمان "exit" استفاده نمایید.
+Description-fi.UTF-8: Vuorovaikutteinen komentotulkki
+ Tämän viestin jälkeen käytössäsi on ”ash”, Bourne-komentotulkin klooni.
+ .
+ Juuritiedostojärjestelmä on muistilevy, ”RAM-levy”. Kiintolevyn tiedostojärjestelmät ovat liitettyinä hakemistossa ”target”. Käytettävissä on nano-editori. Se on erittäin pieni ja helppo oppia. Käytettävissäsi olevat Unix-työkalut selviävät ”help”-komennolla.
+ .
+ Komennolla ”exit” palaat asennusvalikkoon.
+Description-fr.UTF-8: Ligne de commande interactive
+ Après ce message, vous utiliserez « ash », un clone du Bourne-shell.
+ .
+ Le système de fichiers racine est un disque mémoire. Les systèmes de fichiers qui se trouvent sur le disque dur sont montés sur « /target ». L'éditeur de texte disponible est nano, un petit éditeur facile à utiliser. Pour vous faire une idée des utilitaires Unix dont vous disposez, utilisez la commande « help ». 
+ .
+ Vous pouvez utiliser la commande « exit » pour revenir au menu d'installation.
+Description-ga.UTF-8: Blaosc idirghníomhach
+ Tar éis na teachtaireachta seo, beidh "ash" á rith agat, clón den bhlaosc Bourne.
+ .
+ Is diosca RAM é an fréamhchóras comhad. Tá na córais chomhad ar an diosca crua feistithe ag "/target". Is féidir leat an t-eagarthóir "nano" a úsáid. Tá sé an-bheag agus ní deacair é a úsáid. Chun na hacmhainní Unix atá ar fáil a fheiceáil, úsáid an t-ordú "help".
+ .
+ Úsáid "scoir" chun filleadh ar an roghchlár suiteála.
+Description-gl.UTF-8: Shell interactiva
+ Despois desta mensaxe ha estar dentro de «ash», un clon do Bourne-shell.
+ .
+ O sistema de ficheiros raíz é un disco RAM. Os sistemas de ficheiros do disco duro están montados en «/target». O editor que ten dispoñíbel é nano; é moi pequeno e fácil de empregar. Para ter unha idea dos útiles de Unix que hai dispoñíbeis, empregue a orde «help».
+ .
+ Empregue a orde «exit» para volver ao menú de instalación.
+Description-gu.UTF-8: ઇન્ટરએક્ટિવ શૅલ
+ આ સંદેશા પછી, તમે બૉર્ન-શૅલનાં જેવું "ash" ચલાવશો.
+ .
+ રૂટ ફાઇલ સિસ્ટમ રેમ ડિસ્ક છે. હાર્ડડિસ્કની ફાઇલ સિસ્ટમ્સ  "/target" પર માઉન્ટ કરેલ છે. તમારી પાસે નેનો સંપાદક ઉપલબ્ધ છે. તે ઘણું નાનું છે અને વાપરવામાં સરળ છે. કઇ યુનિક્સ સવલતો તમને પ્રાપ્ત છે તે જાણવા માટે  તમે, "help" આદેશ વાપરી શકો છો.
+ .
+ સ્થાપન મેનુમાં પાછા આવવા માટે "બહાર નીકળો" આદેશ વાપરો.
+Description-he.UTF-8: מעטפת אינטראקטיבית
+ לאחר הודעה זו, תופעל „ash”, מעטפת דמוית Bourne.
+ .
+ שורש מערכת הקבצים הוא כונן בזיכרון. מערכות הקבצים של הכוננים הקשיחים מעוגנים תחת „‎/target”. העורך הזמין לרשותך הוא nano. מדובר בעורך קטן ופשוט לתפעול. כדי להבין אילו כלי יוניקס זמינים לרשותך ניתן להשתמש בפקודה „help”.
+ .
+ הפקודה „exit” תחזיר אותך לתפריט ההתקנה.
+Description-hi.UTF-8: इंटरेक्टिव शैल
+ इस संदेश के पश्चात आप बॉर्न शैल का क्लोन "ऐश" चलता हुआ पाएँगे.
+ .
+ रूट फाइलसिस्टम एक रैम (RAM) डिस्क है. हार्ड डिस्क फाइलसिस्टम "/target" पर स्थापित है. फाइल सम्पादन के लिए आपको nano उपलब्ध है. यह बहुत ही छोटा और उपयोग में आसान है. अन्य उपलब्ध यूनिक्स अनुप्रयोगों की जानकारी के लिए "help" कमान्ड का प्रयोग करें.
+ .
+ संस्थापना मेन्यू में वापस जाने के लिए "exit" कमांड का प्रयोग करें.
+Description-hr.UTF-8: Interaktivna ljuska
+ Nakon ove poruke, naći ćete se u "ash" ljusci, klonu Bourne ljuske.
+ .
+ Korijenski datotečni sustav je RAM disk. Datotečni sustavi čvrstih diskova montirani su na "/target". Na raspolaganju vam je uređivač teksta nano, koji je vrlo malen i jednostavan za korištenje. Kako bi doznali koji su vam Unix alati na raspolaganju, upišite naredbu "help".
+ .
+ Koristite naredbu "exit" za vraćanje u instalacijski izbornik.
+Description-hu.UTF-8: Interaktív héj
+ Ezen üzenet után az "ash", egy Bourne-héj másolat indul.
+ .
+ A gyökér fájlrendszer egy RAM lemez. A merevlemez fájlrendszerek a "/target"-ben vannak. Az elérhető szerkesztő a nano. Ez igen kicsi és könnyen használható. Az elérhető Unix eszközök megismerését a "help" parancs segíti.
+ .
+ A telepítő menüjébe az "exit" paranccsal lehet visszatérni.
+Description-id.UTF-8: Shell interaktif
+ Setelah pesan ini, Anda akan menjalankan "ash", klon dari Bourne-Shell.
+ .
+ Sistem berkas root adalah sebuah disk RAM. Sistem berkas hard disk dikaitkan pada "/target". Editor yang tersedia adalah nano. Nano sangat kecil dan mudah digunakan. Untuk mengetahui utilitas Unix apa saja yang tersedia, gunakan perintah "help".
+ .
+ Gunakan perintah "exit" untuk kembali ke menu instalasi.
+Description-is.UTF-8: Gagnvirk skel
+ Eftir þessi skilaboð munt þú vera keyrandi "ash", eftirhermu Bourne-skelarinnar.
+ .
+ Rótarskráarkerfið er RAM-diskur. Skráarkerfin á harða disknum eru tengd inn á "/target". Ritillinn sem þér býðst er nano. Hann er mjög lítill og einfaldur. Til að skoða nokkur þeirra UNIX-tóla sem þér býðst getur þú notað "help"-skipunina.
+ .
+ Notaðu "exit" skipunina til að komast aftur í uppsetningarvalmyndina.
+Description-it.UTF-8: Shell interattiva
+ Dopo questo messaggio verrà usata «ash», un clone della Bourne-shell.
+ .
+ Il file system di root è un disco RAM. I file system dei dischi sono montati in «/target». È disponibile «nano», un editor molto piccolo e facile da usare. Per conoscere i programmi Unix disponibili è possibile usare il comando «help».
+ .
+ Usare il comando «exit» per tornare al menù d'installazione.
+Description-ja.UTF-8: インタラクティブシェル
+ このメッセージのあと、Bourne シェルクローンの "ash" が実行されます。
+ .
+ ルートファイルシステムは RAM ディスクです。ハードディスクファイルシステムは "/target" にマウントされています。利用できるエディタは nano です。これは非常に小さく理解するのが簡単なものです。利用可能な Unix ユーティリティが何か知りたいときは、"help" コマンドを使ってください。
+ .
+ インストールメニューに戻るには "exit" コマンドを使います。
+Description-ka.UTF-8: ინტერაქტიული გარსი, შელი
+ ამ შეტყობინების შემდეგ თქვენ იხილავთ „ash”-ს, რომელიც Bourne შელის კლონია.
+ .
+ ძირეული (root) ფაილური სისტემა RAM-დისკია. მყარი დისკის ფაილური სისტემები „/target”-ზე აირს ჩამაგრებული. თქვნი რედაქტორია nano. ეს გახლავთ ძალიან პატარა და მარტივი ტექსტური რედაქტორი. თქვენს ხელთ არსებული Unix-ის ხელსაწყოთა ჩამონათვალისათვის აკრიფეთ ბრძანება „help”.
+ .
+ გამოიყენეთ „exit„ ბრძანება ინსტალაციის მენიუში დასაბრუნებლად.
+Description-kab.UTF-8: Tajeɣlalt tamyigawt
+ Mbeɛd izen-agi, ad tesnekreḍ "ash", tacettalt n Bourne-shell.
+ .
+ Anagraw n ufaylu aẓar d aḍebsi RAM. Inagrawen n yifuyla n uḍebsi usbiḍ ttwasulin ɣef "/target". Amaẓrag i ak·am-yellan d nano. Mecṭuḥ aṭas yerna yeshel ad t-tfehmeḍ. I wakken ad tesɛuḍ takti ɣef yibaɣuren n Unix i yellan, seqdec taladna "tallalt".
+ .
+ Sexdem taqeffalt "ffeɣ" i tuɣalin ɣer wummuɣ n usebded.
+Description-kk.UTF-8: Интерактивті қоршам
+ Осы хабардан соң Bourne-shell клоны болып табылатын "ash" іске қосылады.
+ .
+ Түбірлік файлдық жүйе жадыда орналасқан. Қатты дисктердің файлдық жүйесі "/target" құрылғысына тіркелген. Сіздің қолыңызда өте кіші әрі оңай редактор – nano бар. "help" командасы мүмкін командалар мен Unix утилиттері туралы айтып береді.
+ .
+ Орнату мәзіріне оралу үшін "exit" командасын қолданыңыз.
+Description-km.UTF-8: សែលអន្តរសកម្ម
+ បន្ទាប់​ពី​សារនេះ អ្នក​នឹង​ត្រូវ​រត់ "ash" ដែល​ជា​ក្លូន​សែល Bourne មួយ ។
+ .
+ ប្រព័ន្ធ​ឯកសារ​ root គឺ​ជា​ថាស​សតិ ។ ប្រព័ន្ធ​ឯកសារថាសរឹង​ត្រូវ​បាន​ម៉ោន​លើ​ "/target" ។ កម្មវិធី​និពន្ធ​ដែល​អ្នក​អាច​ប្រើ​បាន​គឺ​ nano ។ វា​តូច​បំផុត ហើយ​ងាយស្រួល​ប្រើ​ទៀត​ផង ។ ដើម្បី​អាច​ដឹង​ថា ឧបករណ៍​ប្រើប្រាស់​នៅ​ក្នុង​យូនីក​មាន​អ្វី​ខ្លះ អ្នក​អាច​ប្រើ​ពាក្យបញ្ជា "help" ។
+ .
+ ប្រើ​ពាក្យ​បញ្ជា "exit" ដើម្បី​ត្រឡប់​មកកាន់​​ម៉ឺនុយ​ដំឡើង​វិញ ។
+Description-kn.UTF-8: ಸಕ್ರಿಯವಾದ ಶೆಲ್
+ ಈ ಸಂದೇಶದ ನಂತರ, ಬೋರ್ನ್ ಶೆಲ್ ಅವಳಿಯಾದ "ash"ಅನ್ನು ನಡೆಸಲಾಗುವುದು.
+ .
+ ಮೂಲ ಕಡತ ವ್ಯವಸ್ಥೆಯು ಒಂದು RAM ಡಿಸ್ಕ್ ಆಗಿದೆ. ಹಾರ್ಡ್ ಡಿಸ್ಕಿನ ಕಡತ ವ್ಯವಸ್ಥೆಗಳು "/target" ಮೇಲೆ ಪೇರಿಸಲ್ಪಟ್ಟಿದೆ. ನಿಮಗೆ ಲಭ್ಯವಿರುವ ಎಡಿಟರ್ nano. ಇದು ತುಂಬಾ ಸಣ್ಣದು ಮತ್ತು ಅರ್ಥೈಸಲು ತುಂಬಾ ಸುಲಭವಾದದ್ದು. Unixನಲ್ಲಿ ನಿಮಗೆ ಯಾವ ಸೌಲಭ್ಯಗಳು ಲಭ್ಯವಿವೆ ಎಂದು ತಿಳಿಯಲು "help" ಆಜ್ಞೆಯನ್ನು ಬಳಸಿ.
+ .
+ ಅನುಸ್ಧಾಪನ ಪರಿವಿಡಿಗೆ ಹಿಂತಿರುಗಲು "exit" ಎ೦ಬ ಆದೇಶವನ್ನು ಉಪಯೋಗಿಸಿರಿ.
+Description-ko.UTF-8: 인터랙티브 쉘
+ 이 메시지가 없어지면, 본 쉘과 비슷한 "ash"를 실행합니다.
+ .
+ 루트 파일 시스템은 램디스크입니다. 하드 디스크의 파일 시스템은 "/target"에 마운트되어 있습니다. 사용할 수 있는 에디터는 nano입니다. nano는 크기가 아주 작고 사용법을 쉽게 배울 수 있는 에디터입니다. 어떤 유닉스 명령을 사용할 수 있는 지 알려면, "help" 명령을 실행하십시오.
+ .
+ 설치 메뉴로 다시 돌아오려면 "exit" 명령을 사용하십시오.
+Description-ku.UTF-8: Qalikê înteraktîf
+ Piştî vê peyamê, tu dê "ash" a ku kopiyeke Bourne-shell' ê ye bi kar bînî.
+ .
+ Pergala pelan a rootê dîskeke RAM e. Pergalên pelên hard dîskê li bin "/target" girêdayî ne. Pergalkarê nivîsê yê tu dê bi kar bînî nano ye. Ev pergalkarekî nivîsê yê gelekî biçûk û bikaranîna wê hêsan e. Der barê amûrên Unix de heke tu agahiyan bixwazî, fermana "help" binivîse.
+ .
+ Ji bo tu vegerî pêşeka sazkirinê fermana "exit" bi kar bîne.
+Description-lo.UTF-8: ເຊຣ໌ວໂຕ້ຕອບ
+ ຫຼັງຈາກຂໍ້ນີ້ເຈົ້າຈະເຂົ້າສູ່ "ash"ເຊຣວຮຽນແບບ Bourne shell ຊະນິດໜື່ງ.
+ .
+ ລະບົບແຟ້ມຮາກເປັນແຮນດຣິກ ລະບົບແຟ້ມໃນດຣິກຈະຖືກເມົາໄວ້"/target" ໂປຣແກຮມແກ້ໄຂຂໍ້ຄວາມທີ່ເຈົ້າຈະໃຊ້ໄດ້ຄື nano ຊື່ງເປັນໂປຣແກຣມນ້ອຍໆ ແລະໃຊ້ງ່າຍ ຫາກຕ້ອງການຮູ້ຂໍ້ມູນຂອງເຄື່ອງມືຢູ່ນີກທີ່ມີໃຫ້ໃຊ້ເຈົ້າສາມາດໃຊ້ຄຳສັ່ງ"help" ເພື່ອເບີ່ງໄດ້.
+ .
+ ໃຊ້ຄຳສັ່ງ "exit" ເພື່ອກັບເຂົ້າສູ່ລາຍການຕິດຕັ້ງ.
+Description-lt.UTF-8: Interaktyvi aplinka (shell)
+ Po šio pranešimo, vykdysite "ash" apvalkalą, Bourne-shell'o kloną.
+ .
+ Šakninė (root) failų sistema yra RAM diskas. Kietojo disko failų sistemos yra prijungtos prie "/target". Jums prieinamas redaktorius - nano. Jis labai mažas ir paprastas naudoti. Kad sužinotumėte, kokios dar pagalbinės Unix programos Jums prieinamos, naudokite komandą "help".
+ .
+ Grįžimui į įdiegiklio meniu naudokite "exit" komandą.
+Description-lv.UTF-8: Interaktīvā čaula
+ Pēc šī paziņojuma jūsu rīcībā būs "ash", Bourne čaulas (sh) klons.
+ .
+ Saknes datņu sistēma ir RAM disks. Cieto disku datņu sistēmas ir piemontētas pie "/target". Jums pieejamais teksta redaktors ir nano; tas ir ļoti mazs un viegli apgūstams. Lai noskaidrotu, kādas vēl Unix utilītas ir pieejamas, lietojiet komandu "help".
+ .
+ Lietojiet komandu "exit", lai atgrieztos pie instalēšanas izvēlnes.
+Description-mk.UTF-8: Интерактивна конзола
+ По оваа порака ќе се стартува „ash“, клон на Bourne школката.
+ .
+ Root датотечниот систем е РАМ диск. Датотечните системи на тврдиот диск се монтирани на „/target“. Уредувачот кој ти е достапен е nano. Тоа е многу мал и лесен за употреба. За да видиш кои UNIX алатки ти се достапни, користи ја „help“ командата.
+ .
+ Користете ја командата „exit“ за да се вратите во инсталционото мени.
+Description-ml.UTF-8: പരസ്പരവിനിമയം നടത്താവുന്ന ഷെല്‍
+ ഈ സന്ദേശത്തിനു് ശേഷം നിങ്ങള്‍ പ്രവര്‍ത്തിപ്പിയ്ക്കാന്‍ പോകുന്നതു് ബോണി ഷെല്ലിന്റെ (Bourne-shell) തനിപ്പകര്‍പ്പായ "ash" ആയിരിയ്ക്കും.
+ .
+ റൂട്ട് ഫയല്‍ സിസ്റ്റം ഒരു റാം ഡിസ്കാണു്. ഹാര്‍ഡ് ഡിസ്ക് ഫയല്‍ സിസ്റ്റങ്ങള്‍ ചേര്‍ത്തിരിക്കുന്നതു് "/target" ലാണു്. നാനോ (nano) ആണു് നിങ്ങള്‍ക്കു് ലഭ്യമായിട്ടുള്ള എഡിറ്റര്‍. ഇതു് വളരെ ചെറുതും എളുപ്പത്തില്‍ മനസ്സിലാക്കാവുന്നതുമാണു്. നിങ്ങള്‍ക്കു് ലഭ്യമായിട്ടുള്ള യുണിക്സ് സഹായോപകരണങ്ങളെക്കുറിച്ചു് ഏകദേശ ധാരണ കിട്ടാന്‍ "help" എന്ന ആജ്ഞ ഉപയോഗിയ്ക്കാം.
+ .
+ ഇന്‍സ്റ്റലേഷന്‍ മെനുവിലേയ്ക്കു് തിരിച്ചു് പോകാന്‍ "exit" എന്ന ആജ്ഞ ഉപയോഗിയ്ക്കുക.
+Description-mr.UTF-8: इंटरॅक्टिव शेल
+ या मेसेज नंतर तुम्ही "ash" (बोर्न-शेल क्लोन) चालू केलेली असेल.
+ .
+ मूल फाइल प्रणाली ही एक रॅम डिस्क आहे. हार्ड डिस्क वर असलेल्या फाइल प्रणाली "target" वर आरोहित झालेल्या आहेत. तुम्हाला उपलब्ध असलेला संपादक नॅनो हा आहे. तो अतिशय छोटा आणि वापरायला अतिशय सोपा आहे. तुम्हाला उपलब्ध असलेल्या युनिक्स युटिलिटीजची कल्पना येण्यासाठी "help" आज्ञा वापरा.
+ .
+ अधिष्ठापनेच्या मेनूला परत जाण्यासाठी "exit" आज्ञा वापरा.
+Description-nb.UTF-8: Interaktivt skall
+ Etter denne meldinga startes «ash», en klone av Bourne-skallet.
+ .
+ Rotfilsystemet er en RAM-disk. Filsystemene på harddisken er montert på «/target». Skriveprogrammet nano er tilgjengelig. Det er lite og enkelt å bruke. For å få et overblikk over hvilke Unix-verktøy du har tilgjengelig kan du bruke kommandoen «help».
+ .
+ Bruk kommandoen «exit» for å komme tilbake til installasjonsmenyen.
+Description-ne.UTF-8: अन्तर्क्रियात्मक शेल
+ यो सन्देश पछि, तपाईँ एउटा बउर्न-शेल क्लोन ,"ash" चलाउनु हुनेछ ।
+ .
+ मूल फाइल प्रणाली RAM डिस्क हो । हार्ड डिस्क फाइल प्रणालीहरू "/target" मा माउन्ट हुन्छन् । तपाईँ सँग उपलब्ध सम्पादक चाँहि नानो हो । यो निकै सानो भएकाले फिगर आउट गर्न सजिलो छ । तपाईँ सँग कस्ता युनिक्स युटिलिटिहरू उपलब्ध छन् भन्ने जानकारि प्राप्त गर्नका लागि "help" आदेशको प्रयोग गर्नुहोस् ।
+ .
+ स्थापना मेनुमा फर्कनका लागि "exit" आदेशको प्रयोग गर्नुहोस् ।
+Description-nl.UTF-8: Interactieve shell
+ Na deze boodschap maakt u gebruik van "ash", een kloon van de Bourne-shell.
+ .
+ Het basisbestandssysteem is een RAM-schijf. De harde-schijf-bestandssystemen zijn op 'target' aangekoppeld. De erg kleine en eenvoudig te gebruiken editor nano is beschikbaar. Meer informatie betreffende de beschikbare Unix-hulpprogramma's vindt u via het commando 'help'.
+ .
+ Via het 'exit'-commando kunt u naar het installatiemenu terugkeren.
+Description-nn.UTF-8: Interaktivt skal.
+ Etter denne meldinga så køyrer du «ash», ein klone av Bourne-skalet.
+ .
+ Rotfilsystemet er ein RAM-disk. Filsystema på harddisken er montert på «/target». Skriveprogrammet nano er tilgjengeleg. Det er lite og enkelt å bruka. For å få eit overblikk over kva for Unix-verktøy du har tilgjengeleg kan du bruke «help»-kommandoen.
+ .
+ Bruk kommandoen «exit» for å koma tilbake til installasjonsmenyen.
+Description-no.UTF-8: Interaktivt skall
+ Etter denne meldinga startes «ash», en klone av Bourne-skallet.
+ .
+ Rotfilsystemet er en RAM-disk. Filsystemene på harddisken er montert på «/target». Skriveprogrammet nano er tilgjengelig. Det er lite og enkelt å bruke. For å få et overblikk over hvilke Unix-verktøy du har tilgjengelig kan du bruke kommandoen «help».
+ .
+ Bruk kommandoen «exit» for å komme tilbake til installasjonsmenyen.
+Description-oc.UTF-8: Linha de comanda interactiva
+ Aprèp aqueste messatge, utilizaretz « ash », un clòn del Bourne-shell.
+ .
+ Lo sistèma de fichièrs raiç es un disc memòria. Los sistèmas de fichièrs que se tròban sul disc dur son montats sus « /target ». L'editor de tèxte disponible es nano, un pichon editor de bon utilizar. Per aver un idèa dels utilitaris UNIX disponibles, utilizatz la comanda « help ».
+ .
+ Podètz utilizar la comanda « exit » per tornar al menú d'installacion.
+Description-pa.UTF-8: ਇੰਟਰ-ਐਕਟਿਵ ਸ਼ੈਲ
+ ਇਸ ਸੁਨੇਹੇ ਤੋਂ ਬਾਅਦ, ਤੁਸੀਂ "ash" ਚਲਾਉਗੇ, ਬੌਰਨ-ਸ਼ੈੱਲ ਕਲੋਨ।
+ .
+ root ਫਾਇਲ ਸਿਸਟਮ RAM ਡਿਸਕ ਹੈ। ਹਾਰਡ ਡਿਸਕ ਫਾਇਲ ਸਿਸਟਮ "/target" ਤੇ ਮਾਊਂਟ ਕੀਤੇ ਹਨ। ਉਪਲੱਬਧ ਸੰਪਾਦਕ nano ਹੈ। ਇਹ ਬਹੁਤ ਛੋਟਾ ਹੈ ਅਤੇ ਵਰਤਣ ਲਈ ਸੌਖਾ ਹੈ। ਵੇਖਣ ਲਈ ਕਿ ਤੁਹਾਡੇ ਲਈ ਕੀ ਯੂਨੈਕਸ ਸਹੂਲਤ ਉਪਲੱਬਧ ਹੈ, "help" ਕਮਾਂਡ ਵਰਤੋਂ।
+ .
+ ਇੰਸਟਾਲੇਸ਼ਨ ਮੇਨੂ ਉੱਤੇ ਵਾਪਸ ਜਾਣ ਲਈ "exit" ਕਮਾਂਡ ਵਰਤੋਂ।
+Description-pl.UTF-8: Powłoka interaktywna
+ Po tym komunikacie, uruchomiony zostanie "ash", klon powłoki Bourne'a.
+ .
+ Główny system plików znajduje się w RAM dysku. Dyskowe systemy plików zamontowane są w "/target". Dostępnym edytorem jest nano. Jest bardzo mały i prosty do zrozumienia. Aby dowiedzieć się jakie narzędzia uniksowe są dostępne, użyj polecenia "help".
+ .
+ Użyj polecenia "exit", by wrócić do menu instalacyjnego.
+Description-pt.UTF-8: Shell interactiva
+ Após esta mensagem estará a correr o "ash", um clone do Bourne-shell
+ .
+ O sistema de ficheiros raiz é um disco de RAM. Os sistemas de ficheiros dos discos rígidos encontram-se montados em "/target". O editor disponível para si é o nano. É muito pequeno e fácil de utilizar. Para ter uma ideia de quais as utilidades de Unix que tem disponíveis para si utilize o comando "help".
+ .
+ Para voltar ao menu de instalação utilize o comando "exit".
+Description-pt_BR.UTF-8: Shell interativo
+ Após esta mensagem, você estará executando o "ash", um clone do Bourne-shell.
+ .
+ O sistema de arquivos raiz é um disco em RAM. Os sistemas de arquivos do disco rígido estão montados em "/target". O editor disponível para você é o nano. Ele é bem pequeno e fácil de compreender. Para ter uma ideia de quais utilitários Unix estão disponíveis para você, use o comando "help".
+ .
+ Use o comando "exit" para retornar ao menu de instalação.
+Description-ro.UTF-8: Consolă interactivă
+ După acest mesaj, veți rula „ash”, o clonă Bourne-shell.
+ .
+ Sistemul de fișiere rădăcină este un disc RAM. Sistemele de fișiere de pe disc(-uri) sunt montate la „/target”. Editorul disponibil este nano. Este foarte mic și ușor de înțeles. Pentru a vă face o idee despre ce utilitare Unix vă sunt puse la dispoziție, rulați comanda „help”.
+ .
+ Folosiți comanda „exit” pentru a vă întoarce la meniul de instalare.
+Description-ru.UTF-8: Интерактивная оболочка
+ После этого сообщения вы окажетесь в "ash", клоне Bourne-shell.
+ .
+ Корневая файловая система расположена на RAM диске. Файловые системы жёстких дисков смонтированы в "/target". В вашем распоряжении очень маленький и простой редактор nano. Команда "help" расскажет вам о доступных командах и утилитах Unix.
+ .
+ Для возврата в меню установки, используйте команду "exit".
+Description-si.UTF-8: අන්තර්ක්‍රියාකාරී ශෙලය
+ මෙම පණිවුඩයෙන් පසු, ඔබ "ash" නම් Bourne-shell පිටපත ක්‍රියාකරවනු ඇත.
+ .
+ මූල ගොනු පද්ධතිය වන්නේ RAM තැටියයි. දෘඩ තැටි ගොනු පද්ධති "/target" මත රඳවා ඇත.ඔබ සතුව පවතින සකසනය වන්නේ nano ය. එය ඉතා කුඩා වන අතර භාවිත කිරීම පහසුය. ඔබට භාවිත කල හැකි Unix මෘදුකාංග ගැන අදහසක් ලබාගැනීමට, "help" විධානය භාවිත කරන්න.
+ .
+ ස්ථාපන මෙනුවට ආපසු යාමට "exit" විධානය භාවිත කරන්න.
+Description-sk.UTF-8: Interaktívny shell
+ Po tejto správe budete mať spustený „ash“, klon Bourne shellu.
+ .
+ Koreňový súborový systém leží na RAM disku. Súborové systémy z pevného disku sú pripojené pod „/target“. K dispozícii máte malý a jednoduchý editor nano. Zoznam všetkých dostupných unixových nástrojov získate príkazom „help“.
+ .
+ Do inštalačného menu sa vrátite príkazom „exit“.
+Description-sl.UTF-8: Interaktivna lupina
+ Po tem sporočilu boste poganjali "ash", klon lupine Bourne.
+ .
+ Zagonski datotečni sistem je RAM disk. Datotečni sistemi trdega diska so priklopljeni na "/target". Urejevalnik, ki vam je na voljo je nano. Je zelo majhen in nezahteven za uporabo. Če želite videti katera Unixova orodja so vam na voljo, uporabite ukaz "help".
+ .
+ Uporabite ukaz "exit" za vrnitev v namestitveni meni.
+Description-sq.UTF-8: Shell ndërveprues
+ Pas këtij mesazhi, do jesh duke përdorur "ash", një shell klon i Bourne.
+ .
+ Filesistemi i root është disku RAM. Filesistemet e hard-diskut janë montuar mbi "/target". Editori në dispozicion është nano. Është shumë i vogël dhe i thjeshtë për ta kuptuar. Për të patur një ide çfarë veglash të Unix ke në dispozicion, përdor komandën "ls /bin /sbin /usr/bin /usr/sbin".
+ .
+ Përdor komandën "exit" për tu kthyer tek menuja e intalimit.
+Description-sr.UTF-8: Интерактивни командни интерфејс
+ После ове поруке извршаваће се „ash“, клон „bash“ командног интерфејса.
+ .
+ Root фајл систем је на RAM диску. Фајл системи са хард диска су монтирани у /target. Доступан вам је „nano“ едитор. Он је врло мали и једноставан за употребу. Списак доступних Unix команди се може добити командом „help“.
+ .
+ Користите команду „exit“ да се вратите у мени за инсталацију.
+Description-sv.UTF-8: Interaktivt skal
+ Efter det här meddelandet så kommer du att köra "ash", en klon av Bourne-skalet.
+ .
+ Rotfilsystemet är en RAM-disk. Hårddiskens filsystem är monterade på "/target". Den tillgängliga textredigeraren är nano. Den är mycket liten och enkel att förstå sig på. Använd "help"-kommandot för att få en uppfattning om vilka Unixverktyg du har tillgång till.
+ .
+ Använd "exit"-kommandot för att återvända till installationsmenyn.
+Description-ta.UTF-8: ஊடாடு கட்டளைச்செயலி
+ இந்த செய்திக்குப்பின், போர்ன் கட்டளைச்செயலியை போன்ற, "ash" இயக்கப்படும்.
+ .
+ மூல கோப்பு அமைப்பு ஒரு நினைவக வட்டு (ரேம் டிஸ்க்) ஆகும். நிலைவட்டில் உள்ள கோப்பு அமைப்புகள் "/target"-ல் ஏற்றப்பட்டிருக்கும். உங்களுக்கு கிடைக்கும் தொகுப்பி நானோ. அது எளிதில் கற்றுக்கொள்ளக்கூடிய சிறிய தொகுப்பி. யுனிக்ஸ் பயன்நிரல்களை பற்றி அறிந்துகொள்ள "help" ஆணையை உபயோகிக்கவும்.
+ .
+ நிறுவல் பட்டிக்கு செல்ல "exit" ஆணையை உபயோகிக்கவும்.
+Description-te.UTF-8: సంవాద(interactive) షెల్
+ ఈ సందేశం తరవాత మీరు "ash" అనే ఓ బౌర్న్ షెల్ క్లోన్ ని వాడుతుంటారు
+ .
+ రూట్  ఫైల్ సిస్టమ్ ఒక RAM డిస్క్. హార్డ్ డిస్క్  ఫైల్ సిస్టములు  "/target" పై అనుసంధానంచేయబడ్డాయి. nano ఎడిటర్  మీకు అందుబాటులో వుంది. అది చాలా చిన్నది, వాడటం మీరు సులభంగా తెలుసుకోగలరు. "help" కమాండ్ వాడితే, మీకు ఏ యునిక్స్  పరికరాలు అందుబాటులో వున్నాయో తెలుస్తుంది.
+ .
+ స్థాపనమెనూ కి తిరిగి వెళ్ళడానికి "exit" కమాండుని ఉపయోగించండి.
+Description-tg.UTF-8: Восити интерактивӣ
+ Баъд аз ин паём раванди "ash" (намунаи восити Bourne) иҷро мешавад.
+ .
+ Низоми файлии root ин диски RAM аст. Низомҳои файлии диски компютерӣ дар "/target" васл карда мешаванд. Муҳаррири дастрас барои шумо барномаи nano аст. Ин барномаи хурд ва дар истифода осон аст. Барои гирифтани маълумоти муфассал оиди фармонҳои хидматии Unix шумо метавонед фармони "help"-ро истифода баред.
+ .
+ Барои баргаштан ба менюи насбкунӣ, фармони "exit"-ро истифода баред.
+Description-th.UTF-8: เชลล์โต้ตอบ
+ หลังจากข้อความนี้ คุณจะเข้าสู่ "ash" เชลล์เลียนแบบ Bourne shell ชนิดหนึ่ง
+ .
+ ระบบแฟ้มรากเป็นแรมดิสก์ ระบบแฟ้มในดิสก์จะถูกเมานท์ไว้ที่ "/target" โปรแกรมแก้ไขข้อความที่คุณจะใช้ได้คือ nano ซึ่งเป็นโปรแกรมเล็กๆ และใช้ง่าย หากต้องการทราบข้อมูลของเครื่องมือยูนิกซ์ที่มีให้ใช้ คุณสามารถใช้คำสั่ง "help" เพื่อดูได้
+ .
+ ใช้คำสั่ง "exit" เพื่อกลับเข้าสู่เมนูติดตั้ง
+Description-tl.UTF-8: Interactive shell
+ Matapos nito, tatakbo ang "ash", isang clone ng Bourne-shell.
+ .
+ Ang root file system ay RAM disk. Ang mga file system sa hard disk ay naka-mount sa "/target". Ang editor na magagamit niyo ay nano. Ito ay maliit at madaling magamit. Gamitin ang "help" upang malaman kung anong mga UNIX utility ang maaari niyong gamitin.
+ .
+ Gamitin ang "exit" upang bumalik sa menu ng pagluklok.
+Description-tr.UTF-8: Etkileşimli kabuk
+ Bu iletiden sonra bir tür Bourne kabuğu olan "ash"i kullanıyor olacaksınız.
+ .
+ Kök dosya sistemi bir RAM disk. Sabit disk dosya sistemleri "/target" altında bağlı. Kullanacağınız metin düzenleyici "nano". Bu, çok küçük ve kullanımı kolay bir metin düzenleyicisidir. Yararlanabileceğiniz Unix araçları hakkında bir fikir edinmek isterseniz "help" komutunu kullanın.
+ .
+ "exit" komutu ile kurulum menüsüne dönebilirsiniz.
+Description-ug.UTF-8: shell سۆزلىشىشى
+ بۇ ئۇچۇردىن كېيىن "ash" كە كىرىسىز، ئۇ Bourne-shell نىڭ كۆپەيتىلمىسى.
+ .
+ root ھۆججەت سىستېمىسى RAM دىسكىسىدۇر. قاتتىق دىسكا ھۆججەت سىستېمىسى "/target" كە جايلاشقان. بۇ يەردە سىز پەقەت تەھرىرلىگۈچ nano نى ئىشلىتەلەيسىز. بۇ بىر ئىخچام، قوللىنىش ئاسان تەھرىرلىگۈچ. "help" بۇيرۇقى ئارقىلىق قايسى خىلدىكى Unix قوراللىرىنى ئىشلەتكىلى بولىدىغانلىقىنى بىلەلەيسىز.
+ .
+ "exit" بۇيرۇقى ئىشلىتىلسە ئورنىتىش تىزىملىكىگە قايتىدۇ.
+Description-uk.UTF-8: Інтерактивний командний процесор
+ Після цього повідомлення ви опинитесь в „ash“, клоні Bourne-shell.
+ .
+ Коренева файлова система зберігається на RAM-диску. Файлові системи жорстких дисків змонтовані в „/target“. У вашому розпорядженні - редактор nano. Він дуже маленький та простий. Щоб мати уяву про те, які програми Unix доступні, запустіть команду „help“.
+ .
+ Для повернення до меню встановлення, використовуйте команду „exit“.
+Description-vi.UTF-8: Hệ vỏ tương tác
+ Sau khi xem thông báo này, bạn sẽ chạy “ash”, một hệ vỏ bản sao của Bourne-shell.
+ .
+ Hệ thống tập tin gốc là một đĩa RAM. Các hệ thống tập tin đĩa cứng được gắn vào “/target”. Trình chỉnh sửa có sẵn cho bạn là “nano”. Nó rất nhỏ và dễ hiểu. Để xem các tiện ích UNIX có sẵn, hãy sử dụng lệnh “help” (trợ giúp).
+ .
+ Hãy dùng lệnh “exit” (thoát) để trở về trình đơn cài đặt.
+Description-zh_CN.UTF-8: 交互式 shell
+ 在这条信息之后，您将进入“ash”，它是一个 Bourne-shell 的克隆。
+ .
+ 根文件系统是一个 RAM 盘。硬盘文件系统被挂载到“/target”上。可用的编辑器是 nano。它小巧而且易用。如需要了解其他的 Unix 实用工具，请使用“help”命令。
+ .
+ 使用“exit”命令返回到安装菜单。
+Description-zh_TW.UTF-8: 互動式 shell
+ 在本訊息之後，您將進入 ash，一個 Bourne-shell 的仿製品。
+ .
+ Root 檔案系統是一個 RAM 磁碟。硬碟的檔案系統則是掛載於 /target。您可使用的文書編輯器是 nano﹔它非常得短小輕快且易於使用。如果想知道有那些 Unix 工具程式可用，請執行 help 指令。
+ .
+ 使用 exit 指令來回到安裝程序選單。
+
+Template: debian-installer/di-utils-shell/title
+Type: text
+Description: Execute a shell
+Description-am.UTF-8: ሰሌዳ አስነሳ
+Description-ar.UTF-8: تنفيذ صَدفة
+Description-ast.UTF-8: Executar un intérprete d'órdenes
+Description-be.UTF-8: Запусціць абалонку
+Description-bg.UTF-8: Изпълнение на обвивка
+Description-bn.UTF-8: শেল খোলো
+Description-bo.UTF-8: འཇུག་སྒོ་ཞིག་བཀོལ་སྤྱོད་བྱེད་པ
+Description-bs.UTF-8: Pokrenite shell
+Description-ca.UTF-8: Executa un intèrpret d'ordres
+Description-cs.UTF-8: Spustit shell
+Description-cy.UTF-8: Gweithredu cragen
+Description-da.UTF-8: Kør en skal
+Description-de.UTF-8: Eine Shell ausführen
+Description-dz.UTF-8: ཤལ་ཅིག་ལག་ལེན་འཐབ་ནི།
+Description-el.UTF-8: Εκτέλεση ενός κελύφους
+Description-eo.UTF-8: Lanĉi ŝelan interpretilon
+Description-es.UTF-8: Ejecutar un intérprete de órdenes
+Description-et.UTF-8: Käsurea kesta käivitamine
+Description-eu.UTF-8: Exekutatu shell-a
+Description-fa.UTF-8: اجرای یک پوسته
+Description-fi.UTF-8: Käynnistä komentotulkki
+Description-fr.UTF-8: Exécuter un shell (ligne de commande)
+Description-ga.UTF-8: Rith blaosc
+Description-gl.UTF-8: Executar unha shell
+Description-gu.UTF-8: શૅલ ચાલુ કરો
+Description-he.UTF-8: הרצת מעטפת
+Description-hi.UTF-8: एक शेल चलाएँ
+Description-hr.UTF-8: Pokretanje ljuske
+Description-hu.UTF-8: Héj futtatása
+Description-id.UTF-8: Menjalankan shell
+Description-is.UTF-8: Keyra skel
+Description-it.UTF-8: Eseguire una shell
+Description-ja.UTF-8: シェルの実行
+Description-ka.UTF-8: შელის გაშვება
+Description-kab.UTF-8: Selkem shell
+Description-kk.UTF-8: Қоршамды іске қосу
+Description-km.UTF-8: ប្រតិបត្តិ​សែល​មួយ
+Description-kn.UTF-8: shellಅನ್ನು ಚಲಾಯಿಸಿ
+Description-ko.UTF-8: 쉘 실행
+Description-ku.UTF-8: Qalikekî bixebitîne
+Description-lo.UTF-8: ປະຕິບັດເຊວລ໌
+Description-lt.UTF-8: Paleisti apvalkalą
+Description-lv.UTF-8: Palaist čaulu
+Description-mk.UTF-8: Изврши школка
+Description-ml.UTF-8: ഒരു ഷെല്‍ പ്രവര്‍ത്തിപ്പിയ്ക്കുക
+Description-mr.UTF-8: शेल सुरू करा
+Description-nb.UTF-8: Kjør et skall
+Description-ne.UTF-8: एउटा शेल कार्वान्वयन गर्नुहोस्
+Description-nl.UTF-8: Een shell openen
+Description-nn.UTF-8: Køyr eit skal
+Description-no.UTF-8: Kjør et skall
+Description-oc.UTF-8: Executar un shell (linha de comanda)
+Description-pa.UTF-8: ਸ਼ੈਲ ਚਲਾਓ
+Description-pl.UTF-8: Uruchom powłokę
+Description-pt.UTF-8: Executar uma shell
+Description-pt_BR.UTF-8: Executar um shell
+Description-ro.UTF-8: Execută un interpretor de comenzi (shell)
+Description-ru.UTF-8: Запуск оболочки
+Description-se.UTF-8: Vuoje skálžžu
+Description-si.UTF-8: ශෙල් එකක් ක්‍රියාත්මක කරන්න
+Description-sk.UTF-8: Spustenie shellu
+Description-sl.UTF-8: Izvedi ukazno lupino
+Description-sq.UTF-8: Ekzekuto një shell
+Description-sr.UTF-8: Покрени командни интерфејс
+Description-sv.UTF-8: Starta ett skal
+Description-ta.UTF-8: கட்டளைச்செயலியை இயக்குக
+Description-te.UTF-8: షెల్ ని నడుపుము
+Description-tg.UTF-8: Иҷро кардани восит
+Description-th.UTF-8: เรียกเชลล์
+Description-tl.UTF-8: Magpatakbo ng shell
+Description-tr.UTF-8: Bir kabuk çalıştır
+Description-ug.UTF-8: shell ئىجرا قىل
+Description-uk.UTF-8: Запустити командну оболонку
+Description-vi.UTF-8: Chạy hệ vỏ
+Description-zh_CN.UTF-8: 运行 shell
+Description-zh_TW.UTF-8: 呼叫 shell

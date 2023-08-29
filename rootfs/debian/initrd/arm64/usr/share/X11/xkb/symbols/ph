@@ -1,0 +1,994 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+ name[Group1]= "Filipino";
+
+
+
+
+
+ 
+ key <TLDE> { [ U0060, U007E, U0300, U0303 ] }; 
+ key <AE01> { [ U0031, U0021, U00B9, U00A1 ] }; 
+ key <AE02> { [ U0032, U0040, U00B2, U00A4 ] }; 
+ key <AE03> { [ U0033, U0023, U00B3, U00A3 ] }; 
+ key <AE04> { [ U0034, U0024, U00BC, U20AC ] }; 
+ key <AE05> { [ U0035, U0025, U00BD, U00B0 ] }; 
+ 
+ key <AE06> { [ U0036, U005E, U00BE, U0302 ] }; 
+ key <AE07> { [ U0037, U0026, U215B, U2190 ] }; 
+ key <AE08> { [ U0038, U002A, U215C, U2192 ] }; 
+ key <AE09> { [ U0039, U0028, U215D, U2191 ] }; 
+ key <AE10> { [ U0030, U0029, U215E, U2193 ] }; 
+ key <AE11> { [ U002D, U005F, U00AC, U0360 ] }; 
+ key <AE12> { [ U003D, U002B, U00B1, U2213 ] }; 
+
+ 
+ key <AD01> { [ U0071, U0051, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U0077, U0057, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U0065, U0045, U0153, U0152 ] }; 
+ key <AD04> { [ U0072, U0052, U00AE, U00B6 ] }; 
+ key <AD05> { [ U0074, U0054, U2122, VoidSymbol ] }; 
+ 
+ key <AD06> { [ U0079, U0059, U00A5, VoidSymbol ] }; 
+ key <AD07> { [ U0075, U0055, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U0069, U0049, U0131, U0130 ] }; 
+ key <AD09> { [ U006F, U004F, U00F8, U00D8 ] }; 
+ key <AD10> { [ U0070, U0050, U20B1, VoidSymbol ] }; 
+ key <AD11> { [ U005B, U007B, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ U005D, U007D, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ U005C, U007C, U0259, U018F ] }; 
+
+ 
+ key <AC01> { [ U0061, U0041, U00E6, U00C6 ] }; 
+ key <AC02> { [ U0073, U0053, U00A7, VoidSymbol ] }; 
+ key <AC03> { [ U0064, U0044, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U0066, U0046, VoidSymbol, U00AA ] }; 
+ key <AC05> { [ U0067, U0047, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U0068, U0048, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U006A, U004A, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U006B, U004B, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U006C, U004C, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ U003B, U003A, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ U0027, U0022, U0301, U030B ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, U00A6 ] }; 
+ key <AB01> { [ U007A, U005A, U00AB, U00BB ] }; 
+ key <AB02> { [ U0078, U0058, U00D7, U00B7 ] }; 
+ key <AB03> { [ U0063, U0043, U00A9, U00A2 ] }; 
+ key <AB04> { [ U0076, U0056, U201C, U2018 ] }; 
+ key <AB05> { [ U0062, U0042, U201D, U2019 ] }; 
+ 
+ key <AB06> { [ U006E, U004E, U00F1, U00D1 ] }; 
+ key <AB07> { [ U006D, U004D, U00B5, U00BA ] }; 
+ key <AB08> { [ U002C, U003C, U0327, U0328 ] }; 
+ key <AB09> { [ U002E, U003E, U2026, U2423 ] }; 
+ key <AB10> { [ U002F, U003F, U00F7, U00BF ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "qwerty-bay" {
+
+ name[Group1]= "Filipino (QWERTY, Baybayin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AE06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ U1714, U1714, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U170F, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AD04> { [ U170D, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD05> { [ U1706, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ U170C, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ U1709, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AC01> { [ U1700, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC02> { [ U1710, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC03> { [ U1707, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U1704, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U1711, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U1703, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U170E, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ U170A, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U1708, U1705, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U170B, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB08> { [ U1735, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U1736, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "capewell-dvorak" {
+
+ name[Group1]= "Filipino (Capewell-Dvorak, Latin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ U0060, U007E, U0300, U0303 ] }; 
+ key <AE01> { [ U0031, U0021, U00B9, U00A1 ] }; 
+ key <AE02> { [ U0032, U0040, U00B2, U00A4 ] }; 
+ key <AE03> { [ U0033, U0023, U00B3, U00A3 ] }; 
+ key <AE04> { [ U0034, U0024, U00BC, U20AC ] }; 
+ key <AE05> { [ U0035, U0025, U00BD, U00B0 ] }; 
+ 
+ key <AE06> { [ U0036, U005E, U00BE, U0302 ] }; 
+ key <AE07> { [ U0037, U0026, U215B, U2190 ] }; 
+ key <AE08> { [ U0038, U002A, U215C, U2192 ] }; 
+ key <AE09> { [ U0039, U0028, U215D, U2191 ] }; 
+ key <AE10> { [ U0030, U0029, U215E, U2193 ] }; 
+ key <AE11> { [ U005B, U007B, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ U005D, U007D, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ U0027, U0022, U0301, U030B ] }; 
+ key <AD02> { [ U002C, U003C, U0327, U0328 ] }; 
+ key <AD03> { [ U002E, U003E, U2026, U2423 ] }; 
+ key <AD04> { [ U0070, U0050, U20B1, VoidSymbol ] }; 
+ key <AD05> { [ U0079, U0059, U00A5, VoidSymbol ] }; 
+ 
+ key <AD06> { [ U0071, U0051, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U0066, U0046, VoidSymbol, U00AA ] }; 
+ key <AD08> { [ U0067, U0047, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U0072, U0052, U00AE, U00B6 ] }; 
+ key <AD10> { [ U006B, U004B, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ U002F, U003F, U00F7, U00BF ] }; 
+ key <AD12> { [ U003D, U002B, U00B1, U2213 ] }; 
+ key <BKSL> { [ U005C, U007C, U0259, U018F ] }; 
+
+ 
+ key <AC01> { [ U006F, U004F, U00F8, U00D8 ] }; 
+ key <AC02> { [ U0061, U0041, U00E6, U00C6 ] }; 
+ key <AC03> { [ U0065, U0045, U0153, U0152 ] }; 
+ key <AC04> { [ U0069, U0049, U0131, U0130 ] }; 
+ key <AC05> { [ U0075, U0055, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U0064, U0044, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U0068, U0048, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U0074, U0054, U2122, VoidSymbol ] }; 
+ key <AC09> { [ U006E, U004E, U00F1, U00D1 ] }; 
+ key <AC10> { [ U0073, U0053, U00A7, VoidSymbol ] }; 
+ key <AC11> { [ U002D, U005F, U00AC, U0360 ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, U00A6 ] }; 
+ key <AB01> { [ U007A, U005A, U00AB, U00BB ] }; 
+ key <AB02> { [ U0078, U0058, U00D7, U00B7 ] }; 
+ key <AB03> { [ U0063, U0043, U00A9, U00A2 ] }; 
+ key <AB04> { [ U0076, U0056, U201C, U2018 ] }; 
+ key <AB05> { [ U006A, U004A, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U006C, U004C, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U006D, U004D, U00B5, U00BA ] }; 
+ key <AB08> { [ U0077, U0057, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U0062, U0042, U201D, U2019 ] }; 
+ key <AB10> { [ U003B, U003A, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "capewell-dvorak-bay" {
+
+ name[Group1]= "Filipino (Capewell-Dvorak, Baybayin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AE06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U1735, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U1736, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD04> { [ U1709, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD05> { [ U170C, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U1704, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U170D, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ U1703, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ U1714, U1714, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AC01> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC02> { [ U1700, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC03> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U1707, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U1711, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U1706, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U1708, U1705, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ U1710, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U170E, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U170B, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB08> { [ U170F, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U170A, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "capewell-qwerf2k6" {
+
+ name[Group1]= "Filipino (Capewell-QWERF 2006, Latin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ U0060, U007E, U0300, U0303 ] }; 
+ key <AE01> { [ U0031, U0021, U00B9, U00A1 ] }; 
+ key <AE02> { [ U0032, U0040, U00B2, U00A4 ] }; 
+ key <AE03> { [ U0033, U0023, U00B3, U00A3 ] }; 
+ key <AE04> { [ U0034, U0024, U00BC, U20AC ] }; 
+ key <AE05> { [ U0035, U0025, U00BD, U00B0 ] }; 
+ 
+ key <AE06> { [ U0036, U005E, U00BE, U0302 ] }; 
+ key <AE07> { [ U0037, U0026, U215B, U2190 ] }; 
+ key <AE08> { [ U0038, U002A, U215C, U2192 ] }; 
+ key <AE09> { [ U0039, U0028, U215D, U2191 ] }; 
+ key <AE10> { [ U0030, U0029, U215E, U2193 ] }; 
+ key <AE11> { [ U002D, U005F, U00AC, U0360 ] }; 
+ key <AE12> { [ U003D, U002B, U00B1, U2213 ] }; 
+
+ 
+ key <AD01> { [ U0071, U0051, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U0077, U0057, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U0065, U0045, U0153, U0152 ] }; 
+ key <AD04> { [ U0072, U0052, U00AE, U00B6 ] }; 
+ key <AD05> { [ U0066, U0046, VoidSymbol, U00AA ] }; 
+ 
+ key <AD06> { [ U006A, U004A, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U0079, U0059, U00A5, VoidSymbol ] }; 
+ key <AD08> { [ U006B, U004B, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U006C, U004C, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ U003B, U003A, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ U005B, U007B, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ U005D, U007D, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ U005C, U007C, U0259, U018F ] }; 
+
+ 
+ key <AC01> { [ U0061, U0041, U00E6, U00C6 ] }; 
+ key <AC02> { [ U0073, U0053, U00A7, VoidSymbol ] }; 
+ key <AC03> { [ U0064, U0044, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U0074, U0054, U2122, VoidSymbol ] }; 
+ key <AC05> { [ U0067, U0047, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U0068, U0048, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U0075, U0055, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U0069, U0049, U0131, U0130 ] }; 
+ key <AC09> { [ U006F, U004F, U00F8, U00D8 ] }; 
+ key <AC10> { [ U0070, U0050, U20B1, VoidSymbol ] }; 
+ key <AC11> { [ U0027, U0022, U0301, U030B ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, U00A6 ] }; 
+ key <AB01> { [ U007A, U005A, U00AB, U00BB ] }; 
+ key <AB02> { [ U0078, U0058, U00D7, U00B7 ] }; 
+ key <AB03> { [ U0063, U0043, U00A9, U00A2 ] }; 
+ key <AB04> { [ U0076, U0056, U201C, U2018 ] }; 
+ key <AB05> { [ U0062, U0042, U201D, U2019 ] }; 
+ 
+ key <AB06> { [ U006E, U004E, U00F1, U00D1 ] }; 
+ key <AB07> { [ U006D, U004D, U00B5, U00BA ] }; 
+ key <AB08> { [ U002C, U003C, U0327, U0328 ] }; 
+ key <AB09> { [ U002E, U003E, U2026, U2423 ] }; 
+ key <AB10> { [ U002F, U003F, U00F7, U00BF ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "capewell-qwerf2k6-bay" {
+
+ name[Group1]= "Filipino (Capewell-QWERF 2006, Baybayin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AE06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ U1714, U1714, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U170F, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AD04> { [ U170D, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U170C, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U1703, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U170E, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AC01> { [ U1700, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC02> { [ U1710, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC03> { [ U1707, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U1706, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U1704, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U1711, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ U1709, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ U170A, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U1708, U1705, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U170B, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB08> { [ U1735, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U1736, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "colemak" {
+
+ name[Group1]= "Filipino (Colemak, Latin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ U0060, U007E, U0300, U0303 ] }; 
+ key <AE01> { [ U0031, U0021, U00B9, U00A1 ] }; 
+ key <AE02> { [ U0032, U0040, U00B2, U00A4 ] }; 
+ key <AE03> { [ U0033, U0023, U00B3, U00A3 ] }; 
+ key <AE04> { [ U0034, U0024, U00BC, U20AC ] }; 
+ key <AE05> { [ U0035, U0025, U00BD, U00B0 ] }; 
+ 
+ key <AE06> { [ U0036, U005E, U00BE, U0302 ] }; 
+ key <AE07> { [ U0037, U0026, U215B, U2190 ] }; 
+ key <AE08> { [ U0038, U002A, U215C, U2192 ] }; 
+ key <AE09> { [ U0039, U0028, U215D, U2191 ] }; 
+ key <AE10> { [ U0030, U0029, U215E, U2193 ] }; 
+ key <AE11> { [ U002D, U005F, U00AC, U0360 ] }; 
+ key <AE12> { [ U003D, U002B, U00B1, U2213 ] }; 
+
+ 
+ key <AD01> { [ U0071, U0051, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U0077, U0057, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U0066, U0046, VoidSymbol, U00AA ] }; 
+ key <AD04> { [ U0070, U0050, U20B1, VoidSymbol ] }; 
+ key <AD05> { [ U0067, U0047, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ U006A, U004A, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U006C, U004C, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U0075, U0055, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U0079, U0059, U00A5, VoidSymbol ] }; 
+ key <AD10> { [ U003B, U003A, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ U005B, U007B, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ U005D, U007D, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ U005C, U007C, U0259, U018F ] }; 
+
+ 
+ key <AC01> { [ U0061, U0041, U00E6, U00C6 ] }; 
+ key <AC02> { [ U0072, U0052, U00AE, U00B6 ] }; 
+ key <AC03> { [ U0073, U0053, U00A7, VoidSymbol ] }; 
+ key <AC04> { [ U0074, U0054, U2122, VoidSymbol ] }; 
+ key <AC05> { [ U0064, U0044, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U0068, U0048, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U006E, U004E, U00F1, U00D1 ] }; 
+ key <AC08> { [ U0065, U0045, U0153, U0152 ] }; 
+ key <AC09> { [ U0069, U0049, U0131, U0130 ] }; 
+ key <AC10> { [ U006F, U004F, U00F8, U00D8 ] }; 
+ key <AC11> { [ U0027, U0022, U0301, U030B ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, U00A6 ] }; 
+ key <AB01> { [ U007A, U005A, U00AB, U00BB ] }; 
+ key <AB02> { [ U0078, U0058, U00D7, U00B7 ] }; 
+ key <AB03> { [ U0063, U0043, U00A9, U00A2 ] }; 
+ key <AB04> { [ U0076, U0056, U201C, U2018 ] }; 
+ key <AB05> { [ U0062, U0042, U201D, U2019 ] }; 
+ 
+ key <AB06> { [ U006B, U004B, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U006D, U004D, U00B5, U00BA ] }; 
+ key <AB08> { [ U002C, U003C, U0327, U0328 ] }; 
+ key <AB09> { [ U002E, U003E, U2026, U2423 ] }; 
+ key <AB10> { [ U002F, U003F, U00F7, U00BF ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "colemak-bay" {
+
+ name[Group1]= "Filipino (Colemak, Baybayin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AE06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ U1714, U1714, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U170F, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD04> { [ U1709, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD05> { [ U1704, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U170E, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U170C, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AC01> { [ U1700, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC02> { [ U170D, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC03> { [ U1710, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U1706, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U1707, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U1711, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U1708, U1705, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ U170A, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U1703, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U170B, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB08> { [ U1735, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U1736, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "dvorak" {
+
+ name[Group1]= "Filipino (Dvorak, Latin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ U0060, U007E, U0300, U0303 ] }; 
+ key <AE01> { [ U0031, U0021, U00B9, U00A1 ] }; 
+ key <AE02> { [ U0032, U0040, U00B2, U00A4 ] }; 
+ key <AE03> { [ U0033, U0023, U00B3, U00A3 ] }; 
+ key <AE04> { [ U0034, U0024, U00BC, U20AC ] }; 
+ key <AE05> { [ U0035, U0025, U00BD, U00B0 ] }; 
+ 
+ key <AE06> { [ U0036, U005E, U00BE, U0302 ] }; 
+ key <AE07> { [ U0037, U0026, U215B, U2190 ] }; 
+ key <AE08> { [ U0038, U002A, U215C, U2192 ] }; 
+ key <AE09> { [ U0039, U0028, U215D, U2191 ] }; 
+ key <AE10> { [ U0030, U0029, U215E, U2193 ] }; 
+ key <AE11> { [ U005B, U007B, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ U005D, U007D, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ U0027, U0022, U0301, U030B ] }; 
+ key <AD02> { [ U002C, U003C, U0327, U0328 ] }; 
+ key <AD03> { [ U002E, U003E, U2026, U2423 ] }; 
+ key <AD04> { [ U0070, U0050, U20B1, VoidSymbol ] }; 
+ key <AD05> { [ U0079, U0059, U00A5, VoidSymbol ] }; 
+ 
+ key <AD06> { [ U0066, U0046, VoidSymbol, U00AA ] }; 
+ key <AD07> { [ U0067, U0047, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ U0063, U0043, U00A9, U00A2 ] }; 
+ key <AD09> { [ U0072, U0052, U00AE, U00B6 ] }; 
+ key <AD10> { [ U006C, U004C, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ U002F, U003F, U00F7, U00BF ] }; 
+ key <AD12> { [ U003D, U002B, U00B1, U2213 ] }; 
+ key <BKSL> { [ U005C, U007C, U0259, U018F ] }; 
+
+ 
+ key <AC01> { [ U0061, U0041, U00E6, U00C6 ] }; 
+ key <AC02> { [ U006F, U004F, U00F8, U00D8 ] }; 
+ key <AC03> { [ U0065, U0045, U0153, U0152 ] }; 
+ key <AC04> { [ U0075, U0055, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U0069, U0049, U0131, U0130 ] }; 
+ 
+ key <AC06> { [ U0064, U0044, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U0068, U0048, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U0074, U0054, U2122, VoidSymbol ] }; 
+ key <AC09> { [ U006E, U004E, U00F1, U00D1 ] }; 
+ key <AC10> { [ U0073, U0053, U00A7, VoidSymbol ] }; 
+ key <AC11> { [ U002D, U005F, U00AC, U0360 ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, U00A6 ] }; 
+ key <AB01> { [ U003B, U003A, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ U0071, U0051, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ U006A, U004A, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ U006B, U004B, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ U0078, U0058, U00D7, U00B7 ] }; 
+ 
+ key <AB06> { [ U0062, U0042, U201D, U2019 ] }; 
+ key <AB07> { [ U006D, U004D, U00B5, U00BA ] }; 
+ key <AB08> { [ U0077, U0057, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ U0076, U0056, U201C, U2018 ] }; 
+ key <AB10> { [ U007A, U005A, U00AB, U00BB ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial alphanumeric_keys
+xkb_symbols "dvorak-bay" {
+
+ name[Group1]= "Filipino (Dvorak, Baybayin)";
+
+
+
+
+
+ 
+ key <TLDE> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE04> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AE06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE07> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AE12> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AD01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD02> { [ U1735, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD03> { [ U1736, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD04> { [ U1709, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD05> { [ U170C, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AD06> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD07> { [ U1704, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD08> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD09> { [ U170D, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD10> { [ U170E, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AD12> { [ U1714, U1714, VoidSymbol, VoidSymbol ] }; 
+ key <BKSL> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AC01> { [ U1700, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC02> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC03> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ key <AC04> { [ U1713, U1702, VoidSymbol, VoidSymbol ] }; 
+ key <AC05> { [ U1712, U1701, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AC06> { [ U1707, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC07> { [ U1711, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC08> { [ U1706, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC09> { [ U1708, U1705, VoidSymbol, VoidSymbol ] }; 
+ key <AC10> { [ U1710, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AC11> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AB00> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB01> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB02> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB03> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB04> { [ U1703, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB05> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ 
+ key <AB06> { [ U170A, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB07> { [ U170B, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB08> { [ U170F, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB09> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+ key <AB10> { [ VoidSymbol, VoidSymbol, VoidSymbol, VoidSymbol ] }; 
+
+ 
+ key <AA03> { [ U0020, U0020, U0020, U0020 ] }; 
+
+ include "level3(ralt_switch)"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

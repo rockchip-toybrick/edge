@@ -1,0 +1,5 @@
+include ltr-cyrillic.tti
+include ltr-dot8.tti
+include num-nemeth.tti
+include punc-alternate.tti
+include common.tti

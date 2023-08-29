@@ -1,0 +1,40 @@
+title BrailleMe (in NVDA mode)
+include common.kti
+include chords.kti
+include route.kti
+bind Space+MoveUp PRDIFLN
+bind Space+MoveDown NXDIFLN
+bind Dot8+MoveUp TOP
+bind Dot8+MoveDown BOT
+bind Dot8+Dot1 LNBEG
+bind Dot8+Dot4 LNEND
+bind Space+PanLeft FWINLTSKIP
+bind Space+PanRight FWINRTSKIP
+bind Space+Dot3 PRNBWIN
+bind Space+Dot6 NXNBWIN
+bind Space+Dot2+Dot3 PRPROMPT
+bind Space+Dot5+Dot6 NXPROMPT
+bind Space+Dot1+Dot2+Dot3 PRPGRPH
+bind Space+Dot4+Dot5+Dot6 NXPGRPH
+bind Space+Dot1+Dot4+Dot5+Dot6 PRSEARCH
+bind Space+Dot3+Dot4+Dot5+Dot6 NXSEARCH
+bind Space+Dot1+Dot2 CONTEXT+chords
+bind Space+Dot1+Dot4+Dot5 NOOP
+bind Space+Dot1+Dot5 NOOP
+bind Space+Dot1+Dot2+Dot4 FREEZE
+bind Space+Dot1+Dot2+Dot5 HELP
+bind Space+Dot1+Dot3+Dot4+Dot5 NOOP
+bind Space+Dot1+Dot2+Dot3+Dot5 CONTEXT+routingKeys
+bind Space+Dot2+Dot3+Dot4 NOOP
+bind Space+Dot2+Dot3+Dot4+Dot5 CSRTRK
+bind Space+Dot2+Dot4+Dot5+Dot6 NOOP
+bind Space+Dot1+Dot2+Dot5+Dot6 CSRJMP_VERT
+bind Space+Dot2+Dot5 RETURN
+bind Space+Dot4 UPPER
+bind Space+Dot4+Dot6 CONTROL
+bind Space+Dot8 TIME
+bind Dot7+Dot6 PREFMENU
+bind Dot8+RoutingKey.20 CSRVIS
+bind Dot8+RoutingKey.19 CSRSIZE
+bind Dot8+RoutingKey.18 CSRBLINK
+bind Dot8+RoutingKey.17 CAPBLINK

@@ -1,0 +1,56 @@
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+note RoutingKey refers to any of the keys immediately behind the text cells.
+note The long key in the center of the front surface is named Shift.
+note * The two round keys to its left, from left to right, are named: Left, Up.
+note * The two round keys to its right, from left to right, are named: Down, Right.
+
+bind Left FWINLT
+bind Right FWINRT
+bind Up LNUP
+bind Down LNDN
+
+bind Shift+Left KEY_CURSOR_LEFT
+bind Shift+Right KEY_CURSOR_RIGHT
+bind Shift+Up KEY_CURSOR_UP
+bind Shift+Down KEY_CURSOR_DOWN
+
+bind Long+Left LNBEG
+bind Long+Right LNEND
+bind Long+Up TOP
+bind Long+Down BOT
+
+bind Shift+Long+Left PRPGRPH
+bind Shift+Long+Right NXPGRPH
+bind Shift+Long+Up PRPROMPT
+bind Shift+Long+Down NXPROMPT
+
+bind RoutingKey ROUTE
+bind RoutingKey+Left CLIP_NEW
+bind RoutingKey+Up CLIP_APPEND
+bind RoutingKey+Right COPY_LINE
+bind RoutingKey+Down COPY_RECT
+bind RoutingKey+RoutingKey CLIP_COPY
+bind RoutingKey.2+RoutingKey.3 PASTE
+
+context menu
+
+bind Up MENU_PREV_ITEM
+bind Down MENU_NEXT_ITEM
+

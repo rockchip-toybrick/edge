@@ -1,0 +1,8 @@
+title Alva BC640, BC624
+include bc-etouch.kti
+note There's a Smartpad in front of the text cell area.
+include bc-smartpad.kti
+note The five Thumb keys on the front, from left to right, are subnamed:
+note * Left, Up, Home, Down, Right.
+include bc-thumb.kti
+include bc.kti

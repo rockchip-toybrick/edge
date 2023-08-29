@@ -439,7 +439,7 @@ static void iep2_config(struct mpp_dev *mpp, struct iep_task *task)
 		mpp_write_relaxed(mpp, IEP2_REG_SRC_ADDR_NXTV, bot->cr);
 	}
 
-	reg = IEP2_REG_TIMEOUT_CFG_EN | 0x7fffff;
+	reg = IEP2_REG_TIMEOUT_CFG_EN | 0x3ffffff;
 	mpp_write_relaxed(mpp, IEP2_REG_TIMEOUT_CFG, reg);
 
 	mpp_write_relaxed(mpp, IEP2_REG_SRC_ADDR_PREY, cfg->src[2].y);
@@ -605,6 +605,9 @@ static int iep2_run(struct mpp_dev *mpp,
 			  | IEP2_REG_OSD_MAX_EN
 			  | IEP2_REG_BUS_ERROR_EN
 			  | IEP2_REG_TIMEOUT_EN);
+
+	/* flush tlb before starting hardware */
+	mpp_iommu_flush_tlb(mpp->iommu_info);
 
 	mpp_task_run_begin(mpp_task, timing_en, MPP_WORK_TIMEOUT_DELAY);
 

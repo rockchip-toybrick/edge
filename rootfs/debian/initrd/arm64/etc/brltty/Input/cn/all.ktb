@@ -1,0 +1,37 @@
+title Canute
+note The keys on the front, from left to right, are: Back, Menu, Forward.
+note The triangular keys to the left of each row of cells are selection keys.
+note + From top to bottom, they're named Line1 through Line9.
+note + The round key above them (labelled H) is named Help.
+note + The square key below them (labelled 0) is named Refresh.
+bind Help HELP
+bind Help+Menu PREFMENU
+bind Help+Back PREFLOAD
+bind Help+Forward PREFSAVE
+bind Menu HOME
+bind Back WINUP
+bind Forward WINDN
+bind Menu+Back FWINLT
+bind Menu+Forward FWINRT
+bind Refresh+Back TOP_LEFT
+bind Refresh+Menu LNBEG
+bind Refresh+Forward BOT_LEFT
+bind Line1 ROUTE_LINE+0
+bind Line2 ROUTE_LINE+1
+bind Line3 ROUTE_LINE+2
+bind Line4 ROUTE_LINE+3
+bind Line5 ROUTE_LINE+4
+bind Line6 ROUTE_LINE+5
+bind Line7 ROUTE_LINE+6
+bind Line8 ROUTE_LINE+7
+bind Line9 ROUTE_LINE+8
+bind Refresh+Help REFRESH
+bind Refresh+Line1 REFRESH_LINE+0
+bind Refresh+Line2 REFRESH_LINE+1
+bind Refresh+Line3 REFRESH_LINE+2
+bind Refresh+Line4 REFRESH_LINE+3
+bind Refresh+Line5 REFRESH_LINE+4
+bind Refresh+Line6 REFRESH_LINE+5
+bind Refresh+Line7 REFRESH_LINE+6
+bind Refresh+Line8 REFRESH_LINE+7
+bind Refresh+Line9 REFRESH_LINE+8

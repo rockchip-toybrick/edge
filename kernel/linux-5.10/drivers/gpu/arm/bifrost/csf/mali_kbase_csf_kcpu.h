@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  *
- * (C) COPYRIGHT 2018-2022 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2018-2023 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -21,6 +21,9 @@
 
 #ifndef _KBASE_CSF_KCPU_H_
 #define _KBASE_CSF_KCPU_H_
+
+#include <mali_kbase_fence.h>
+#include <mali_kbase_sync.h>
 
 #if (KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE)
 #include <linux/fence.h>
@@ -44,8 +47,8 @@ struct kbase_kcpu_command_import_info {
 };
 
 /**
- * struct kbase_kcpu_command_fence_info - Structure which holds information
- *		about the fence object enqueued in the kcpu command queue
+ * struct kbase_kcpu_command_fence_info - Structure which holds information about the
+ *                                        fence object enqueued in the kcpu command queue
  *
  * @fence_cb:      Fence callback
  * @fence:         Fence
@@ -183,6 +186,7 @@ struct kbase_suspend_copy_buffer {
 	struct kbase_mem_phy_alloc *cpu_alloc;
 };
 
+#if IS_ENABLED(CONFIG_MALI_VECTOR_DUMP) || MALI_UNIT_TEST
 /**
  * struct kbase_kcpu_command_group_suspend_info - structure which contains
  *		suspend buffer data captured for a suspended queue group.
@@ -195,6 +199,7 @@ struct kbase_kcpu_command_group_suspend_info {
 	struct kbase_suspend_copy_buffer *sus_buf;
 	u8 group_handle;
 };
+#endif
 
 
 /**
@@ -229,7 +234,9 @@ struct kbase_kcpu_command {
 		struct kbase_kcpu_command_import_info import;
 		struct kbase_kcpu_command_jit_alloc_info jit_alloc;
 		struct kbase_kcpu_command_jit_free_info jit_free;
+#if IS_ENABLED(CONFIG_MALI_VECTOR_DUMP) || MALI_UNIT_TEST
 		struct kbase_kcpu_command_group_suspend_info suspend_buf_copy;
+#endif
 	} info;
 };
 
@@ -274,6 +281,8 @@ struct kbase_kcpu_command {
  * @jit_blocked:		Used to keep track of command queues blocked
  *				by a pending JIT allocation command.
  * @fence_timeout:		Timer used to detect the fence wait timeout.
+ * @metadata:                   Metadata structure containing basic information about
+ *                              this queue for any fence objects associated with this queue.
  */
 struct kbase_kcpu_command_queue {
 	struct mutex lock;
@@ -295,6 +304,9 @@ struct kbase_kcpu_command_queue {
 #ifdef CONFIG_MALI_BIFROST_FENCE_DEBUG
 	struct timer_list fence_timeout;
 #endif /* CONFIG_MALI_BIFROST_FENCE_DEBUG */
+#if IS_ENABLED(CONFIG_SYNC_FILE)
+	struct kbase_kcpu_dma_fence_meta *metadata;
+#endif /* CONFIG_SYNC_FILE */
 };
 
 /**
@@ -358,5 +370,15 @@ int kbase_csf_kcpu_queue_context_init(struct kbase_context *kctx);
  *
  */
 void kbase_csf_kcpu_queue_context_term(struct kbase_context *kctx);
+
+#if IS_ENABLED(CONFIG_SYNC_FILE)
+/* Test wrappers for dma fence operations. */
+int kbase_kcpu_fence_signal_process(struct kbase_kcpu_command_queue *kcpu_queue,
+				    struct kbase_kcpu_command_fence_info *fence_info);
+
+int kbase_kcpu_fence_signal_init(struct kbase_kcpu_command_queue *kcpu_queue,
+				 struct kbase_kcpu_command *current_command,
+				 struct base_fence *fence, struct sync_file **sync_file, int *fd);
+#endif /* CONFIG_SYNC_FILE */
 
 #endif /* _KBASE_CSF_KCPU_H_ */

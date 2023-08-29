@@ -238,7 +238,7 @@ static int scmi_cpufreq_probe(struct scmi_device *sdev)
 	if (!handle)
 		return -ENODEV;
 
-	perf_ops = handle->devm_get_protocol(sdev, SCMI_PROTOCOL_PERF, &ph);
+	perf_ops = handle->devm_protocol_get(sdev, SCMI_PROTOCOL_PERF, &ph);
 	if (IS_ERR(perf_ops))
 		return PTR_ERR(perf_ops);
 

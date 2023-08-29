@@ -381,9 +381,15 @@ static void rockchip_dp_drm_encoder_disable(struct drm_encoder *encoder,
 {
 	struct rockchip_dp_device *dp = to_dp(encoder);
 	struct drm_crtc *crtc;
+	struct drm_crtc *old_crtc = encoder->crtc;
 	struct drm_crtc_state *new_crtc_state = NULL;
+	struct rockchip_crtc_state *s = to_rockchip_crtc_state(old_crtc->state);
 	int ret;
 
+	if (dp->plat_data.split_mode)
+		s->output_if &= ~(VOP_OUTPUT_IF_eDP1 | VOP_OUTPUT_IF_eDP0);
+	else
+		s->output_if &= ~(dp->id ? VOP_OUTPUT_IF_eDP1 : VOP_OUTPUT_IF_eDP0);
 	crtc = rockchip_dp_drm_get_new_crtc(encoder, state);
 	/* No crtc means we're doing a full shutdown */
 	if (!crtc)
@@ -431,6 +437,16 @@ rockchip_dp_drm_encoder_atomic_check(struct drm_encoder *encoder,
 	} else {
 		s->output_if |= dp->id ? VOP_OUTPUT_IF_eDP1 : VOP_OUTPUT_IF_eDP0;
 	}
+
+	if (dp->plat_data.dual_connector_split) {
+		s->output_flags |= ROCKCHIP_OUTPUT_DUAL_CONNECTOR_SPLIT_MODE;
+
+		if (dp->plat_data.left_display)
+			s->output_if_left_panel |= dp->id ?
+						   VOP_OUTPUT_IF_eDP1 :
+						   VOP_OUTPUT_IF_eDP0;
+	}
+
 	s->output_bpc = di->bpc;
 	s->bus_flags = di->bus_flags;
 	s->tv_state = &conn_state->tv;
@@ -658,8 +674,10 @@ static int rockchip_dp_probe(struct platform_device *pdev)
 	if (dp->data->split_mode && device_property_read_bool(dev, "split-mode")) {
 		struct rockchip_dp_device *secondary =
 				rockchip_dp_find_by_id(dev->driver, !dp->id);
-		if (!secondary)
-			return -EPROBE_DEFER;
+		if (!secondary) {
+			ret = -EPROBE_DEFER;
+			goto err_dp_remove;
+		}
 
 		dp->plat_data.right = secondary->adp;
 		dp->plat_data.split_mode = true;
@@ -670,7 +688,21 @@ static int rockchip_dp_probe(struct platform_device *pdev)
 	device_property_read_u32(dev, "min-refresh-rate", &dp->min_refresh_rate);
 	device_property_read_u32(dev, "max-refresh-rate", &dp->max_refresh_rate);
 
-	return component_add(dev, &rockchip_dp_component_ops);
+	if (dp->data->split_mode && device_property_read_bool(dev, "dual-connector-split")) {
+		dp->plat_data.dual_connector_split = true;
+		if (device_property_read_bool(dev, "left-display"))
+			dp->plat_data.left_display = true;
+	}
+
+	ret = component_add(dev, &rockchip_dp_component_ops);
+	if (ret)
+		goto err_dp_remove;
+
+	return 0;
+
+err_dp_remove:
+	analogix_dp_remove(dp->adp);
+	return ret;
 }
 
 static int rockchip_dp_remove(struct platform_device *pdev)

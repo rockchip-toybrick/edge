@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+default
+xkb_keycodes "olpc" {
+
+ alias <AE00> = <TLDE>; 
+ alias <AC12> = <BKSL>; 
+
+};
+
+default
+xkb_keycodes "olpcm" {
+
+ alias <AE00> = <TLDE>; 
+ alias <AA02> = <BKSL>; 
+ alias <AA06> = <AE12>; 
+ alias <AA07> = <AC11>; 
+
+};

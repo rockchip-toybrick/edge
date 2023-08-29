@@ -1,0 +1,13 @@
+# Let X pick its default for DPMS, but adjust if requested:
+if grep -qs dpms=false /proc/cmdline; then
+	DPMS=-dpms
+elif grep -qs dpms=true /proc/cmdline; then
+	DPMS=+dpms
+fi
+
+if [ "$DEBIAN_FRONTEND" = gtk ] && [ -z "$LIVE_INSTALLER_MODE" ]; then
+	trap : SIGUSR1
+	(trap '' SIGUSR1; exec Xorg $DPMS -noreset -nolisten tcp) &
+	wait
+	export DISPLAY=:0
+fi

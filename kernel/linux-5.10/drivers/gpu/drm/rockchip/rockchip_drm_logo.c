@@ -205,7 +205,7 @@ void rockchip_free_loader_memory(struct drm_device *drm)
 	}
 
 	memblock_free(logo->start, logo->size);
-	rockchip_drm_free_reserved_area(logo->dma_addr, logo->dma_addr + logo->size,
+	rockchip_drm_free_reserved_area(logo->start, logo->start + logo->size,
 					-1, "drm_logo");
 	kfree(logo);
 	private->logo = NULL;
@@ -240,6 +240,11 @@ static int init_loader_memory(struct drm_device *drm_dev)
 	size = resource_size(&res);
 	if (!size)
 		return -ENOMEM;
+	if (!IS_ALIGNED(res.start, PAGE_SIZE) || !IS_ALIGNED(size, PAGE_SIZE))
+		DRM_ERROR("Reserved logo memory should be aligned as:0x%lx, cureent is:start[%pad] size[%pad]\n",
+			  PAGE_SIZE, &res.start, &size);
+	if (pg_size != PAGE_SIZE)
+		DRM_WARN("iommu page size[0x%x] isn't equal to OS page size[0x%lx]\n", pg_size, PAGE_SIZE);
 
 	logo = kmalloc(sizeof(*logo), GFP_KERNEL);
 	if (!logo)
@@ -260,6 +265,7 @@ static int init_loader_memory(struct drm_device *drm_dev)
 	}
 
 	logo->dma_addr = start;
+	logo->start = res.start;
 	logo->size = size;
 	logo->count = 1;
 	private->logo = logo;
@@ -279,6 +285,9 @@ static int init_loader_memory(struct drm_device *drm_dev)
 	size = resource_size(&res);
 	if (!size)
 		return 0;
+	if (!IS_ALIGNED(res.start, PAGE_SIZE) || !IS_ALIGNED(size, PAGE_SIZE))
+		DRM_ERROR("Reserved drm cubic memory should be aligned as:0x%lx, cureent is:start[%pad] size[%pad]\n",
+			  PAGE_SIZE, &res.start, &size);
 
 	private->cubic_lut_kvaddr = phys_to_virt(start);
 	if (private->domain) {
@@ -365,6 +374,69 @@ get_framebuffer_by_node(struct drm_device *drm_dev, struct device_node *node)
 	}
 
 	return rockchip_drm_logo_fb_alloc(drm_dev, &mode_cmd, private->logo);
+}
+
+static void of_parse_post_csc_info(struct device_node *route, struct rockchip_drm_mode_set *set)
+{
+	int val;
+
+	if (!of_property_read_u32(route, "post-csc,enable", &val))
+		set->csc.csc_enable = val;
+	else
+		set->csc.csc_enable = 0;
+
+	if (!set->csc.csc_enable)
+		return;
+
+	if (!of_property_read_u32(route, "post-csc,hue", &val))
+		set->csc.hue = val;
+	else
+		set->csc.hue = 256;
+
+	if (!of_property_read_u32(route, "post-csc,saturation", &val))
+		set->csc.saturation = val;
+	else
+		set->csc.saturation = 256;
+
+	if (!of_property_read_u32(route, "post-csc,contrast", &val))
+		set->csc.contrast = val;
+	else
+		set->csc.contrast = 256;
+
+	if (!of_property_read_u32(route, "post-csc,brightness", &val))
+		set->csc.brightness = val;
+	else
+		set->csc.brightness = 256;
+
+	if (!of_property_read_u32(route, "post-csc,r-gain", &val))
+		set->csc.r_gain = val;
+	else
+		set->csc.r_gain = 256;
+
+	if (!of_property_read_u32(route, "post-csc,g-gain", &val))
+		set->csc.g_gain = val;
+	else
+		set->csc.g_gain = 256;
+
+	if (!of_property_read_u32(route, "post-csc,b-gain", &val))
+		set->csc.b_gain = val;
+	else
+		set->csc.b_gain = 256;
+
+	if (!of_property_read_u32(route, "post-csc,r-offset", &val))
+		set->csc.r_offset = val;
+	else
+		set->csc.r_offset = 256;
+
+	if (!of_property_read_u32(route, "post-csc,g-offset", &val))
+		set->csc.g_offset = val;
+	else
+		set->csc.g_offset = 256;
+
+	if (!of_property_read_u32(route, "post-csc,b-offset", &val))
+		set->csc.b_offset = val;
+	else
+		set->csc.b_offset = 256;
 }
 
 static struct rockchip_drm_mode_set *
@@ -460,6 +532,8 @@ of_parse_display_resource(struct drm_device *drm_dev, struct device_node *route)
 		set->hue = val;
 	else
 		set->hue = 50;
+
+	of_parse_post_csc_info(route, set);
 
 	set->force_output = of_property_read_bool(route, "force-output");
 
@@ -737,7 +811,7 @@ static int setup_initial_state(struct drm_device *drm_dev,
 
 		if (priv->crtc_funcs[pipe] &&
 		    priv->crtc_funcs[pipe]->loader_protect)
-			priv->crtc_funcs[pipe]->loader_protect(crtc, true);
+			priv->crtc_funcs[pipe]->loader_protect(crtc, true, &set->csc);
 	}
 
 	if (!set->fb) {
@@ -789,7 +863,7 @@ static int setup_initial_state(struct drm_device *drm_dev,
 
 error_crtc:
 	if (priv->crtc_funcs[pipe] && priv->crtc_funcs[pipe]->loader_protect)
-		priv->crtc_funcs[pipe]->loader_protect(crtc, false);
+		priv->crtc_funcs[pipe]->loader_protect(crtc, false, NULL);
 error_conn:
 	if (set->sub_dev->loader_protect)
 		set->sub_dev->loader_protect(conn_state->best_encoder, false);
@@ -985,11 +1059,12 @@ void rockchip_drm_show_logo(struct drm_device *drm_dev)
 									     unset);
 				if (priv->crtc_funcs[pipe] &&
 				    priv->crtc_funcs[pipe]->loader_protect)
-					priv->crtc_funcs[pipe]->loader_protect(crtc, true);
+					priv->crtc_funcs[pipe]->loader_protect(crtc, true,
+									       &set->csc);
 				priv->crtc_funcs[pipe]->crtc_close(crtc);
 				if (priv->crtc_funcs[pipe] &&
 				    priv->crtc_funcs[pipe]->loader_protect)
-					priv->crtc_funcs[pipe]->loader_protect(crtc, false);
+					priv->crtc_funcs[pipe]->loader_protect(crtc, false, NULL);
 			}
 		}
 

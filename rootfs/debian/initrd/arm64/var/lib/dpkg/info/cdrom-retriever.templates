@@ -1,0 +1,88 @@
+Template: retriever/cdrom/error
+Type: boolean
+Default: true
+Description: Failed to copy file from installation media. Retry?
+ There was a problem reading data. Please make sure you have inserted the
+ installation media correctly. If retrying does not work, you should check
+ the integrity of your installation media (there is an associated entry in
+ the main menu for that).
+Description-ar.UTF-8: تعذر نسخ الملف من وسائط التثبيت. إعادة المحاولة؟
+ كانت هناك مشكلة في قراءة البيانات. رجاء تحقق من أنك قد أدخلت وسائط التثبيت بصورة صحيحة. إن لم تساعد إعادة المحاولة في ذلك، عليك التأكد من تكامل وسائط التثبيت (يوجد مُدخَل مرافق في القائمة الرئيسية لذلك).
+Description-bg.UTF-8: Грешка при копиране на файл от инсталационния носител. Нов опит?
+ Открит е проблем при четене на данни. Моля, уверете се, че инсталационният носител е правилно поставен. Ако опитването отново не помага, проверете носителя за грешки със съответната команда от главното меню.
+Description-ca.UTF-8: No s'ha pogut copiar un fitxer del mitjà d'instal·lació. Voleu tornar-ho a provar?
+ S'ha produït un error en llegir dades. Assegureu-vos que heu inserit el mitjà d'instal·lació correctament. Si reintentar-ho no ho soluciona, hauríeu de comprovar la integritat del mitjà d'instal·lació (hi ha una entrada relacionada per a això al menú principal).
+Description-cs.UTF-8: Kopírování souboru z instalačního média selhalo. Opakovat?
+ Při čtení dat se objevil problém. Ujistěte se, že jste vložili instalační médium správně. Pokud i opakované kopírování selže, zkontrolujte integritu instalačního média (pomocí volby v hlavním menu).
+Description-de.UTF-8: Kopieren einer Datei vom Installationsmedium fehlgeschlagen. Wiederholen?
+ Es trat ein Problem beim Lesen einiger Daten auf. Bitte vergewissern Sie sich, dass das Installationsmedium korrekt eingelegt/eingesteckt ist. Wenn ein erneuter Versuch ebenfalls fehlschlägt, sollten Sie die Integrität des Mediums überprüfen (nutzen Sie dazu den dazugehörigen Eintrag aus dem Hauptmenü).
+Description-el.UTF-8: Η αντιγραφή ενός αρχείου από το μέσο εγκατάστασης απέτυχε. Θα ξαναπροσπαθήσετε;
+ Παρουσιάστηκε ένα πρόβλημα κατά την ανάγνωση δεδομένων. Παρακαλούμε βεβαιωθείτε ότι έχετε εισαγάγει τα μέσα εγκατάστασης σωστά. Αν και η νέα προσπάθεια δεν πετύχει, θα πρέπει να ελέγξετε την ακεραιότητα των μέσων εγκατάστασης (υπάρχει γι' αυτό μια σχετική επιλογή στο κύριο μενού).
+Description-eo.UTF-8: Malsukcesa kopio de dosiero el instala aŭdovidaĵo. Ĉu reprovi?
+ Eraro okazis dum legado de datumaro. Bonvolu kontroli ĉu vi korekte enŝovis la instalan aŭdovidaĵon. Se reprovo ne funkcias, vi devas kontroli la sendifektecon de via instala aŭdovidaĵo (estas koncerna ero en la ĉefa menuo por tio).
+Description-es.UTF-8: Falló la copia de un fichero del medio de instalación. ¿Reintentar?
+ Se produjo un error al leer datos. Por favor, asegúrese que el medio de instalación está introducido correctamente. Debería comprobar la integridad de su medio de instalación si el error continúa al reintentarlo de nuevo (existe una entrada en el menú principal para hacer esta comprobación).
+Description-et.UTF-8: Faili kopeerimine paigaldusmeedialt nurjus. Kas proovida uuesti?
+ Andmete lugemisel ilmnes tõrge. Palun veendu, et paigaldusmeedia on sisestatud korralikult. Kui uuesti proovimisest kasu ei ole, peaksid kontrollima, kas paigaldusmeedia on täielik ja rikkumata (selle käsu leiad paigaldaja peamenüüst).
+Description-eu.UTF-8: Huts egin du fitxategia instalazio-euskarritik kopiatzean. Saiatu berriro?
+ Arazoa gertatu da datuak irakurtzean. Egiaztatu ezazu instalazio-euskarria unitatean dagoela. Berriro saiatzean ezin bada konpondu, instalazio-euskarriaren osotasuna egiaztatu beharko zenuke (menu nagusian aukera bat dago horretarako).
+Description-fi.UTF-8: Tiedoston kopioiminen asennusmediasta epäonnistui. Yritetäänkö uudelleen?
+ Tietojen lukemisessa ilmeni ongelmia. Varmista, että olet asettanut asennusmedian oikein. Jos uusintayritys ei auta, tarkista median eheys (sitä varten on päävalikossa oma kohta).
+Description-fr.UTF-8: La copie d'un fichier depuis le support d'installation a échoué. Faut-il réessayer ?
+ Une erreur s'est produite lors de la lecture des données. Veuillez vérifier que le support d'installation est bien présent. Si l'opération échoue à nouveau, vous devriez vérifier l'intégrité du support (accessible depuis une entrée correspondante dans le menu principal).
+Description-gl.UTF-8: Non foi posíbel copiar un ficheiro do medio de instalación. Desexa tentalo de novo?
+ Aconteceu un problema ao ler os datos. Asegúrese de que introduciu o medio de instalación correctamente. Se non funciona tentándoo de novo, debería comprobar a integridade do medio de instalación (hai unha entrada asociada no menú principal para iso).
+Description-he.UTF-8: העתקת קובץ אמצעי התקנה נכשלה. לנסות שוב?
+ אירעה תקלה בקריאת נתונים. נא לוודא שחיברת את אמצעי ההתקנה כראוי. אם ניסיון חוזר לא עובד, כדאי לבדוק את תקינות האמצעי (בתפריט הראשי קיימת רשומה שאחראית על הנושא הזה).
+Description-hi.UTF-8: स्थापना मीडिया से फ़ाइल की प्रतिलिपि बनाने में विफल। पुनः प्रयास करें?
+ डेटा पढ़ने में समस्या थी। कृपया सुनिश्चित करें कि आपने संस्थापन मीडिया को सही ढंग से डाला है। यदि पुनर्प्रयास करने से काम नहीं चलता है, तो आपको अपने इंस्टॉलेशन मीडिया की अखंडता की जांच करनी चाहिए (उसके लिए मुख्य मेनू में एक संबद्ध प्रविष्टि है)।
+Description-hr.UTF-8: Kopiranje datoteke s instalacijskog medija nije uspjelo. Pokušaj ponovno?
+ Pojavio se problem u čitanju podataka. Provjerite je li instalacijski medij ispravno umetnut. Ako ponovni pokušaj ne uspije, trebali biste provjeriti ispravnost vašeg instalacijskog medija (za to postoji povezana stavka u glavnom izborniku).
+Description-id.UTF-8: Gagal menyalin berkas dari media instalasi. Coba lagi?
+ Terjadi masalah saat membaca data. Pastikan Anda telah memasukkan media instalasi dengan benar. Jika mencoba ulang tidak berhasil, Anda harus memeriksa integritas media instalasi Anda (ada entri terkait di menu utama untuk itu).
+Description-is.UTF-8: Mistókst að afrita skrá af uppsetningarmiðli. Reyna aftur?
+ Það kom upp vandamál við að lesa gögn. Gakktu úr skugga um að þú hafir sett uppsetningardiskinn rétt í drifið. Ef reynt er aftur án árangurs, ættir þú að sannreyna áreiðanleika uppsetningardisksins (sérstök færsla er í aðalvalmyndinni fyrir þetta).
+Description-it.UTF-8: Copia del file dal supporto d'installazione non riuscita. Riprovare?
+ Si è verificato un problema nel leggere i dati: assicurarsi che il supporto d'installazione sia stato inserito correttamente. Se il problema persiste, controllare l'integrità del supporto (tramite la voce dedicata nel menù).
+Description-ja.UTF-8: インストールメディアからのファイルのコピーに失敗しました。再試行しますか?
+ データの読み込み中に問題が発生しました。インストールメディアが正しく挿入されていることを確認してください。再試行でうまくいかないようであれば、あなたのインストールメディアの完全性をチェックしてください (メインメニューにそのための関連するエントリがあります)。
+Description-kab.UTF-8: Anɣal n yifuyla seg umidya n usebded ur yeddi ara. Ɛreḍ tikkelt-nniḍen?
+ Yella wugur deg tɣuri n yisefka. Ttxil-k·m wali ma yella terriḍ amidyat n usebded akka iwata. Ma yella mazal tettaɛraḍeḍ netta yugi ad yekker, ilaq ad tesneqdeḍ timmad n umidyat-inek·inem n usebded (yella unekcum i yettucudden i waya deg wumuɣ agejdan).
+Description-ko.UTF-8: 설치 미디어에서 파일을 복사하는데 실패했습니다. 다시 시도하시겠습니까?
+ 데이터를 읽는데 문제가 있었습니다. 설치미디어를 제대로 넣었는지 확인하십시오. 다시 시대해도 동작하지 않으면 설치 미디어 내용이 올바른지 확인하십시오. (주 메뉴에 미디어 내용을 확인하는 관련 항목이 있습니다.)
+Description-lt.UTF-8: Nepavyko nukopijuoti failo iš diegimo laikmenos. Pakartoti?
+ Tai yra duomenų skaitymo problema. Įsitikinkite ar tinkamai įdėta diegimo laikmena. Jei kartojant vis tik neveiks, reikėtų patikrinti diegimo laikmenos vientisumą (pagrindiniame meniu tam yra susijęs įrašas).
+Description-lv.UTF-8: Neizdevās nokopēt datni no instalācijas datu nesēja. Mēģināt vēlreiz?
+ Kļūme, lasot datus. Pārliecinieties, ka instalācijas datu nesējs ir pareizi ievietots. Ja arī atkārtots mēģinājums nolasīt datus nav sekmīgs, pārbaudiet instalācijas datu nesēja integritāti (šai darbībai ir ieraksts galvenajā izvēlnē).
+Description-nb.UTF-8: Klarte ikke kopiere fila fra installasjonsmedium. Vil du prøve en gang til?
+ Det oppsto et problem ved lesing av data. Sjekk at du har satt inn installasjonsmediet på riktig vis. Hvis det ikke går når du prøver igjen, bør du foreta en sjekk av installasjonsmediets integritet (det funnes en oppføring i hovedmenyen for dette).
+Description-nl.UTF-8: Bestand van installatiemedia kopiëren is mislukt. Wilt u opnieuw proberen?
+ Er was een probleem bij het lezen van de gegevens. Zorg ervoor dat u de installatiemedia correct geplaatst heeft. Als opnieuw proberen niet werkt, zou u het beste uw installatiemedia op fouten controleren (er is daarvoor in het hoofdmenu een bijbehorend item).
+Description-no.UTF-8: Klarte ikke kopiere fila fra installasjonsmedium. Vil du prøve en gang til?
+ Det oppsto et problem ved lesing av data. Sjekk at du har satt inn installasjonsmediet på riktig vis. Hvis det ikke går når du prøver igjen, bør du foreta en sjekk av installasjonsmediets integritet (det funnes en oppføring i hovedmenyen for dette).
+Description-oc.UTF-8: La còpia del fichièr a partir del mèdia d’installacion a pas capitat. Cal tornar ensajar ?
+ I a agut una error al moment de legir las donadas. Asseguratz-vos qu’avètz corrèctament inserit lo mèdia d’installacion. Tornatz ensajar e se fonciona pas, verificatz l’integritat del mèdia d’installacion (i a una entrada al menú principal per aquò far).
+Description-pa.UTF-8: ਇੰਸਟਾਲੇਸ਼ਨ ਮੀਡਿਆ ਤੋਂ ਫਾਇਲ ਕਾਪੀ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਫੇਰ ਕੋਸ਼ਿਸ਼ ਕਰਨੀ ਹੈ?
+ ਡਾਟਾ ਪੜ੍ਹਨ ਵਿੱਚ ਸਮੱਸਿਆ ਆਈ ਸੀ। ਪੱਕਾ ਕਰੋ ਕਿ ਤੁਸੀਂ ਠੀਕ ਇੰਸਟਾਲੇਸ਼ਨ ਮੀਡਿਆ ਪਾਇਆ ਹੈ। ਜੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਨ ਉੱਤੇ ਵੀ ਕੰਮ ਨਹੀਂ ਕਰਦਾ ਹੈ ਤਾਂ ਤੁਹਾਨੂੰ ਆਪਣੇ ਇੰਸਟਾਲੇਸ਼ਨ ਮੀਡਿਆ ਦੀ ਇਕਸਾਰਤਾ ਦੀ ਪੜਤਾਲ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ (ਇਸ ਦੇ ਨਾਲ ਸੰਬੰਧਿਤ ਐਂਟਰੀ ਮੁੱਖ ਮੇਨੂ ਉੱਤੇ ਹੈ)।
+Description-pl.UTF-8: Kopiowanie pliku z nośnika instalacyjnego nie powiodło się. Ponowić?
+ Wystąpił problem podczas odczytu danych. Upewnij się, że nośnik instalacyjny jest prawidłowo włożony. Jeśli ponowienie nie pomoże, powinno się sprawdzić integralność nośnika instalacyjnego (jest do tego opcja w menu instalacyjnym).
+Description-pt.UTF-8: Falhou ao copiar ficheiro do meio de instalação. Tentar novamente?
+ Ocorreu um problema ao ler dados. Por favor certifique-se que inseriu correctamente o meio de instalação. Se tentar novamente não resultar, deve verificar a integridade do seu meio de instalação (no menu principal existe uma entrada para isso).
+Description-pt_BR.UTF-8: Falha ao copiar arquivo a partir da imagem de instalação. Tentar novamente?
+ Ocorreu um problema na leitura dos dados. Por favor, certifique-se de que você inseriu a mídia de instalação corretamente. Se tentar novamente não resolver, você deverá checar a integridade da sua mídia de instalação (existe uma entrada associada a isso no menu principal).
+Description-ro.UTF-8: Nu s-a reușit copierea fișierului de pe suportul de instalare. Reîncercați?
+ A apărut o problemă la citirea datelor. Vă rugăm să vă asigurați că ați introdus corect suportul de instalare. În cazul în care reîncercarea nu funcționează, ar trebui să verificați integritatea suportului de instalare (există o intrare asociată în meniul principal pentru acest lucru).
+Description-ru.UTF-8: Не удалось скопировать файл с установочного носителя. Повторить попытку?
+ Невозможно считать данные. Убедитесь, что установочный носитель вставлен правильно. Если дальнейшие попытки ни к чему не приведут, вам следует проверить целостность данных на установочном носителе (для этого в меню имеется специальный пункт).
+Description-sr.UTF-8: Грешка у копирању фајла са инсталационог медија. Покушати поново?
+ Настао је проблем у читању података. Проверите да ли инсталациони медиј исправан. Ако поновни покушај не успе, требало би да проверите интегритет инсталационог медија(преко ставке у менију).
+Description-sv.UTF-8: Kunde inte kopiera fil från installationsmediet. Försöka igen?
+ Ett problem inträffade när data skulle läsas. Se till att du har satt in installationsmediet korrekt. Om det inte hjälper att försöka igen, så bör du kontrollera installationsmediets integritet (det finns en tillhörande post i huvudmenyn för det).
+Description-ta.UTF-8: கோப்பை நிறுவல் ஊடகத்திலிருந்து பதிவு செய்ய இயலவில்லை. மீண்டும் முயற்சிக்கவா?
+ தகவல் படிப்பதில் பிரச்சனையுள்ளது. நிறுவல் ஊடகம் சரியாக செருகப்பட்டு உள்ளதா என்பதை சரிபார்க்கவும். மறுமுயற்சி வெற்றிபெறவிடில் நிறுவல் ஊடகத்தின் தன்மையை சோதிக்கவும். (அதற்கு முதன்மை பட்டியில் ஒரு கூடுதல் தேர்வு உள்ளது).
+Description-th.UTF-8: คัดลอกแฟ้มจากสื่อติดตั้งไม่สำเร็จ จะลองใหม่หรือไม่?
+ เกิดปัญหาขณะอ่านข้อมูล กรุณาตรวจสอบว่าคุณได้ใส่สื่อติดตั้งถูกต้องหรือไม่ ถ้าลองใหม่แล้วยังไม่ได้ คุณควรตรวจสอบความสมบูรณ์ของสื่อติดตั้งของคุณ (มีรายการในเมนูหลักสำหรับการนี้)
+Description-zh_CN.UTF-8: 无法从安装介质上拷贝文件。要重试吗？
+ 读取数据出错。请确认您已经插入了正确的安装介质。如果重试以后还是无法工作，请检查安装介质的完整性 (在主菜单中有一个相关的条目)。
+Description-zh_TW.UTF-8: 無法由安裝媒體複製檔案。是否重新嘗試？
+ 讀取資料時發生了問題，請確認是否已確實放置安裝媒體。如果一再重試卻無法解決問題，您應該檢查這片安裝媒體的完整性 (主選單有相關的項目)。

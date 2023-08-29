@@ -1,0 +1,10 @@
+# Set UTF-8 mode if needed
+if [ -f /var/lib/UTF-8 ]; then
+	echo -ne "\033%G"
+	kbd-mode -u >/dev/null 2>&1 || true
+fi
+
+# Set up the console if console-setup-udeb is installed
+if type setupcon >/dev/null 2>&1 && [ -f /etc/default/keyboard ]; then
+	setupcon >/dev/null 2>&1 || true
+fi

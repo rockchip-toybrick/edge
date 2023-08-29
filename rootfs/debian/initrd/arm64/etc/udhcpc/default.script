@@ -1,0 +1,94 @@
+#!/bin/sh -e
+
+# udhcpc client script to be used by Debian Installer
+# Copyright (C) 2009, 2010 Otavio Salvador <otavio@debian.org>
+
+comma_separate() {
+	echo "$1" | sed 's/ /,/g'
+}
+
+do_resolv_conf() {
+	local cfg=/etc/resolv.conf
+
+	if [ -n "$domain" ] || [ -n "$dns" ]; then
+		echo -n > $cfg
+		if [ -n "$domain" ]; then
+			echo search $domain >> $cfg
+		fi
+
+		for i in $dns ; do
+			echo nameserver $i >> $cfg
+		done
+	fi
+}
+
+do_hostname() {
+	local current=$(cat /proc/sys/kernel/hostname)
+
+	if [ -z "$current" ] || [ "$current" = "(none)" ]; then
+		echo "$hostname" > /proc/sys/kernel/hostname
+	fi
+}
+
+do_leases() {
+	local file="/var/lib/udhcp/udhcpc.leases"
+
+	mkdir -p /var/lib/udhcp
+	cat >> $file <<EOF
+lease {
+  interface "$interface";
+  fixed-address $ip;
+  filename "$boot_file";
+  option subnet-mask $subnet;
+  option domain-name "$domain";
+  option host-name "$hostname";
+  option domain-name-servers $(comma_separate "$dns");
+  option dhcp-server-identifier $serverid;
+  option dhcp-lease-time $lease;
+  option routers $(comma_separate "$router");
+  option ntp-servers $(comma_separate "$ntpsrv");
+}
+EOF
+}
+
+case "$1" in
+	deconfig)
+		ip link set "$interface" up
+		ip -4 addr flush dev "$interface"
+		;;
+
+	bound|renew)
+		do_hostname
+		
+		ip -4 addr add "$ip/$subnet" dev "$interface"
+
+		if [ -n "$mtu" ]; then
+			ip link set "$interface" mtu "$mtu"
+		fi
+
+		# special case for /32 subnets, use onlink when adding routes
+		[ ".$subnet" = .255.255.255.255 ] \
+			 && onlink=onlink || onlink=
+		for r in "$router"; do
+			ip -4 route add default via "$r" $onlink
+		done
+
+		do_resolv_conf
+
+		# Get the domain name into a file suitable for netcfg to read.
+		printf "$domain" > /tmp/domain_name
+
+		if [ -n "$ntpsrv" ]; then
+			printf "$ntpsrv" > /tmp/dhcp-ntp-servers
+		fi
+
+		logger -t udhcpc "Got IP $ip (using $interface) and routing through $router"
+
+		do_leases
+		;;
+	*)
+		echo "udhcpc: has been called with an unknown param: $1"
+		;;
+esac
+
+exit 0

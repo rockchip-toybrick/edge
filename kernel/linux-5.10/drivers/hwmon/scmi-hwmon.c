@@ -175,7 +175,7 @@ static int scmi_hwmon_probe(struct scmi_device *sdev)
 	if (!handle)
 		return -ENODEV;
 
-	sensor_ops = handle->devm_get_protocol(sdev, SCMI_PROTOCOL_SENSOR, &ph);
+	sensor_ops = handle->devm_protocol_get(sdev, SCMI_PROTOCOL_SENSOR, &ph);
 	if (IS_ERR(sensor_ops))
 		return PTR_ERR(sensor_ops);
 

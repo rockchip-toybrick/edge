@@ -1,0 +1,622 @@
+Template: debconf/button-continue
+Type: text
+Description: Continue
+Description-am.UTF-8: ቀጥል
+Description-ar.UTF-8: استمر
+Description-ast.UTF-8: Continuar
+Description-be.UTF-8: Працягнуць
+Description-bg.UTF-8: Напред
+Description-bn.UTF-8: এগিয়ে যাও
+Description-bo.UTF-8: མུ་མཐུད
+Description-bs.UTF-8: Nastavi
+Description-ca.UTF-8: Continua
+Description-cs.UTF-8: Pokračovat
+Description-cy.UTF-8: Parhau
+Description-da.UTF-8: Fortsæt
+Description-de.UTF-8: Weiter
+Description-dz.UTF-8: འཕྲོ་མཐུད།
+Description-el.UTF-8: Συνέχεια
+Description-eo.UTF-8: Daŭrigi
+Description-es.UTF-8: Continuar
+Description-et.UTF-8: Jätka
+Description-eu.UTF-8: Jarraitu
+Description-fa.UTF-8: ادامه
+Description-fi.UTF-8: Jatka
+Description-fr.UTF-8: Continuer
+Description-ga.UTF-8: Lean ar aghaidh
+Description-gl.UTF-8: Continuar
+Description-gu.UTF-8: ચાલુ રાખો
+Description-he.UTF-8: להמשיך
+Description-hi.UTF-8: जारी रखें
+Description-hr.UTF-8: Nastavi
+Description-hu.UTF-8: Tovább
+Description-id.UTF-8: Lanjutkan
+Description-is.UTF-8: Halda áfram
+Description-it.UTF-8: Continua
+Description-ja.UTF-8: 続ける
+Description-ka.UTF-8: გაგრძელება
+Description-kab.UTF-8: Kemmel
+Description-kk.UTF-8: Жалғастыру
+Description-km.UTF-8: បន្ត
+Description-kn.UTF-8: ಮುಂದುವರೆ
+Description-ko.UTF-8: 계속
+Description-ku.UTF-8: Bidomîne
+Description-lo.UTF-8: ຕໍ່ໄປ
+Description-lt.UTF-8: Tęsti
+Description-lv.UTF-8: Turpināt
+Description-mk.UTF-8: Продолжи
+Description-ml.UTF-8: തുടരുക
+Description-mr.UTF-8: पुढे सुरु ठेवा
+Description-nb.UTF-8: Fortsett
+Description-ne.UTF-8: निरन्तरता दिनुहोस्
+Description-nl.UTF-8: Volgende
+Description-nn.UTF-8: Gå vidare
+Description-no.UTF-8: Fortsett
+Description-oc.UTF-8: Contunhar
+Description-pa.UTF-8: ਜਾਰੀ ਰੱਖੋ
+Description-pl.UTF-8: Dalej
+Description-pt.UTF-8: Continuar
+Description-pt_BR.UTF-8: Continuar
+Description-ro.UTF-8: Continuă
+Description-ru.UTF-8: Продолжить
+Description-se.UTF-8: Joatkke
+Description-si.UTF-8: ඉදිරියට යන්න
+Description-sk.UTF-8: Pokračovať
+Description-sl.UTF-8: Nadaljuj
+Description-sq.UTF-8: Vazhdo
+Description-sr.UTF-8: Настави
+Description-sv.UTF-8: Fortsätt
+Description-ta.UTF-8: தொடர்க
+Description-te.UTF-8: కొనసాగించు
+Description-tg.UTF-8: Идома додан
+Description-th.UTF-8: ต่อไป
+Description-tl.UTF-8: Ituloy
+Description-tr.UTF-8: Devam
+Description-ug.UTF-8: داۋاملاشتۇر
+Description-uk.UTF-8: Продовжити
+Description-vi.UTF-8: Tiếp tục
+Description-zh_CN.UTF-8: 继续
+Description-zh_TW.UTF-8: 繼續
+
+Template: debconf/button-goback
+Type: text
+Description: Reboot
+Description-am.UTF-8: ሂድ ወደ ኋላ
+Description-ar.UTF-8: رجوع
+Description-ast.UTF-8: Dir p'Atrás
+Description-be.UTF-8: Вярнуцца
+Description-bg.UTF-8: Назад
+Description-bn.UTF-8: পেছনে যাও
+Description-bo.UTF-8: ཕྱིར་ལོག
+Description-bs.UTF-8: Vrati se
+Description-ca.UTF-8: Vés enrere
+Description-cs.UTF-8: Jít zpět
+Description-cy.UTF-8: Mynd nôl
+Description-da.UTF-8: Gå tilbage
+Description-de.UTF-8: Zurück
+Description-dz.UTF-8: ལོག་འགྱོ།
+Description-el.UTF-8: Επιστροφή
+Description-eo.UTF-8: Retroiri
+Description-es.UTF-8: Retroceder
+Description-et.UTF-8: Mine tagasi
+Description-eu.UTF-8: Joan atzera
+Description-fa.UTF-8: بازگشت
+Description-fi.UTF-8: Palaa
+Description-fr.UTF-8: Revenir en arrière
+Description-ga.UTF-8: Téigh Siar
+Description-gl.UTF-8: Volver
+Description-gu.UTF-8: પાછા જાઓ
+Description-he.UTF-8: לחזור אחורה
+Description-hi.UTF-8: पीछे जाएँ
+Description-hr.UTF-8: Natrag
+Description-hu.UTF-8: Vissza
+Description-id.UTF-8: Kembali
+Description-is.UTF-8: Til baka
+Description-it.UTF-8: Indietro
+Description-ja.UTF-8: 戻る
+Description-ka.UTF-8: დაბრუნება
+Description-kab.UTF-8: Uɣal ɣer deffir
+Description-kk.UTF-8: Қайту
+Description-km.UTF-8: ថយក្រោយ
+Description-kn.UTF-8: ಹಿಂದಕ್ಕೆ ತೆರಳು
+Description-ko.UTF-8: 뒤로 가기
+Description-ku.UTF-8: Vegere
+Description-lo.UTF-8: ກັບຄືນ
+Description-lt.UTF-8: Grįžti
+Description-lv.UTF-8: Atpakaļ
+Description-mk.UTF-8: Назад
+Description-ml.UTF-8: തിരിച്ചു പോകുക
+Description-mr.UTF-8: मागे जा
+Description-nb.UTF-8: Gå tilbake
+Description-ne.UTF-8: पछाडी जानुहोस्
+Description-nl.UTF-8: Terug
+Description-nn.UTF-8: Gå tilbake
+Description-no.UTF-8: Gå tilbake
+Description-oc.UTF-8: Tornar en arrièr
+Description-pa.UTF-8: ਪਿੱਛੇ ਜਾਓ
+Description-pl.UTF-8: Wstecz
+Description-pt.UTF-8: Voltar atrás
+Description-pt_BR.UTF-8: Voltar
+Description-ro.UTF-8: Înapoi
+Description-ru.UTF-8: Вернуться
+Description-se.UTF-8: Máhca
+Description-si.UTF-8: ආපසු යන්න
+Description-sk.UTF-8: Naspäť
+Description-sl.UTF-8: Nazaj
+Description-sq.UTF-8: Kthehu Prapa
+Description-sr.UTF-8: Назад
+Description-sv.UTF-8: Gå tillbaka
+Description-ta.UTF-8: பின்செல்க
+Description-te.UTF-8: వెనక్కి వెళ్ళు
+Description-tg.UTF-8: Ба қафо гузаштан
+Description-th.UTF-8: ย้อนกลับ
+Description-tl.UTF-8: Bumalik
+Description-tr.UTF-8: Geri dön
+Description-ug.UTF-8: كەينىگە
+Description-uk.UTF-8: Повернутися
+Description-vi.UTF-8: Lùi
+Description-zh_CN.UTF-8: 返回
+Description-zh_TW.UTF-8: 返回
+
+Template: debconf/button-yes
+Type: text
+Description: Yes
+Description-am.UTF-8: አዎ
+Description-ar.UTF-8: نعم
+Description-ast.UTF-8: Sí
+Description-be.UTF-8: Так
+Description-bg.UTF-8: Да
+Description-bn.UTF-8: হ্যাঁ
+Description-bo.UTF-8: རེད
+Description-bs.UTF-8: Da
+Description-ca.UTF-8: Sí
+Description-cs.UTF-8: Ano
+Description-cy.UTF-8: Ie
+Description-da.UTF-8: Ja
+Description-de.UTF-8: Ja
+Description-dz.UTF-8: ཨིན།
+Description-el.UTF-8: Ναι
+Description-eo.UTF-8: Jes
+Description-es.UTF-8: Sí
+Description-et.UTF-8: Jah
+Description-eu.UTF-8: Bai
+Description-fa.UTF-8: بله
+Description-fi.UTF-8: Kyllä
+Description-fr.UTF-8: Oui
+Description-ga.UTF-8: Tá
+Description-gl.UTF-8: Si
+Description-gu.UTF-8: હા
+Description-he.UTF-8: כן
+Description-hi.UTF-8: हाँ
+Description-hr.UTF-8: Da
+Description-hu.UTF-8: Igen
+Description-id.UTF-8: Ya
+Description-is.UTF-8: Já
+Description-it.UTF-8: Sì
+Description-ja.UTF-8: はい
+Description-ka.UTF-8: დიახ
+Description-kab.UTF-8: Ih
+Description-kk.UTF-8: Иә
+Description-km.UTF-8: បាទ/ចាស
+Description-kn.UTF-8: ಹೌದು
+Description-ko.UTF-8: 예
+Description-ku.UTF-8: Erê
+Description-lo.UTF-8: ແມ່ນ
+Description-lt.UTF-8: Taip
+Description-lv.UTF-8: Jā
+Description-mk.UTF-8: Да
+Description-ml.UTF-8: വേണം
+Description-mr.UTF-8: होय
+Description-nb.UTF-8: Ja
+Description-ne.UTF-8: हो
+Description-nl.UTF-8: Ja
+Description-nn.UTF-8: Ja
+Description-no.UTF-8: Ja
+Description-oc.UTF-8: Òc
+Description-pa.UTF-8: ਹਾਂ
+Description-pl.UTF-8: Tak
+Description-pt.UTF-8: Sim
+Description-pt_BR.UTF-8: Sim
+Description-ro.UTF-8: Da
+Description-ru.UTF-8: Да
+Description-se.UTF-8: Juo
+Description-si.UTF-8: ඔව්
+Description-sk.UTF-8: Áno
+Description-sl.UTF-8: Da
+Description-sq.UTF-8: Po
+Description-sr.UTF-8: Да
+Description-sv.UTF-8: Ja
+Description-ta.UTF-8: ஆம்
+Description-te.UTF-8: అవును
+Description-tg.UTF-8: Ҳа
+Description-th.UTF-8: ใช่
+Description-tl.UTF-8: Oo
+Description-tr.UTF-8: Evet
+Description-ug.UTF-8: ھەئە
+Description-uk.UTF-8: Так
+Description-vi.UTF-8: Có
+Description-zh_CN.UTF-8: 是
+Description-zh_TW.UTF-8: 是
+
+Template: debconf/button-no
+Type: text
+Description: No
+Description-am.UTF-8: አይ
+Description-ar.UTF-8: لا
+Description-ast.UTF-8: Non
+Description-be.UTF-8: Не
+Description-bg.UTF-8: Не
+Description-bn.UTF-8: না
+Description-bo.UTF-8: མིན
+Description-bs.UTF-8: Ne
+Description-ca.UTF-8: No
+Description-cs.UTF-8: Ne
+Description-cy.UTF-8: Na
+Description-da.UTF-8: Nej
+Description-de.UTF-8: Nein
+Description-dz.UTF-8: མེན།
+Description-el.UTF-8: Όχι
+Description-eo.UTF-8: Ne
+Description-es.UTF-8: No
+Description-et.UTF-8: Ei
+Description-eu.UTF-8: Ez
+Description-fa.UTF-8: نه
+Description-fi.UTF-8: Ei
+Description-fr.UTF-8: Non
+Description-ga.UTF-8: Níl
+Description-gl.UTF-8: Non
+Description-gu.UTF-8: ના
+Description-he.UTF-8: לא
+Description-hi.UTF-8: नहीं
+Description-hr.UTF-8: Ne
+Description-hu.UTF-8: Nem
+Description-id.UTF-8: Tidak
+Description-is.UTF-8: Nei
+Description-it.UTF-8: No
+Description-ja.UTF-8: いいえ
+Description-ka.UTF-8: არა
+Description-kab.UTF-8: Ala
+Description-kk.UTF-8: Жоқ
+Description-km.UTF-8: ទេ
+Description-kn.UTF-8: ಇಲ್ಲ
+Description-ko.UTF-8: 아니요
+Description-ku.UTF-8: Na
+Description-lo.UTF-8: ບໍ່
+Description-lt.UTF-8: Ne
+Description-lv.UTF-8: Nē
+Description-mk.UTF-8: Не
+Description-ml.UTF-8: വേണ്ട
+Description-mr.UTF-8: नाही
+Description-nb.UTF-8: Nei
+Description-ne.UTF-8: होइन
+Description-nl.UTF-8: Nee
+Description-nn.UTF-8: Nei
+Description-no.UTF-8: Nei
+Description-oc.UTF-8: Non
+Description-pa.UTF-8: ਨਹੀਂ
+Description-pl.UTF-8: Nie
+Description-pt.UTF-8: Não
+Description-pt_BR.UTF-8: Não
+Description-ro.UTF-8: Nu
+Description-ru.UTF-8: Нет
+Description-se.UTF-8: Ii
+Description-si.UTF-8: නැත
+Description-sk.UTF-8: Nie
+Description-sl.UTF-8: Ne
+Description-sq.UTF-8: Jo
+Description-sr.UTF-8: Не
+Description-sv.UTF-8: Nej
+Description-ta.UTF-8: இல்லை
+Description-te.UTF-8: కాదు
+Description-tg.UTF-8: Не
+Description-th.UTF-8: ไม่
+Description-tl.UTF-8: Hindi
+Description-tr.UTF-8: Hayır
+Description-ug.UTF-8: ياق
+Description-uk.UTF-8: Ні
+Description-vi.UTF-8: Không
+Description-zh_CN.UTF-8: 否
+Description-zh_TW.UTF-8: 否
+
+Template: debconf/button-cancel
+Type: text
+Description: Cancel
+Description-am.UTF-8: ተወው
+Description-ar.UTF-8: إلغاء
+Description-ast.UTF-8: Encaboxar
+Description-be.UTF-8: Скасаваць
+Description-bg.UTF-8: Прекъсване
+Description-bn.UTF-8: বাতিল
+Description-bo.UTF-8: རྩིས་མེད
+Description-bs.UTF-8: Prekini
+Description-ca.UTF-8: Cancel·la
+Description-cs.UTF-8: Zrušit
+Description-cy.UTF-8: Canslo
+Description-da.UTF-8: Afbryd
+Description-de.UTF-8: Abbrechen
+Description-dz.UTF-8: ཆ་མེད་གཏང་།
+Description-el.UTF-8: Άκυρο
+Description-eo.UTF-8: Nuligi
+Description-es.UTF-8: Cancelar
+Description-et.UTF-8: Loobu
+Description-eu.UTF-8: Utzi
+Description-fa.UTF-8: لغو
+Description-fi.UTF-8: Peru
+Description-fr.UTF-8: Annuler
+Description-ga.UTF-8: Cealaigh
+Description-gl.UTF-8: Cancelar
+Description-gu.UTF-8: રદ કરો
+Description-he.UTF-8: ביטול
+Description-hi.UTF-8: रद्द करें
+Description-hr.UTF-8: Odustani
+Description-hu.UTF-8: Mégsem
+Description-id.UTF-8: Batal
+Description-is.UTF-8: Hætta við
+Description-it.UTF-8: Annulla
+Description-ja.UTF-8: キャンセル
+Description-ka.UTF-8: გაუქმება
+Description-kab.UTF-8: Sefsex
+Description-kk.UTF-8: Бас тарту
+Description-km.UTF-8: បោះបង់
+Description-kn.UTF-8: ರದ್ದು ಮಾಡು
+Description-ko.UTF-8: 취소
+Description-ku.UTF-8: Betal
+Description-lo.UTF-8: ຍົກເລີກ
+Description-lt.UTF-8: Atsisakyti
+Description-lv.UTF-8: Atcelt
+Description-mk.UTF-8: Откажи
+Description-ml.UTF-8: റദ്ദാക്കുക
+Description-mr.UTF-8: रद्द करा
+Description-nb.UTF-8: Avbryt
+Description-ne.UTF-8: रद्द गर्नुहोस्
+Description-nl.UTF-8: Annuleren
+Description-nn.UTF-8: Avbryt
+Description-no.UTF-8: Avbryt
+Description-oc.UTF-8: Anullar
+Description-pa.UTF-8: ਰੱਦ ਕਰੋ
+Description-pl.UTF-8: Anuluj
+Description-pt.UTF-8: Cancelar
+Description-pt_BR.UTF-8: Cancelar
+Description-ro.UTF-8: Anulează
+Description-ru.UTF-8: Отмена
+Description-se.UTF-8: Gaskkalduhte
+Description-si.UTF-8: අහෝසි කරන්න
+Description-sk.UTF-8: Zrušiť
+Description-sl.UTF-8: Prekliči
+Description-sq.UTF-8: Anullo
+Description-sr.UTF-8: Поништи
+Description-sv.UTF-8: Avbryt
+Description-ta.UTF-8: கைவிடுக
+Description-te.UTF-8: రద్దు
+Description-tg.UTF-8: Бекор кардан
+Description-th.UTF-8: ยกเลิก
+Description-tl.UTF-8: Kanselahin
+Description-tr.UTF-8: İptal et
+Description-ug.UTF-8: ۋاز كەچ
+Description-uk.UTF-8: Скасувати
+Description-vi.UTF-8: Thôi
+Description-zh_CN.UTF-8: 取消
+Description-zh_TW.UTF-8: 取消
+
+Template: debconf/help-line
+Type: text
+Description: <Tab> moves; <Space> selects; <Enter> activates buttons
+Description-am.UTF-8: <Tab> ያስኬዳል; <Space> ይመርጣል; <Enter> ቁልፎችን ያስነሳል
+Description-ar.UTF-8: <Tab> للتنقل; <Space> للتحديد; <Enter> لتفعيل الأزرار
+Description-ast.UTF-8: <Tab> mover ente elementos; <Space> seleicionar; <Enter> activa botones
+Description-be.UTF-8: <Tab> рух між элементамі; <Прабел> пазнака; <Увод> націск кнопкі
+Description-bg.UTF-8: <Tab> придвижване; <интервал> избор; <Enter> активиране на бутоните
+Description-bn.UTF-8: <Tab> একটি থেকে আরেকটিতে যায়; <Space> নির্বাচন করে; <Enter> বোতাম সক্রিয় করে
+Description-bo.UTF-8: <Tab> སྤོར་བ; <Space> འདེམས་པ; <Enter> མནན་མཐེབ་ནུས་ཡོད་བཟོ
+Description-bs.UTF-8: <Tab> pomiče; <Space> odabire; <Enter> aktivira tipke
+Description-ca.UTF-8: <Tab> mou; <Espai> selecciona; <Intro> activa els botons
+Description-cs.UTF-8: <Tab> přesunuje; <Mezera> vybírá; <Enter> aktivuje tlačítka
+Description-cy.UTF-8: <Tab> i symud; <Space> i ddewis; <Enter> i ysgogi botymau.
+Description-da.UTF-8: <Tab> flytter; <Mellemrum> vælger; <Retur> aktiverer knapper
+Description-de.UTF-8: <Tab> Nächste Option <Leertaste> Auswählen <Enter> Knöpfe aktivieren
+Description-dz.UTF-8: <Tab>སྤོ་བཤུད་ཚུ་<Space> སེལ་འཐུ་ཚུ་ <Enter> ཨེབ་རྟ་ཚུ་ཤུགས་ལྡན་བཟོཝ་ཨིན་
+Description-el.UTF-8: <Tab> μετακίνηση; <Space> επιλογή; <Enter> ενεργοποίηση των πεδίων
+Description-eo.UTF-8: <Tab> movigas; <Space> elektas; <Enter> aktivigas butonojn
+Description-es.UTF-8: <Tab> mueve; <Espacio> selecciona; <Intro> activa un botón
+Description-et.UTF-8: <Tab> liigub; <Space> valib; <Enter> aktiveerib nuppe
+Description-eu.UTF-8: <Tab> mugitzeko; <Zuriunea> hautatzeko; <Sartu> botoiak aktibatzeko
+Description-fa.UTF-8: <Tab> حرکت بین گزینه‌ها; <Space> انتخاب; <Enter> اعمال دکمه ها
+Description-fi.UTF-8: <Sarkain> siirtää, <Välilyönti> valitsee, <Enter> aktivoi napit
+Description-fr.UTF-8: <Tab> déplacement; <Espace> sélection; <Entrée> activation des boutons
+Description-ga.UTF-8: Bogann <Tab> idir roghanna; roghnaíonn <Spás>; cumasaíonn <Enter> cnaipí
+Description-gl.UTF-8: <Tab> move; <Espazo> escolle; <Intro> activa os botóns
+Description-gu.UTF-8: <Tab> ખસેડો; <Space> પસંદ કરો; <Enter> બટનો સક્રિય કરો
+Description-he.UTF-8: <Tab> מעבר בין פריטים; <Space> בחירה; <Enter> הפעלת הכפתורים
+Description-hi.UTF-8: <Tab> से आगे-पीछे करें; <Space> से चुनें; <Enter> से बटनों को सक्रिय करें
+Description-hr.UTF-8: <Tab> pomicanje; <Space> odabir; <Enter> aktivira tipke
+Description-hu.UTF-8: A <Tab> mozog; a <Space> kijelöl; az <Enter> működteti a gombokat
+Description-id.UTF-8: <Tab> berpindah; <Spasi> memilih; <Enter> mengaktifkan tombol
+Description-is.UTF-8: <Tab> færir milli atriða; <Space> velur; <Enter> virkjar hnappa
+Description-it.UTF-8: <Tab> sposta; <Spazio> seleziona; <Invio> attiva i pulsanti
+Description-ja.UTF-8: <Tab> 移動; <スペース> 選択; <Enter> ボタンを実行
+Description-ka.UTF-8: <Tab> გადაადგილება; <Space> ამორჩევა; <Enter> ღილაკთა აქტივაცია
+Description-kab.UTF-8: <Tab> tilḥin; <Space> afran; <Enter> armad tiqeffalin
+Description-kk.UTF-8: <Tab> жылжыту; <Space> таңдау; <Enter> пернелерді белсендіру
+Description-km.UTF-8: ប៊ូតុង<Tab> ផ្លស់ទី <Space> ជ្រើស <Enter> ធ្វើ​ឲ្យ​សកម្ម
+Description-kn.UTF-8: <Tab> ಸ್ಥಳಾಂತರಿಸುವುದು; <Space> ಆರಿಸುವುದು; <Enter> ಗುಂಡಿಗಳನ್ನು ಚಲಾಯಿಸುವುದು
+Description-ko.UTF-8: <Tab> 이동, <스페이스> 선택, <Enter> 단추 활성화
+Description-ku.UTF-8: <Pekan> diguhêze; <Valahî> hildibijêre; <Enter> bişkojkan çalak dike
+Description-lo.UTF-8: <Tab> ເລື່ອນ; <Space> ເລືອກ; <Enter> ປຸ່ມປະຕິບັດງານ
+Description-lt.UTF-8: <Tab> judėti tarp įrašų; <Tarpas> pasirinkti; <Įvesti> aktyvinti mygtuką
+Description-lv.UTF-8: <Tab> pārvieto; <Space> izvēlas; <Enter> aktivizē pogas
+Description-mk.UTF-8: <Tab> поместува; <Space> избира; <Enter> активира копчиња
+Description-ml.UTF-8: <Tab> നീക്കുന്നു; <Space> തെരഞ്ഞെടുക്കുന്നു; <Enter> ബട്ടണുകള്‍ സജീവമാക്കുന്നു
+Description-mr.UTF-8: <टॅब> हलतो; <स्पेस> निवडतो; <एंटर> बटणे कार्यान्वित करतो
+Description-nb.UTF-8: <Tab> flytter, <Space> velger, <Enter> aktiverer knapper
+Description-ne.UTF-8: <Tab> वस्तुहरू बीच सर्छ; <Space> ले चयन गर्छ; <Enter> ले वटनहरू सक्रिय गर्दछ
+Description-nl.UTF-8: <Tab> verplaats; <Space> selecteer; <Enter> activeer knop
+Description-nn.UTF-8: «Tab» for flytting, «Mellomrom» for val og «Enter» for aktivering av knappar
+Description-no.UTF-8: <Tab> flytter, <Space> velger, <Enter> aktiverer knapper
+Description-oc.UTF-8: <Tab> desplaçament; <Espaci> seleccion; <Entrada> activacion dels botons
+Description-pa.UTF-8: <Tab> ਹਿਲਾਉ; <Space> ਚੁਣੋ; <Enter> ਬਟਨ ਐਕਟੀਵੇਟ
+Description-pl.UTF-8: <Tab> przenosi; <Spacja> wybiera; <Enter> aktywuje
+Description-pt.UTF-8: <Tab> mover; <Espaço> escolher; <Enter> activar botões
+Description-pt_BR.UTF-8: <Tab> move; <Espaço> seleciona; <Enter> ativa botões
+Description-ro.UTF-8: <Tab> deplasare; <Spațiu> selectează; <Enter> activează butoane
+Description-ru.UTF-8: <Tab>переход по элементам; <Пробел>выбор; <Enter>активация кнопок
+Description-se.UTF-8: <Tab> sirdá áđaid gaskkas, <Space> vállje, <Enter> aktivere áđa
+Description-si.UTF-8: <Tab> ගමන් කරයි; <Space> තෝරයි; <Enter> බොත්තම් සක්‍රිය කරයි
+Description-sk.UTF-8: <Tab> presúva; <medzerník> vyberá; <Enter> aktivuje tlačidlá
+Description-sl.UTF-8: <Tabulator> premika med izbirami; <Preslednica> izbere; <Vnašalka> omogoči gumbe
+Description-sq.UTF-8: <Tab> lëviz; <Space> zgjedh; <Enter> aktivizon butonat
+Description-sr.UTF-8: <Tab> кретање између опција; <Space> одабира; <Enter> активира одабрано
+Description-sv.UTF-8: <Tab> flyttar, <Blanksteg> väljer, <Enter> aktiverar knappar
+Description-ta.UTF-8: <Tab> நகர; <Space>தேர்வு செய்ய; <Enter> பொத்தான்களை செயலாக்க
+Description-te.UTF-8: <Tab> కదుపు; <Space> ఎంచుకో; <Enter> బటన్లని  చేతనం చేయు.
+Description-tg.UTF-8: Тугмаи <Tab> интиқол медиҳад; тугмаи <Space> интихоб мекунад; тугмаи <Enter> тугмаҳоро фаъол мекунад
+Description-th.UTF-8: <Tab> เลื่อน; <Space> เลือก; <Enter> กดปุ่ม
+Description-tl.UTF-8: <Tab> upang lumipat; <Space> upang pumili; <Enter> upang pindutin ang butones
+Description-tr.UTF-8: <Tab> ögeler arasında geçiş; <Space> seç; <Enter> düğmeleri etkinleştir
+Description-ug.UTF-8: <Tab>يۆتكەش; <Space>تاللاش; <Enter> ئاكتىپلاشتۇرۇش كۇنۇپكىسى
+Description-uk.UTF-8: <Tab> - переміщення; <Space> - вибір; <Enter> - натискання кнопок
+Description-vi.UTF-8: <Tab> để di chuyển; <Space> chọn mục; <Enter> bấm nút
+Description-zh_CN.UTF-8: <Tab> 移动; <Space> 选择; <Enter> 按下按钮
+Description-zh_TW.UTF-8: <Tab> 移動；<Space> 選擇；<Enter> 按下按鈕
+
+Template: debconf/help-line-f1
+Type: text
+Description: <F1> for help; <Tab> moves; <Space> selects; <Enter> activates buttons
+Description-am.UTF-8: <F1> ለመመሪያ;<Tab> ያስኬዳል; <Space> ይመርጣል; <Enter> ቁልፎችን ያስነሳል
+Description-ar.UTF-8: <F1> للمساعدة; <Tab> للتنقل; <Space> للتحديد; <Enter> لتفعيل الأزرار
+Description-ast.UTF-8: <F1> p'ayuda; <Tab> mover ente elementos; <Space> seleicionar; <Enter> activa botones
+Description-be.UTF-8: <F1> дапамога; <Таб> рух між элементамі; <Прабел> пазнака; <Увод> націск кнопкі
+Description-bg.UTF-8: <F1> помощ; <Tab> придвижване; <интервал> избор; <Enter> активиране на бутоните
+Description-bn.UTF-8: <F1> সহায়তার জন্য; <Tab> একটি থেকে আরেকটিতে যায়; <Space> নির্বাচন করে; <Enter> বোতামকে সক্রিয় করে
+Description-bo.UTF-8: <F1> རོགས་རམ; <Tab> སྤོར་བ; <Space> འདེམས་པ; <Enter> མནན་མཐེབ་ནུས་ཡོད་བཟོ
+Description-bs.UTF-8: <F1> za pomoć; <Tab> pomiče; <Space> odabire; <Enter> aktivira dugmad
+Description-ca.UTF-8: <F1> per a ajuda; <Tab> mou; <Espai> selecciona; <Intro> activa els botons
+Description-cs.UTF-8: <F1> nápověda; <Tab> přesunuje; <Mezera> vybírá; <Enter> aktivuje tlačítka
+Description-cy.UTF-8: <F1> am gymorth; <Tab> i symud; <Space> i ddewis; <Enter> i ysgogi botymau.
+Description-da.UTF-8: <F1> for hjælp; <Tab> flytter; <Mellemrum> vælger; <Retur> aktiverer knapper
+Description-de.UTF-8: <F1> Hilfe <Tab> Nächste Option <Leertaste> Auswählen <Enter> Knöpfe aktivieren
+Description-dz.UTF-8: <F1> གྲོགས་རམ་གྱི་དོན་ལུ་; <Tab>སྤོ་བཤུད་ཚུ་<Space> སེལ་འཐུ་ཚུ་ <Enter> ཨེབ་རྟ་ཚུ་ཤུགས་ལྡན་བཟོཝ་ཨིན་
+Description-el.UTF-8: <F1> για βοήθεια; <Tab> μετακίνηση; <Space> επιλογή; <Enter> ενεργοποίηση πεδίων
+Description-eo.UTF-8: <F1> por helpo; <Tab> movigas; <Space> elektas; <Enter> aktivigas butonojn
+Description-es.UTF-8: <F1> para ayuda; <Tab> mueve; <Espacio> selecciona; <Intro> activa un botón
+Description-et.UTF-8: <F1> kuvab abi; <Tab> liigub; <Space> valib; <Enter> aktiveerib nuppe
+Description-eu.UTF-8: <F1> Laguntza; <Tab> mugitzeko; <Zuriunea> hautatzeko; <Sartu> aktibatzeko
+Description-fa.UTF-8: <F1> برای کمک و راهنمایی; <Tab> حرکت بین گزینه‌ها; <Space> انتخاب; <Enter> اعمال دکمه ها
+Description-fi.UTF-8: <F1> näyttää ohjeen, <Sarkain> siirtää, <Välilyönti> valitsee, <Enter> aktivoi napit
+Description-fr.UTF-8: <F1> aide; <Tab> déplacement; <Espace> sélection; <Entrée> activation boutons
+Description-ga.UTF-8: <F1>=cabhair; bogann <Tab>; roghnaíonn <Spás>; cumasaíonn <Enter> cnaipí
+Description-gl.UTF-8: <F1> axuda; <Tab> move; <Space> escolle; <Enter> activa botóns
+Description-gu.UTF-8: <F1> મદદ માટે; <Tab> ખસેડો; <Space> પસંદ કરો; <Enter> બટનો સક્રિય કરો
+Description-he.UTF-8: <F1> לעזרה; <Tab> מעבר בין פריטים; <Space> בחירה; <Enter> הפעלת הכפתורים
+Description-hi.UTF-8: <F1> सहायता के लिए;<Tab> से आगे-पीछे करें; <Space> से चुनें; <Enter> से बटनों को सक्रिय करें
+Description-hr.UTF-8: <F1> pomoć; <Tab> pomicanje; <Space> odabir; <Enter> aktivira tipke
+Description-hu.UTF-8: Az <F1> súg; a <Tab> mozog; a <Space> kijelöl; az <Enter> működteti a gombokat
+Description-id.UTF-8: <F1> untuk petunjuk; <Tab> berpindah; <Spasi> memilih; <Enter> mengaktifkan tombol
+Description-is.UTF-8: <F1> veitir aðstoð; <Tab> færir milli atriða; <Space> velur; <Enter> virkjar hnappa
+Description-it.UTF-8: <F1> aiuto; <Tab> sposta; <Spazio> seleziona; <Invio> attiva i pulsanti
+Description-ja.UTF-8: <F1> ヘルプ; <Tab> 移動; <スペース> 選択; <Enter> ボタンを実行
+Description-ka.UTF-8: <F1> დახმარება; <Tab> გადაადგილება; <Space> ამორჩევა; <Enter> ღილაკთა აქტივაცია
+Description-kab.UTF-8: <F1> i tallelt; <Tab> tilḥin; <Space> afran; <Enter> armad tiqeffalin
+Description-kk.UTF-8: <F1> көмек алу; <Tab> жылжыту; <Space> таңдау; <Enter> батырманы белсендіру
+Description-km.UTF-8: <F1> ចំពោះ​ជំនួយ ប៊ូតុង​<Tab> ផ្លាស់ទី <Space> ជ្រើស <Enter> ធ្វើ​ឲ្យ​សកម្ម
+Description-kn.UTF-8: <F1> ಸಹಾಯ; <Tab> ಸ್ಥಳಾಂತರಿಸುವುದು; <Space> ಆರಿಸುವುದು; <Enter> ಗುಂಡಿಗಳನ್ನು ಚಲಾಯಿಸುವುದು
+Description-ko.UTF-8: <F1> 도움말, <Tab> 이동, <스페이스> 선택, <Enter> 단추 활성화
+Description-ku.UTF-8: <F1> ji bo alîkariyê; <Pekan> di nav hêmanan de digere; <Enter> bişkojkan çalak dike
+Description-lo.UTF-8: <F1> ເບີ່ງວິທີໃຊ້; <Tab> ເລື່ອນ; <Space> ເລືອກ; <Enter> ປຸ່ມປະຕິບັດງານ
+Description-lt.UTF-8: <F1> pagalba; <Tab> judėti tarp įrašų; <Tarpas> pasirinkti; <Įvesti> aktyvinti mygtuką
+Description-lv.UTF-8: <F1> palīdzībai; <Tab> pārvieto; <Space> izvēlas; <Enter> aktivizē pogas
+Description-mk.UTF-8: <F1> за помош; <Tab> поместува; <Space> избира; <Enter> aктивира копчиња
+Description-ml.UTF-8: <F1> സഹായത്തിനു്; <Tab> നീക്കുന്നു; <Space> തെരഞ്ഞെടുക്കുന്നു; <Enter> ബട്ടണുകള്‍ സജീവമാക്കുന്നു
+Description-mr.UTF-8: <F1> मदतीसाठी; <टॅब> हलतो; <स्पेस> निवडतो; <एंटर> बटणे कार्यान्वित करतो
+Description-nb.UTF-8: <F1> for hjelp, <Tab> flytter, <Space> velger, <Enter> aktiverer knapper
+Description-ne.UTF-8: <Tab> वस्तुहरू बीच सर्छ; <Space> ले चयन गर्छ; <Enter> ले वटनहरू सक्रिय गर्दछ
+Description-nl.UTF-8: <F1> help; <Tab> verplaats; <Space> selecteer; <Enter> activeer knop
+Description-nn.UTF-8: «F1» for hjelp, «Tab» for flytting, «Mellomrom» for val og «Enter» for aktivering av knappar
+Description-no.UTF-8: <F1> for hjelp, <Tab> flytter, <Space> velger, <Enter> aktiverer knapper
+Description-oc.UTF-8: <F1> ajuda; <Tab> desplaçament; <Espaci> seleccion; <Entrada> activacion botons
+Description-pa.UTF-8: <F1> ਮੱਦਦ ਲਈ; <Tab> ਹਿਲਾਉ; <Space> ਚੁਣੋ; <Enter> ਬਟਨ ਐਕਟੀਵੇਟ
+Description-pl.UTF-8: <F1> pomoc; <Tab> przenosi; <Spacja> wybiera; <Enter> aktywuje
+Description-pt.UTF-8: <F1> para ajuda; <Tab>> mover; <Espaço> escolher; <Enter> activar botões
+Description-pt_BR.UTF-8: <F1> para ajuda; <Tab> move; <Espaço> seleciona; <Enter> ativa botões
+Description-ro.UTF-8: <F1> ajutor; <Tab> deplasare; <Spațiu> selectează; <Enter> activează butoane
+Description-ru.UTF-8: <F1>справка; <Tab>переход по элементам; <Пробел>выбор; <Enter>активация кнопок
+Description-se.UTF-8: <F1> čájeha veahki, <Tab> sirdá áđaid gaskkas, <Space> vállje, <Enter> aktivere áđa
+Description-si.UTF-8: <F1> උදව් සඳහා; <Tab> ගමන් කරයි; <Space> තෝරයි; <Enter> බොත්තම් සක්‍රිය කරයි
+Description-sk.UTF-8: <F1> vyvoláva Pomocníka; <medzerník> vyberá; <Enter> aktivuje tlačidlá
+Description-sl.UTF-8: <F1> za pomoč; <Tabulator> premika med izbirami; <Preslednica> izbere; <Vnašalka> omogoči gumbe
+Description-sq.UTF-8: <F1> për ndihmë; <Tab> lëviz; <Space> zgjedh; <Enter> aktivizon butonat
+Description-sr.UTF-8: <F1> помоћ; <Tab> кретање између опција; <Space> одабира; <Enter> активира одабрано
+Description-sv.UTF-8: <F1> för hjälp, <Tab> flyttar, <Blanksteg> väljer, <Enter> aktiverar knappar
+Description-ta.UTF-8: <F1> உதவிக்கு; <Tab> நகர்த்த; <Space> தேர்வு செய்ய; <Enter> பொத்தான்களை செயலாக்க
+Description-te.UTF-8: <F1> సహాయం కొరకు; <Tab>కదుపు; <Space> ఎంచుకో; <Enter> బటన్లని  చేతనం చేయు.
+Description-tg.UTF-8: Тугмаи <F1> барои кумак; <Tab> интиқол медиҳад; <Space> интихоб мекунад; <Enter> тугмаҳоро фаъол мекунад
+Description-th.UTF-8: <F1> ดูวิธีใช้; <Tab> เลื่อน; <Space> เลือก; <Enter> กดปุ่ม
+Description-tl.UTF-8: <F1> Tulong; <Tab> Lipat; <Space> Piliin; <Enter> upang pindutin ang butones
+Description-tr.UTF-8: <F1> yardım; <Tab> geçiş; <Space> seç; <Enter> düğmeleri etkinleştir
+Description-ug.UTF-8: <F1>ياردەم; <Tab> يۆتكەش; <Space>تاللاش; <Enter> ئاكتىپلاشتۇرۇش توپچىسى
+Description-uk.UTF-8: <F1> - допомога; <Tab> - переміщення; <Space> - вибір; <Enter> - натискання кнопок
+Description-vi.UTF-8: <F1> trợ giúp; <Tab> để di chuyển; <Space> chọn mục; <Enter> bấm nút
+Description-zh_CN.UTF-8: <F1> 寻求帮助; <Tab> 移动; <Space> 选择; <Enter> 按下按钮
+Description-zh_TW.UTF-8: <F1> 求助；<Tab> 移動；<Space> 選擇；<Enter> 按下按鈕
+
+Template: debconf/show-password
+Type: text
+Description: Show Password in Clear
+Description-ar.UTF-8: إظهار كلمة المرور
+Description-ast.UTF-8: Amosar la contraseña en claru
+Description-be.UTF-8: Паказваць пароль
+Description-bg.UTF-8: Показване на паролата
+Description-ca.UTF-8: Mostra la contrasenya en clar
+Description-cs.UTF-8: Zobrazit heslo
+Description-da.UTF-8: Vis adgangskode i klartekst
+Description-de.UTF-8: Passwort im Klartext anzeigen
+Description-el.UTF-8: Εμφάνιση Κωδικού
+Description-eo.UTF-8: Klare montri la pasvorton
+Description-es.UTF-8: Mostrar la contraseña en claro
+Description-et.UTF-8: Kuva parool
+Description-eu.UTF-8: Erakutsi pasahitza
+Description-fa.UTF-8: نمایش واضح کلمه عبور
+Description-fi.UTF-8: Näytä salasana selväkielisenä
+Description-fr.UTF-8: Afficher le mot de passe en clair
+Description-ga.UTF-8: Taispeáin an focal faire gan criptiú
+Description-gl.UTF-8: Mostrar o contrasinal en claro
+Description-gu.UTF-8: પાસવર્ડ સ્પષ્ટ રીતે દર્શાવો
+Description-he.UTF-8: חשיפת הססמה
+Description-hi.UTF-8: स्पष्ट में पासवर्ड दिखाओ
+Description-hr.UTF-8: Prikaži lozinku
+Description-hu.UTF-8: Jelszó mutatása
+Description-id.UTF-8: Tampilkan Kata Sandi Polos
+Description-is.UTF-8: Birta lykilorð óruglað
+Description-it.UTF-8: Mostra password
+Description-ja.UTF-8: パスワードを表示
+Description-kab.UTF-8: Sken awal n uɛeddi ufriẓ
+Description-kk.UTF-8: Парольді көрсету
+Description-ko.UTF-8: 암호를 일반 텍스트로 표시
+Description-lt.UTF-8: Rodyti slaptažodį atviru tekstu
+Description-lv.UTF-8: Rādīt paroles skaidrā tekstā
+Description-ml.UTF-8: രഹസ്യവാക്ക് കാണിക്കുക
+Description-mr.UTF-8: परवलीशब्द स्पष्टपणे दर्शवा
+Description-nb.UTF-8: Vis passord i klartekst
+Description-ne.UTF-8: पासवर्ड खुलामा देखाउनु होस्
+Description-nl.UTF-8: Geef wachtwoord als gewone tekst weer
+Description-no.UTF-8: Vis passord i klartekst
+Description-oc.UTF-8: Mostrar lo senhal en clar
+Description-pa.UTF-8: ਪਾਸਵਰਡ ਸਪਰਸ਼ਟ ਦਿਖਾਓ
+Description-pl.UTF-8: Pokaż hasło
+Description-pt.UTF-8: Mostrar palavra-passe
+Description-pt_BR.UTF-8: Mostrar a senha
+Description-ro.UTF-8: Arată parola
+Description-ru.UTF-8: Показывать вводимый пароль
+Description-sk.UTF-8: Zobraziť heslo v čitateľnom tvare
+Description-sl.UTF-8: Pokaži geslo
+Description-sq.UTF-8: Trego fjalëkalimin në Pastrim
+Description-sr.UTF-8: Прикажи лозинку
+Description-sv.UTF-8: Visa lösenordet
+Description-ta.UTF-8: கடவுச்சொல்லை காட்டுக
+Description-te.UTF-8: సంకేతపదాన్ని స్పష్టంగా చూపించు
+Description-tg.UTF-8: Намоиш додани ниҳонвожаи воридшуда
+Description-th.UTF-8: แสดงรหัสผ่าน
+Description-tr.UTF-8: Parolayı Göster
+Description-uk.UTF-8: Показати пароль відкритим текстом
+Description-vi.UTF-8: Hiển thị mật khẩu đọc được
+Description-zh_CN.UTF-8: 显示明文密码
+Description-zh_TW.UTF-8: 顯示明文密碼

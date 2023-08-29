@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config VIRTIO_SND
+	tristate "Virtio sound driver"
+	depends on VIRTIO
+	help
+	 This option adds virtio sound driver.

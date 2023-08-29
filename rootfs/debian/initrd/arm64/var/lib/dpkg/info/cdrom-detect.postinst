@@ -1,0 +1,287 @@
+#! /bin/sh
+
+set -e
+. /usr/share/debconf/confmodule
+#set -x
+
+log() {
+	logger -t cdrom-detect "$@"
+}
+
+fail() {
+	log "CDROM-detect failed; unmounting CD just to be sure"
+	umount /cdrom 2>/dev/null || true
+	exit 1
+}
+
+try_mount() {
+	local device=$1
+	local type=$2
+
+	local ret=1
+	if mount -t $type -o $OPTIONS $device /cdrom; then
+		log "CD-ROM mount succeeded: device=$device fstype=$type"
+		if [ -e /cdrom/.disk/info ]; then
+			CDNAME=$(cat /cdrom/.disk/info)
+			log "Detected CD '$CDNAME'"
+			db_set cdrom-detect/cdrom_device $device
+			db_set cdrom-detect/cdrom_fs $type
+			ret=0
+		else
+			log "The CD in $device is not a Debian CD!"
+			umount /cdrom 2>/dev/null || true
+			WRONG=1
+		fi
+	else
+		log "CD-ROM mount failed: device=$device fstype=$type"
+	fi
+
+	return $ret
+}
+
+# Set the suite and codename used by base-installer and base-config
+# to the suite/codename that is on the CD. In case there are multiple
+# suites, prefer the one in default-release.
+set_suite_and_codename() {
+	for dir in $(cat /etc/default-release) $(ls -1 /cdrom/dists/); do
+		relfile="/cdrom/dists/$dir/Release"
+		if [ -e $relfile ]; then
+			suite=$(sed -n 's/^Suite: *//p' "$relfile")
+			codename=$(sed -n 's/^Codename: *//p' "$relfile")
+			log "Detected CD with '$suite' ($codename) distribution"
+			db_set cdrom/suite "$suite"
+			db_set cdrom/codename "$codename"
+
+			break
+		fi
+	done
+}
+
+OS=$(udpkg --print-os)
+case "$OS" in
+	kfreebsd)
+		CDFS=cd9660
+		FATFS=msdosfs
+		OPTIONS=ro,exec
+		;;
+	linux)
+		CDFS=iso9660
+		FATFS=vfat
+		OPTIONS=ro,exec
+		;;
+	hurd)
+		CDFS=iso9660fs
+		FATFS=fatfs
+		OPTIONS=ro
+		;;
+	*)
+		log "Unknown OS '$OS', exiting"
+		exit 0
+		
+esac
+ 
+# Is a cdrom already mounted? If so, assume it's the right one.
+mount | grep -q 'on /cdrom' && set_suite_and_codename && exit 0
+if [ -e /cdrom/.disk/info ]; then
+	CDNAME=$(cat /cdrom/.disk/info)
+	log "Detected CD '$CDNAME'"
+	set_suite_and_codename
+	exit 0
+fi
+
+# Don't worry about firmware just yet:
+CHECK_MISSING_FIRMWARE=0 hw-detect cdrom-detect/detect_progress_title || true
+
+log "Searching for Debian installation media..."
+
+mkdir /cdrom 2>/dev/null || true
+
+# Need to wait for the usb device scan to complete
+if [ "$OS" = "linux" ]; then
+  for count in 1 2 3 4 5 6 8 9 10; do
+    devices="$(list-devices cd; list-devices maybe-usb-floppy)"
+    log "Devices: '$devices'"
+    if [ -n "$devices" ]; then
+      break 2
+    else
+      sleep 1
+    fi
+  done
+fi
+
+while true; do
+	WRONG=
+
+	devices="$(list-devices cd; list-devices maybe-usb-floppy)"
+	for device in $devices; do
+		if try_mount $device $CDFS; then
+			break 2
+		fi
+	done
+	
+	devices="$(list-devices usb-partition)"
+	for device in $devices; do
+		if try_mount $device $CDFS; then
+			db_set cdrom-detect/hybrid true
+			break 2
+		fi
+		if try_mount $device $FATFS; then
+			db_set cdrom-detect/usb-hdd true
+			break 2
+		fi
+	done
+
+
+	if [ "$WRONG" ]; then
+		db_input critical cdrom-detect/wrong-cd || [ $? -eq 30 ]
+		db_go
+		fail
+	fi
+
+	# If a device was detected but the mount failed, ask for the CD.
+	if [ -n "$devices" ]; then
+		db_input critical cdrom-detect/retry || [ $? -eq 30 ]
+		db_go
+		db_get cdrom-detect/retry
+		if [ "$RET" = "true" ]; then
+			log "Unmounting CD just to be sure"
+			umount /cdrom 2>/dev/null || true
+			continue
+		else
+			fail
+		fi
+	fi
+ 
+	# If no device was detected, perhaps a driver floppy is needed.
+	if [ -e /usr/lib/debian-installer/retriever/media-retriever ]; then
+		db_input critical cdrom-detect/load_media
+		db_go
+		db_get cdrom-detect/load_media
+		if [ "$RET" = true ]; then
+			anna media-retriever
+			# Don't worry about firmware just yet:
+			CHECK_MISSING_FIRMWARE=0 hw-detect cdrom-detect/detect_progress_title || true
+			continue
+		fi
+	fi
+    
+	# Otherwise manual configuration may be needed
+	db_input critical cdrom-detect/manual_config || [ $? -eq 30 ]
+	db_go
+	db_get cdrom-detect/manual_config
+
+	if [ "$RET" = true ]; then
+		case "$OS" in
+			linux)
+				modules=none
+				for i in $(ls -1 /lib/modules/*/kernel/drivers/cdrom/ | \
+					   sed 's/\.ko$//' | sed 's/\.o$//'); do
+					modules="$modules, $i"
+				done  
+
+				db_subst cdrom-detect/cdrom_module choices "$modules"
+				db_input critical cdrom-detect/cdrom_module || [ $? -eq 30 ]
+				db_go
+
+				db_get cdrom-detect/cdrom_module
+				if [ "$RET" != none ]; then
+					modprobe $RET
+				fi
+				;;
+			kfreebsd)
+				modules=none
+				for i in $(ls -1 /lib/modules/$(uname -r)/ | \
+					   sed 's/\.ko$//'); do
+					modules="$modules, $i"
+				done
+
+				db_subst cdrom-detect/cdrom_module choices "$modules"
+				db_input critical cdrom-detect/cdrom_module || [ $? -eq 30 ]
+				db_go
+				
+				db_get cdrom-detect/cdrom_module
+				if [ "$RET" != none ]; then
+					kldload $RET
+				fi
+				;;
+		esac
+
+		db_input critical cdrom-detect/cdrom_device || [ $? -eq 30 ]
+		db_go
+
+		db_get cdrom-detect/cdrom_device
+		device="$RET"
+
+		if mount -t $CDFS -o $OPTIONS $device /cdrom; then
+			log "CD-ROM mount succeeded: device=$device fstype=$CDFS"
+			db_set cdrom-detect/cdrom_fs $CDFS
+			break
+		else
+			log "CD-ROM mount failed: device=$device fstype=$CDFS"
+			fail
+		fi
+	else
+		fail
+	fi
+done
+
+# Check for unetbootin files
+UNETBOOTIN_FILES="ubnfilel.txt ubninit ubnkern ubnpathl.txt"
+UNETBOOTIN_DETECTED=0
+for file in ${UNETBOOTIN_FILES}; do
+	if [ -f /cdrom/$file ] ; then
+		UNETBOOTIN_DETECTED=1
+		break
+	fi
+done
+
+# If we found any, warn the user
+if [ $UNETBOOTIN_DETECTED = 1 ]; then
+	db_input critical cdrom-detect/unetbootin_detected || [ $? -eq 30 ]
+	db_go
+fi
+
+# Get all the pool directories into the dentry cache, to cut down on seek
+# times.
+poolcount="$(set -- /cdrom/pool/*/*; echo $#)"
+db_progress START 0 "$poolcount" cdrom-detect/scanning_progress_title
+for pooldir in /cdrom/pool/*/*; do
+	if [ -d "$pooldir" ]; then
+		db_subst cdrom-detect/scanning_progress_step DIR "$pooldir"
+		db_progress INFO cdrom-detect/scanning_progress_step
+		log-output --pass-stdout -t cdrom-detect find "$pooldir/" >/dev/null || true
+	fi
+	db_progress STEP 1
+done
+db_progress STOP
+
+set_suite_and_codename
+
+if [ -z "$suite" ]; then
+	log "Error reading Release file; unable to determine distribution"
+	db_input critical cdrom-detect/no-release || [ $? -eq 30 ]
+	db_go
+	fail
+fi
+
+# Install eject-udeb, to be able to use it in the finish-install script.
+anna-install eject-udeb || true
+
+# Hey, we're done
+db_subst cdrom-detect/success cdname "$CDNAME"
+db_input low cdrom-detect/success || [ $? -eq 30 ]
+db_go
+
+anna-install apt-mirror-setup || true
+if [ ! -e /cdrom/.disk/base_installable ]; then
+	log "Base system not installable from CD, requesting choose-mirror"
+	anna-install choose-mirror || true
+else
+	anna-install apt-cdrom-setup || true
+
+	# Install <codename>-support udeb (if available).
+	db_get cdrom/codename
+	anna-install $RET-support || true
+fi
+
+exit 0

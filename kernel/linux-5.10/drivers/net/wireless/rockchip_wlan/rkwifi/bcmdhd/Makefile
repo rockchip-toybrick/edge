@@ -43,7 +43,8 @@ DHDCFLAGS = -Wall -Wstrict-prototypes -Wno-date-time                      \
 	-DUSE_NEW_RSPEC_DEFS -DBCM_USE_PLATFORM_STRLCPY                       \
 	-DWL_EXT_IAPSTA -DWL_ESCAN -DCCODE_LIST -DSUSPEND_EVENT               \
 	-DEAPOL_RESEND -DEAPOL_DYNAMATIC_RESEND -DWL_SCHED_SCAN               \
-	-DENABLE_INSMOD_NO_FW_LOAD -Wframe-larger-than=2048
+	-DENABLE_INSMOD_NO_FW_LOAD -Wframe-larger-than=2048                   \
+	-DSCHED_SCAN_DELAYED_WORK -DDHD_PNO_FLAG
 
 DHDOFILES = aiutils.o siutils.o sbutils.o bcmutils.o bcmwifi_channels.o   \
 	dhd_linux.o dhd_linux_platdev.o dhd_linux_sched.o dhd_pno.o           \
@@ -325,6 +326,7 @@ endif
 	DHDCFLAGS += -DCUSTOMER_HW_ROCKCHIP
 endif
 
+ifeq ($(CONFIG_BCMDHD_HYPER_PASS),)
 ifeq ($(CONFIG_BCMDHD_REQUEST_FW),y)
 	DHDCFLAGS += -DDHD_LINUX_STD_FW_API
 	DHDCFLAGS += -DDHD_FW_NAME="\"fw_bcmdhd.bin\""
@@ -335,6 +337,7 @@ ifeq ($(CONFIG_BCMDHD_FW_PATH),)
 	DHDCFLAGS += -DCONFIG_BCMDHD_FW_PATH="\"/system/etc/firmware/fw_bcmdhd.bin\""
 	DHDCFLAGS += -DCONFIG_BCMDHD_NVRAM_PATH="\"/system/etc/firmware/nvram.txt\""
 	DHDCFLAGS += -DCONFIG_BCMDHD_CLM_PATH="\"/system/etc/firmware/clm_bcmdhd.blob\""
+endif
 endif
 endif
 
@@ -362,7 +365,7 @@ BCMDHD_ROOT = $(src)
 #$(warning "BCMDHD_ROOT=$(BCMDHD_ROOT)")
 EXTRA_CFLAGS = $(DHDCFLAGS)
 EXTRA_CFLAGS += -DDHD_COMPILED=\"$(BCMDHD_ROOT)\"
-EXTRA_CFLAGS += -I$(BCMDHD_ROOT)/include/ -I$(BCMDHD_ROOT)/
+EXTRA_CFLAGS += -I$(srctree)/$(BCMDHD_ROOT)/include/ -I$(srctree)/$(BCMDHD_ROOT)/
 EXTRA_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
 ifeq ($(CONFIG_AP6XXX),m)
 EXTRA_LDFLAGS += --strip-debug

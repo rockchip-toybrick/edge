@@ -804,6 +804,17 @@ static int kbase_pm_mcu_update_state(struct kbase_device *kbdev)
 						KBASE_MCU_HCTL_SHADERS_PEND_ON;
 				} else
 					backend->mcu_state = KBASE_MCU_ON_HWCNT_ENABLE;
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+				if (kbase_debug_coresight_csf_state_check(
+					    kbdev, KBASE_DEBUG_CORESIGHT_CSF_DISABLED)) {
+					kbase_debug_coresight_csf_state_request(
+						kbdev, KBASE_DEBUG_CORESIGHT_CSF_ENABLED);
+					backend->mcu_state = KBASE_MCU_CORESIGHT_ENABLE;
+				} else if (kbase_debug_coresight_csf_state_check(
+						   kbdev, KBASE_DEBUG_CORESIGHT_CSF_ENABLED)) {
+					backend->mcu_state = KBASE_MCU_CORESIGHT_ENABLE;
+				}
+#endif /* IS_ENABLED(CONFIG_MALI_CORESIGHT) */
 			}
 			break;
 
@@ -832,8 +843,7 @@ static int kbase_pm_mcu_update_state(struct kbase_device *kbdev)
 				unsigned long flags;
 
 				kbase_csf_scheduler_spin_lock(kbdev, &flags);
-				kbase_hwcnt_context_enable(
-					kbdev->hwcnt_gpu_ctx);
+				kbase_hwcnt_context_enable(kbdev->hwcnt_gpu_ctx);
 				kbase_csf_scheduler_spin_unlock(kbdev, flags);
 				backend->hwcnt_disabled = false;
 			}
@@ -854,9 +864,19 @@ static int kbase_pm_mcu_update_state(struct kbase_device *kbdev)
 					backend->mcu_state =
 						KBASE_MCU_HCTL_MCU_ON_RECHECK;
 				}
-			} else if (kbase_pm_handle_mcu_core_attr_update(kbdev)) {
+			} else if (kbase_pm_handle_mcu_core_attr_update(kbdev))
 				backend->mcu_state = KBASE_MCU_ON_CORE_ATTR_UPDATE_PEND;
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+			else if (kbdev->csf.coresight.disable_on_pmode_enter) {
+				kbase_debug_coresight_csf_state_request(
+					kbdev, KBASE_DEBUG_CORESIGHT_CSF_DISABLED);
+				backend->mcu_state = KBASE_MCU_ON_PMODE_ENTER_CORESIGHT_DISABLE;
+			} else if (kbdev->csf.coresight.enable_on_pmode_exit) {
+				kbase_debug_coresight_csf_state_request(
+					kbdev, KBASE_DEBUG_CORESIGHT_CSF_ENABLED);
+				backend->mcu_state = KBASE_MCU_ON_PMODE_EXIT_CORESIGHT_ENABLE;
 			}
+#endif
 			break;
 
 		case KBASE_MCU_HCTL_MCU_ON_RECHECK:
@@ -947,11 +967,45 @@ static int kbase_pm_mcu_update_state(struct kbase_device *kbdev)
 #ifdef KBASE_PM_RUNTIME
 				if (backend->gpu_sleep_mode_active)
 					backend->mcu_state = KBASE_MCU_ON_SLEEP_INITIATE;
-				else
+				else {
 #endif
 					backend->mcu_state = KBASE_MCU_ON_HALT;
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+					kbase_debug_coresight_csf_state_request(
+						kbdev, KBASE_DEBUG_CORESIGHT_CSF_DISABLED);
+					backend->mcu_state = KBASE_MCU_CORESIGHT_DISABLE;
+#endif /* IS_ENABLED(CONFIG_MALI_CORESIGHT) */
+				}
 			}
 			break;
+
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+		case KBASE_MCU_ON_PMODE_ENTER_CORESIGHT_DISABLE:
+			if (kbase_debug_coresight_csf_state_check(
+				    kbdev, KBASE_DEBUG_CORESIGHT_CSF_DISABLED)) {
+				backend->mcu_state = KBASE_MCU_ON;
+				kbdev->csf.coresight.disable_on_pmode_enter = false;
+			}
+			break;
+		case KBASE_MCU_ON_PMODE_EXIT_CORESIGHT_ENABLE:
+			if (kbase_debug_coresight_csf_state_check(
+				    kbdev, KBASE_DEBUG_CORESIGHT_CSF_ENABLED)) {
+				backend->mcu_state = KBASE_MCU_ON;
+				kbdev->csf.coresight.enable_on_pmode_exit = false;
+			}
+			break;
+		case KBASE_MCU_CORESIGHT_DISABLE:
+			if (kbase_debug_coresight_csf_state_check(
+				    kbdev, KBASE_DEBUG_CORESIGHT_CSF_DISABLED))
+				backend->mcu_state = KBASE_MCU_ON_HALT;
+			break;
+
+		case KBASE_MCU_CORESIGHT_ENABLE:
+			if (kbase_debug_coresight_csf_state_check(
+				    kbdev, KBASE_DEBUG_CORESIGHT_CSF_ENABLED))
+				backend->mcu_state = KBASE_MCU_ON_HWCNT_ENABLE;
+			break;
+#endif /* IS_ENABLED(CONFIG_MALI_CORESIGHT) */
 
 		case KBASE_MCU_ON_HALT:
 			if (!kbase_pm_is_mcu_desired(kbdev)) {
@@ -1045,6 +1099,11 @@ static int kbase_pm_mcu_update_state(struct kbase_device *kbdev)
 			/* Reset complete  */
 			if (!backend->in_reset)
 				backend->mcu_state = KBASE_MCU_OFF;
+
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+			kbdev->csf.coresight.disable_on_pmode_enter = false;
+			kbdev->csf.coresight.enable_on_pmode_exit = false;
+#endif /* IS_ENABLED(CONFIG_MALI_CORESIGHT) */
 			break;
 
 		default:
@@ -1142,11 +1201,20 @@ static bool can_power_down_l2(struct kbase_device *kbdev)
 #if MALI_USE_CSF
 	/* Due to the HW issue GPU2019-3878, need to prevent L2 power off
 	 * whilst MMU command is in progress.
+	 * Also defer the power-down if MMU is in process of page migration.
 	 */
-	return !kbdev->mmu_hw_operation_in_progress;
+	return !kbdev->mmu_hw_operation_in_progress && !kbdev->mmu_page_migrate_in_progress;
 #else
-	return true;
+	return !kbdev->mmu_page_migrate_in_progress;
 #endif
+}
+
+static bool can_power_up_l2(struct kbase_device *kbdev)
+{
+	lockdep_assert_held(&kbdev->hwaccess_lock);
+
+	/* Avoiding l2 transition if MMU is undergoing page migration */
+	return !kbdev->mmu_page_migrate_in_progress;
 }
 
 static bool need_tiler_control(struct kbase_device *kbdev)
@@ -1220,7 +1288,7 @@ static int kbase_pm_l2_update_state(struct kbase_device *kbdev)
 
 		switch (backend->l2_state) {
 		case KBASE_L2_OFF:
-			if (kbase_pm_is_l2_desired(kbdev)) {
+			if (kbase_pm_is_l2_desired(kbdev) && can_power_up_l2(kbdev)) {
 #if MALI_USE_CSF && defined(KBASE_PM_RUNTIME)
 				/* Enable HW timer of IPA control before
 				 * L2 cache is powered-up.
@@ -2507,26 +2575,33 @@ void kbase_pm_disable_interrupts(struct kbase_device *kbdev)
 KBASE_EXPORT_TEST_API(kbase_pm_disable_interrupts);
 
 #if MALI_USE_CSF
+/**
+ * update_user_reg_page_mapping - Update the mapping for USER Register page
+ *
+ * @kbdev: The kbase device structure for the device.
+ *
+ * This function must be called to unmap the dummy or real page from USER Register page
+ * mapping whenever GPU is powered up or down. The dummy or real page would get
+ * appropriately mapped in when Userspace reads the LATEST_FLUSH value.
+ */
 static void update_user_reg_page_mapping(struct kbase_device *kbdev)
 {
+	struct kbase_context *kctx, *n;
+
 	lockdep_assert_held(&kbdev->pm.lock);
 
 	mutex_lock(&kbdev->csf.reg_lock);
-
-	/* Only if the mappings for USER page exist, update all PTEs associated to it */
-	if (kbdev->csf.nr_user_page_mapped > 0) {
-		if (likely(kbdev->csf.mali_file_inode)) {
-			/* This would zap the pte corresponding to the mapping of User
-			 * register page for all the Kbase contexts.
-			 */
-			unmap_mapping_range(kbdev->csf.mali_file_inode->i_mapping,
-					    BASEP_MEM_CSF_USER_REG_PAGE_HANDLE, PAGE_SIZE, 1);
-		} else {
-			dev_err(kbdev->dev,
-				"Device file inode not exist even if USER page previously mapped");
-		}
+	list_for_each_entry_safe(kctx, n, &kbdev->csf.user_reg.list, csf.user_reg.link) {
+		/* This would zap the PTE corresponding to the mapping of User
+		 * Register page of the kbase context. The mapping will be reestablished
+		 * when the context (user process) needs to access to the page.
+		 */
+		unmap_mapping_range(kbdev->csf.user_reg.filp->f_inode->i_mapping,
+				    kctx->csf.user_reg.file_offset << PAGE_SHIFT, PAGE_SIZE, 1);
+		list_del_init(&kctx->csf.user_reg.link);
+		dev_dbg(kbdev->dev, "Updated USER Reg page mapping of ctx %d_%d", kctx->tgid,
+			kctx->id);
 	}
-
 	mutex_unlock(&kbdev->csf.reg_lock);
 }
 #endif

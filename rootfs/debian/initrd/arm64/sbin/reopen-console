@@ -1,0 +1,133 @@
+#!/bin/sh
+
+# First find the enabled consoles from the kernel, noting if one is 'preferred'
+# Record these.
+# Run the startup scripts on the preferred console
+
+# In order to have D-I appear on all consoles, modify the inittab to
+# add one entry for each console, running debian-installer.
+# Finally HUP init so that it runs those installers
+# (but doesn't rerun the sysinit startup stuff, including this script)
+
+
+NL="
+"
+
+LOGGER_UP=0
+LOG_FILE=/var/log/reopen-console
+
+# If we're running with preseeding, we have a problem with running d-i
+# on multiple consoles. We'll end up running each of those d-i
+# instances in parallel with all kinds of hilarious undefined
+# behaviour as they trip over each other! If we detect that we're
+# preseeding (via any of the possible preseed methods), DO NOT run d-i
+# multiple times. Instead, fall back to the older, more simple
+# behaviour and run it once. If the user wants to see or interact with
+# their preseed on a specific console, they get to tell us which one
+# they want to use.
+PRESEEDING=0
+
+log() {
+	# In very early startup we don't have syslog. Log to file that
+	# we can flush out later so we can at least see what happened
+	# at early startup
+	if [ $LOGGER_UP -eq 1 ]; then
+	        logger -t reopen-console "$@"
+	else
+		echo "$@" >> $LOG_FILE
+	fi
+}
+
+flush_logger () {
+	cat $LOG_FILE | logger -t reopen-console
+	rm $LOG_FILE
+}
+
+# If we have a preseed.cfg in the initramfs
+if [ -e /preseed.cfg ]; then
+    log "Found /preseed.cfg; falling back to simple mode for preseeding"
+    PRESEEDING=1
+fi
+
+# Have we been told to do preseeding stuff on the boot command line?
+for WORD in auto url; do
+    if (grep -qw "$WORD" /proc/cmdline); then
+	log "Found \"$WORD\" in the command line; falling back to simple mode for preseeding"
+	PRESEEDING=1
+    fi
+done
+
+consoles=
+preferred=
+# Retrieve all enabled consoles from kernel; ignore those
+# for which no device file exists
+
+kernelconsoles="$(cat /proc/consoles)"
+for cons in $(echo "$kernelconsoles" | sed -n -r -e 's/(^.*)  .*\((.*)\).*$/\1/p' )
+do
+	log "Looking at console $cons from /proc/consoles"
+	status=$(echo "$kernelconsoles" | grep $cons | sed -n -r -e 's/(^.*) *.*\((.*)\).*$/\2/p' )
+	if [ -e "/dev/$cons" ] && [ $(echo "$status" | grep -o 'E') ]; then
+		consoles="${consoles:+$consoles$NL}$cons"
+		log "   Adding $cons to possible consoles list"
+	fi
+	# 'C' console is 'most prefered'.
+	if [ $(echo "$status" | grep -o 'C') ]; then
+		preferred="$cons"
+		log "   $cons is preferred"
+	fi
+done
+
+# /dev/tty0 may not show up in /proc/consoles (at least on QEMU aarch64),
+# debian-installer should run on it anyway if it exists.
+if [ -c /dev/tty0 ] && ! { echo "$consoles" | grep -q "^tty0$"; }; then
+	consoles="${consoles:+$consoles$NL}tty0"
+	log "   Adding tty0 to possible consoles list"
+fi
+
+if [ -z "$consoles" ]; then
+	# Nothing found? Default to /dev/console.
+	log "Found no consoles! Defaulting to /dev/console"
+	consoles=console
+fi
+if [ -z "$preferred" ]; then
+	#None marked preferred? Use the first one
+	preferred=$(echo "$consoles" | head -n 1)
+	log "Found no preferred console. Picking $preferred"
+fi
+
+# If we're preseeding, do simple stuff here (see above). We just
+# want one console. Let's pick the preferred one ONLY
+if [ $PRESEEDING = 1 ]; then
+    log "Running with preseeding. Picking preferred $preferred ONLY"
+    consoles=$preferred
+fi
+
+for cons in $consoles
+do
+	echo "/dev/$cons " >> /var/run/console-devices
+done
+echo "/dev/$preferred " > /var/run/console-preferred
+
+
+# Add debian-installer lines into inittab - one per console
+for cons in $consoles
+do
+	log "Adding inittab entry for $cons"
+	echo "$cons::respawn:/sbin/debian-installer" >> /etc/inittab
+done
+
+# Run the startup scripts once, using the preferred console
+cons=$(cat /var/run/console-preferred)
+# Some other session may have that console as ctty. Steal it from them
+/sbin/steal-ctty $cons "$@"
+
+# Now we should have syslog running, so flush our log entries
+LOGGER_UP=1
+flush_logger
+
+# Finally restart init to run debian-installer on discovered consoles
+log "Restarting init to start d-i on the console(s) we found"
+kill -HUP 1
+
+exit 0

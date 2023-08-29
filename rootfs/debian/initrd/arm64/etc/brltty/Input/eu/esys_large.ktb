@@ -1,0 +1,6 @@
+title EuroBraille Esys 80
+include common.kti
+include joysticks.kti
+include sw12.kti
+include sw34.kti
+include sw56.kti

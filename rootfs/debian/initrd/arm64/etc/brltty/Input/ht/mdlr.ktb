@@ -1,0 +1,24 @@
+title HandyTech Modular
+bind RoutingKey ROUTE
+bind RoutingKey+!RoutingKey CLIP_COPY
+bind Left+RoutingKey PRINDENT
+bind Right+RoutingKey NXINDENT
+bind Left FWINLT
+bind Right FWINRT
+bind Left+Right PASTE
+bind B1+Left LNBEG
+bind B1+Right LNEND
+bind B2+Left TOP
+bind B2+Right BOT
+bind B3+Left HWINLT
+bind B3+Right HWINRT
+bind B6+Left CHRLT
+bind B6+Right CHRRT
+bind B2+B3+Left MUTE
+bind B2+B3+Right SAY_LINE
+bind Status1 HELP
+bind Status2 PREFMENU
+bind Status3 INFO
+bind Status4 FREEZE
+include dots.kti
+include keypad.kti

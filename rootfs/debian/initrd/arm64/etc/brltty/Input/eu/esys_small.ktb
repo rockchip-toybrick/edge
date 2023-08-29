@@ -1,0 +1,4 @@
+title EuroBraille Esys 12,24
+include common.kti
+include joysticks.kti
+include sw12.kti

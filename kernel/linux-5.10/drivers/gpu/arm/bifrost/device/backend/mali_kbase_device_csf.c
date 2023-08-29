@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2019-2022 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2019-2023 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -29,10 +29,7 @@
 #include <mali_kbase_reset_gpu.h>
 #include <csf/mali_kbase_csf.h>
 #include <csf/ipa_control/mali_kbase_csf_ipa_control.h>
-
-#if IS_ENABLED(CONFIG_MALI_BIFROST_NO_MALI)
 #include <backend/gpu/mali_kbase_model_linux.h>
-#endif
 
 #include <mali_kbase.h>
 #include <backend/gpu/mali_kbase_irq_internal.h>
@@ -92,13 +89,13 @@ static int kbase_backend_late_init(struct kbase_device *kbdev)
 		goto fail_timer;
 
 #ifdef CONFIG_MALI_BIFROST_DEBUG
-#ifndef CONFIG_MALI_BIFROST_NO_MALI
+#if IS_ENABLED(CONFIG_MALI_REAL_HW)
 	if (kbasep_common_test_interrupt_handlers(kbdev) != 0) {
 		dev_err(kbdev->dev, "Interrupt assignment check failed.\n");
 		err = -EINVAL;
 		goto fail_interrupt_test;
 	}
-#endif /* !CONFIG_MALI_BIFROST_NO_MALI */
+#endif /* IS_ENABLED(CONFIG_MALI_REAL_HW) */
 #endif /* CONFIG_MALI_BIFROST_DEBUG */
 
 	kbase_ipa_control_init(kbdev);
@@ -126,6 +123,10 @@ static int kbase_backend_late_init(struct kbase_device *kbdev)
 	if (err)
 		goto fail_update_l2_features;
 
+	err = kbase_backend_time_init(kbdev);
+	if (err)
+		goto fail_update_l2_features;
+
 	init_waitqueue_head(&kbdev->hwaccess.backend.reset_wait);
 
 	kbase_pm_context_idle(kbdev);
@@ -142,9 +143,9 @@ fail_pm_metrics_init:
 	kbase_ipa_control_term(kbdev);
 
 #ifdef CONFIG_MALI_BIFROST_DEBUG
-#ifndef CONFIG_MALI_BIFROST_NO_MALI
+#if IS_ENABLED(CONFIG_MALI_REAL_HW)
 fail_interrupt_test:
-#endif /* !CONFIG_MALI_BIFROST_NO_MALI */
+#endif /* IS_ENABLED(CONFIG_MALI_REAL_HW) */
 #endif /* CONFIG_MALI_BIFROST_DEBUG */
 
 	kbase_backend_timer_term(kbdev);
@@ -283,12 +284,15 @@ static void kbase_device_hwcnt_backend_csf_term(struct kbase_device *kbdev)
 }
 
 static const struct kbase_device_init dev_init[] = {
-#if IS_ENABLED(CONFIG_MALI_BIFROST_NO_MALI)
-	{ kbase_gpu_device_create, kbase_gpu_device_destroy, "Dummy model initialization failed" },
-#else
+#if !IS_ENABLED(CONFIG_MALI_REAL_HW)
+	{ kbase_gpu_device_create, kbase_gpu_device_destroy,
+	  "Dummy model initialization failed" },
+#else /* !IS_ENABLED(CONFIG_MALI_REAL_HW) */
 	{ assign_irqs, NULL, "IRQ search failed" },
+#endif /* !IS_ENABLED(CONFIG_MALI_REAL_HW) */
+#if !IS_ENABLED(CONFIG_MALI_BIFROST_NO_MALI)
 	{ registers_map, registers_unmap, "Register map failed" },
-#endif
+#endif /* !IS_ENABLED(CONFIG_MALI_BIFROST_NO_MALI) */
 	{ power_control_init, power_control_term, "Power control initialization failed" },
 	{ kbase_device_io_history_init, kbase_device_io_history_term,
 	  "Register access history initialization failed" },
@@ -344,6 +348,10 @@ static const struct kbase_device_init dev_init[] = {
 	{ kbase_gpuprops_populate_user_buffer, kbase_gpuprops_free_user_buffer,
 	  "GPU property population failed" },
 	{ kbase_device_late_init, kbase_device_late_term, "Late device initialization failed" },
+#if IS_ENABLED(CONFIG_MALI_CORESIGHT)
+	{ kbase_debug_coresight_csf_init, kbase_debug_coresight_csf_term,
+	  "Coresight initialization failed" },
+#endif /* IS_ENABLED(CONFIG_MALI_CORESIGHT) */
 };
 
 static void kbase_device_term_partial(struct kbase_device *kbdev,
@@ -357,7 +365,6 @@ static void kbase_device_term_partial(struct kbase_device *kbdev,
 
 void kbase_device_term(struct kbase_device *kbdev)
 {
-	kbdev->csf.mali_file_inode = NULL;
 	kbase_device_term_partial(kbdev, ARRAY_SIZE(dev_init));
 	kbase_mem_halt(kbdev);
 }

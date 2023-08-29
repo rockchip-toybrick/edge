@@ -1,0 +1,21 @@
+
+
+
+
+
+
+alphanumeric_keys modifier_keys
+xkb_symbols "olpc" {
+ include "pc(pc105)"
+
+ modifier_map Mod1 { KP_Home }; 
+ modifier_map Mod3 { KP_End }; 
+ modifier_map Mod4 { KP_Prior }; 
+ modifier_map Mod5 { KP_Next }; 
+
+ key <I220> { [ XF86Search ] }; 
+ key <I221> { [ XF86Meeting ] }; 
+ key <I236> { [ XF86Start ] }; 
+ key <I147> { [ XF86TaskPane ] }; 
+ key <I224> { [ XF86Messenger ] }; 
+};

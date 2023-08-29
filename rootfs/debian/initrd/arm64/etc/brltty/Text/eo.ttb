@@ -1,0 +1,18 @@
+include ltr-latin.tti
+char \x77 ( 23456 )
+char \x57 ( 234567 )
+char \u0109 (1 4 6 )
+char \u011D (12 456 )
+char \u0125 (12 56 )
+char \u0135 ( 2 456 )
+char \u015D ( 234 6 )
+char \u016D ( 34 6 )
+char \u0108 (1 4 67 )
+char \u011C (12 4567 )
+char \u0124 (12 567 )
+char \u0134 ( 2 4567 )
+char \u015C ( 234 67 )
+char \u016C ( 34 67 )
+include num-dot8.tti
+include punc-basic.tti
+include common.tti

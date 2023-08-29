@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note
 /*
  *
- * (C) COPYRIGHT 2019-2022 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2019-2023 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -88,12 +88,11 @@ static void submit_work_pagefault(struct kbase_device *kbdev, u32 as_nr,
 		 * context's address space, when the page fault occurs for
 		 * MCU's address space.
 		 */
-		if (!queue_work(as->pf_wq, &as->work_pagefault))
-			kbase_ctx_sched_release_ctx(kctx);
-		else {
+		if (!queue_work(as->pf_wq, &as->work_pagefault)) {
 			dev_dbg(kbdev->dev,
-				"Page fault is already pending for as %u\n",
-				as_nr);
+				"Page fault is already pending for as %u", as_nr);
+			kbase_ctx_sched_release_ctx(kctx);
+		} else {
 			atomic_inc(&kbdev->faults_pending);
 		}
 	}
@@ -151,17 +150,18 @@ void kbase_gpu_report_bus_fault_and_kill(struct kbase_context *kctx,
 					"true" : "false";
 	int as_no = as->number;
 	unsigned long flags;
+	const uintptr_t fault_addr = fault->addr;
 
 	/* terminal fault, print info about the fault */
 	dev_err(kbdev->dev,
-		"GPU bus fault in AS%d at PA 0x%016llX\n"
+		"GPU bus fault in AS%d at PA %pK\n"
 		"PA_VALID: %s\n"
 		"raw fault status: 0x%X\n"
 		"exception type 0x%X: %s\n"
 		"access type 0x%X: %s\n"
 		"source id 0x%X\n"
 		"pid: %d\n",
-		as_no, fault->addr,
+		as_no, (void *)fault_addr,
 		addr_valid,
 		status,
 		exception_type, kbase_gpu_exception_name(exception_type),
@@ -552,14 +552,15 @@ void kbase_mmu_gpu_fault_interrupt(struct kbase_device *kbdev, u32 status,
 }
 KBASE_EXPORT_TEST_API(kbase_mmu_gpu_fault_interrupt);
 
-int kbase_mmu_as_init(struct kbase_device *kbdev, int i)
+int kbase_mmu_as_init(struct kbase_device *kbdev, unsigned int i)
 {
 	kbdev->as[i].number = i;
 	kbdev->as[i].bf_data.addr = 0ULL;
 	kbdev->as[i].pf_data.addr = 0ULL;
 	kbdev->as[i].gf_data.addr = 0ULL;
+	kbdev->as[i].is_unresponsive = false;
 
-	kbdev->as[i].pf_wq = alloc_workqueue("mali_mmu%d", 0, 1, i);
+	kbdev->as[i].pf_wq = alloc_workqueue("mali_mmu%d", WQ_UNBOUND, 1, i);
 	if (!kbdev->as[i].pf_wq)
 		return -ENOMEM;
 

@@ -1299,6 +1299,7 @@ static int rk3588_udphy_refclk_set(struct rockchip_udphy *udphy)
 	rate = clk_get_rate(udphy->refclk);
 	dev_dbg(udphy->dev, "refclk freq %ld\n", rate);
 
+#ifndef CONFIG_ROCKCHIP_CLK_PASS
 	switch (rate) {
 	case 24000000:
 		ret = regmap_multi_reg_write(udphy->pma_regmap, rk3588_udphy_24m_refclk_cfg,
@@ -1317,6 +1318,7 @@ static int rk3588_udphy_refclk_set(struct rockchip_udphy *udphy)
 		dev_err(udphy->dev, "unsupported refclk freq %ld\n", rate);
 		return -EINVAL;
 	}
+#endif
 
 	return 0;
 }

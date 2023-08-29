@@ -40,7 +40,7 @@
 #include "../../../media/platform/rockchip/cif/dev.h"
 #include "../../../phy/rockchip/phy-rockchip-csi2-dphy-common.h"
 
-#define DRIVER_VERSION		KERNEL_VERSION(0, 0x03, 0x00)
+#define DRIVER_VERSION		KERNEL_VERSION(0, 0x03, 0x02)
 
 static bool flinger_inited;
 static bool TEST_GPIO = true;
@@ -77,15 +77,14 @@ static int vehicle_parse_dt(struct vehicle *vehicle_info)
 	vehicle_info->pinctrl = devm_pinctrl_get(dev);
 
 	if (IS_ERR(vehicle_info->pinctrl)) {
-		dev_err(dev, "pinctrl get failed\n");
-		return PTR_ERR(vehicle_info->pinctrl);
+		dev_err(dev, "pinctrl get failed, maybe unuse\n");
+	} else {
+		vehicle_info->pins_default = pinctrl_lookup_state(vehicle_info->pinctrl,
+				"default");
+
+		if (IS_ERR(vehicle_info->pins_default))
+			dev_err(dev, "get default pinstate failed\n");
 	}
-
-	vehicle_info->pins_default = pinctrl_lookup_state(vehicle_info->pinctrl,
-			"default");
-
-	if (IS_ERR(vehicle_info->pins_default))
-		dev_err(dev, "get default pinstate failed\n");
 
 	return 0;
 }
@@ -172,7 +171,7 @@ static int vehicle_state_change(struct vehicle *v)
 
 	gpio_reverse_on = vehicle_gpio_reverse_check(gpiod);
 	gpio_reverse_on = TEST_GPIO & gpio_reverse_on;
-	VEHICLE_DG(
+	VEHICLE_INFO(
 	"%s, gpio = reverse %s, width = %d, sensor_ready = %d, state=%d dvr_apk_need_start = %d\n",
 	__func__, gpio_reverse_on ? "on" : "over",
 	v_cfg->width, v_cfg->ad_ready, v->state, dvr_apk_need_start);
@@ -202,7 +201,7 @@ static int vehicle_state_change(struct vehicle *v)
 				vehicle_close();
 				vehicle_ad_stream(&v->ad, 0);
 				v->state = STATE_CLOSE;
-			} else if (gpio_reverse_on) {  //  reverse on & video format change
+			} else if (gpio_reverse_on && !v->android_is_ready) { //video fmt change
 				vehicle_open_close();
 				vehicle_open(v_cfg);
 				msleep(100);
@@ -245,7 +244,7 @@ static int vehicle_state_change(struct vehicle *v)
 				vehicle_close();
 				vehicle_ad_stream(&v->ad, 0);
 				v->state = STATE_CLOSE;
-			} else if (gpio_reverse_on) {  //  reverse on & video format change
+			} else if (gpio_reverse_on && !v->android_is_ready) { //video fmt change
 				vehicle_open_close();
 				vehicle_ad_stream(&v->ad, 0);
 				vehicle_ad_channel_set(&g_vehicle->ad, 0);
@@ -288,7 +287,7 @@ static int vehicle_state_change(struct vehicle *v)
 				vehicle_close();
 				vehicle_ad_stream(&v->ad, 0);
 				v->state = STATE_CLOSE;
-			} else if (gpio_reverse_on) {  //  reverse on & video format change
+			} else if (gpio_reverse_on && !v->android_is_ready) { //video fmt change
 				vehicle_open_close();
 				vehicle_ad_stream(&v->ad, 0);
 				vehicle_ad_channel_set(&g_vehicle->ad, 0);

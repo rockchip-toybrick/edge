@@ -825,8 +825,7 @@ static int lt6911uxc_enum_frame_interval(struct v4l2_subdev *sd,
 	if (fie->index >= ARRAY_SIZE(supported_modes))
 		return -EINVAL;
 
-	if (fie->code != LT6911UXC_MEDIA_BUS_FMT)
-		return -EINVAL;
+	fie->code = LT6911UXC_MEDIA_BUS_FMT;
 
 	fie->width = supported_modes[fie->index].width;
 	fie->height = supported_modes[fie->index].height;
@@ -1283,6 +1282,8 @@ static inline int lt6911uxc_parse_of(struct lt6911uxc *lt6911uxc)
 static int lt6911uxc_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
 {
+	struct v4l2_dv_timings default_timing =
+				V4L2_DV_BT_CEA_640X480P59_94;
 	struct lt6911uxc *lt6911uxc;
 	struct v4l2_subdev *sd;
 	struct device *dev = &client->dev;
@@ -1300,6 +1301,7 @@ static int lt6911uxc_probe(struct i2c_client *client,
 
 	sd = &lt6911uxc->sd;
 	lt6911uxc->i2c_client = client;
+	lt6911uxc->timings = default_timing;
 	lt6911uxc->cur_mode = &supported_modes[0];
 	lt6911uxc->mbus_fmt_code = LT6911UXC_MEDIA_BUS_FMT;
 

@@ -38,28 +38,62 @@ function check_doc()
 	fi
 
 	TITLE=`sed -n "/^+## /p" ${DIFF_DOC_ALL} | tr -d " +#"`
+	DATE=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $2 }'`
+	YEAR=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $2 }' | awk -F "-" '{ print $1 }'`
+	MON=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $2 }' | awk -F "-" '{ print $2 }'`
 	FILE=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $3 }'`
 	COMMIT=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $4 }'`
 	SEVERITY=`sed -n "/^+| 20[0-9][0-9]-/p" ${DIFF_DOC_ALL} | tr -d " " | awk -F "|" '{ print $5 }'`
-	HORIZONTAL_LINE=`sed -n "/^+------$/p" ${DIFF_DOC_ALL}`
+	END_LINE_3=`tail -n 3 ${DIFF_DOC_ALL} | sed -n '1p'`
+	END_LINE_2=`tail -n 3 ${DIFF_DOC_ALL} | sed -n '2p'`
+	END_LINE_1=`tail -n 3 ${DIFF_DOC_ALL} | sed -n '3p'`
+	HOST_YEAR=`date +%Y`
+	HOST_MON=`date +%m`
 	# echo "### ${COMMIT}, ${SEVERITY}, ${TITLE}, ${FILE}"
 
 	# check blank line after Heading 1
 	HEADING_1=`sed -n '1p' ${DOC}`
 	if sed -n '2p' ${DOC} | grep -q [a-z,A-Z] ; then
-		echo "ERROR: ${DOC}: Should reserve blank line after '${HEADING_1}'"
+		echo "ERROR: ${DOC}: Please add blank line after '${HEADING_1}'"
 		exit 1
 	fi
 
 	# check space
 	if sed -n "/##/p" ${DOC} | grep -v '## [a-z,A-Z]' ; then
-		echo "ERROR: ${DOC}: Should only 1 space between '#' and word"
+		echo "ERROR: ${DOC}: Please only 1 space between '#' and word"
 		exit 1
 	fi
 
 	# check new content location
 	if ! git show ${ARG_COMMIT} -1 ${DOC} | grep -q 'Release Note' ; then
-		echo "ERROR: ${DOC}: Adding new content at the top but not bottom"
+		echo "ERROR: ${DOC}: Please add new content at the top but not bottom"
+		exit 1
+	fi
+
+	# check title
+	if grep -Eq '### WARN|### WARNING|### Warning|### warn|### warning' ${DIFF_DOC_ALL} ; then
+		echo "ERROR: ${DOC}: Please use '### Warn'"
+		exit 1
+	fi
+
+	if grep -Eq '### NEW|### new' ${DIFF_DOC_ALL} ; then
+		echo "ERROR: ${DOC}: Please use '### New'"
+		exit 1
+	fi
+
+	if grep -Eq '### FIXED|### fixed' ${DIFF_DOC_ALL} ; then
+		echo "ERROR: ${DOC}: Please use '### Fixed'"
+		exit 1
+	fi
+
+	# check year/month
+	if [ "${HOST_YEAR}" != "${YEAR}" ]; then
+		echo "ERROR: ${DOC}: '${DATE}' is wrong, the year should be ${HOST_YEAR}"
+		exit 1
+	fi
+
+	if [ "${HOST_MON}" != "${MON}" ]; then
+		echo "ERROR: ${DOC}: '${DATE}' is wrong, the month should be ${HOST_MON}"
 		exit 1
 	fi
 
@@ -68,6 +102,35 @@ function check_doc()
 		echo "ERROR: ${DOC}: Don't add TAB before index:"
 		grep $'\t[0-9]' ${DOC}
 		exit 1
+	fi
+
+	# check upper case and line end
+	if [ "${LANGUAGE}" == "EN" ] ; then
+		if grep -q '^[0-9]\. [a-z]' ${DOC} ; then
+			echo "ERROR: ${DOC}: Please use upper case of first word(i.e. \"1. add ..\" => \"1. Add ...\"):"
+			grep '^[0-9]\. [a-z]' ${DOC}
+			exit 1
+		fi
+
+		# check end with '.'
+		if sed -n '/^[0-9]\. [A-Z]/p' ${DOC} | grep -q '[^.]$' ; then
+			echo "ERROR: ${DOC}: Please end line with '.'"
+			grep '^[0-9]\. [A-Z]' ${DOC} | grep '[^.]$'
+			exit 1
+		fi
+
+		# check Chinese language
+		if grep -P '[\x{4e00}-\x{9fa5}]' ${DOC} ; then
+			echo "ERROR: ${DOC}: The Chinese language was found"
+			exit 1
+		fi
+	else
+		# check end with '。'
+		if sed -n '/^[0-9]\. /p' ${DOC} | grep -q '[^。]$' ; then
+			echo "ERROR: ${DOC}: Please end line with '。'"
+			grep '^[0-9]\. ' ${DOC} | grep '[^。]$'
+			exit 1
+		fi
 	fi
 
 	# check space after index of 'New' body
@@ -128,8 +191,16 @@ function check_doc()
 	fi
 
 	# check horizontal line
-	if [ -z "${HORIZONTAL_LINE}" ]; then
-		echo "ERROR: ${DOC}: No horizontal line '------' at the last of new content"
+	if [ "${END_LINE_2}" != "+------" ]; then
+		echo "ERROR: ${DOC}: Please add horizontal line '------' at the last of new content"
+		exit 1
+	fi
+	if [ "${END_LINE_3}" != "+" ]; then
+		echo "ERROR: ${DOC}: Please add blank line before horizontal line '------'"
+		exit 1
+	fi
+	if [ "${END_LINE_1}" != "+" ]; then
+		echo "ERROR: ${DOC}: Please add blank line after horizontal line '------'"
 		exit 1
 	fi
 
@@ -145,7 +216,11 @@ function check_doc()
 		do
 			EACH_SEVERITY=`echo "${LINE}" | awk -F "|" '{ print $3 }' | tr -d " "`
 			if [ "${EACH_SEVERITY}" != "${SVT_CRITIAL}" -a "${EACH_SEVERITY}" != "${SVT_IMPORTANT}" -a "${EACH_SEVERITY}" != "${SVT_MODERATE}" ]; then
-				echo "ERROR: ${DOC}: Unknown severity: ${EACH_SEVERITY}"
+				if [ -z "${EACH_SEVERITY}" ]; then
+					echo "ERROR: ${DOC}: No severity found, please use Table to list what you '### Fixed'"
+				else
+					echo "ERROR: ${DOC}: Unknown severity: ${EACH_SEVERITY}"
+				fi
 				exit 1
 			fi
 
@@ -184,7 +259,7 @@ function check_doc()
 				MISS_MATCH="y"
 			fi
 
-			if [ ${MISS_MATCH} == "y" ]; then
+			if [ "${MISS_MATCH}" == "y" ]; then
 				echo "ERROR: ${DOC}: top Severity is '${SEVERITY}', while ${LAST_DOC}: top Severity is '${LAST_SEVERITY}'"
 				echo "       Available Severity types are: moderate(普通), important(重要), critical(紧急)"
 				exit 1
@@ -198,11 +273,21 @@ function check_doc()
 
 function check_docs()
 {
+	if git log ${ARG_COMMIT} -1 --name-only | sed -n '5p' | grep -Eq '^    Revert "' ; then
+		return;
+	fi
+
 	if git log ${ARG_COMMIT} -1 --name-only | grep -Eq '\.bin|\.elf' ; then
 		DOC_CN=`git log ${ARG_COMMIT} -1 --name-only | sed -n "/_CN\.md/p"`
 		DOC_EN=`git log ${ARG_COMMIT} -1 --name-only | sed -n "/_EN\.md/p"`
 		if [ -z "${DOC_CN}" -o -z "${DOC_EN}" ]; then
 			echo "ERROR: Should update CN and EN Release-Note when .bin/elf changed"
+			exit 1
+		fi
+
+		NUM=`git log ${ARG_COMMIT} -1 --name-only | sed -n "/\.md/p" | wc -l`
+		if [ ${NUM} -gt 2 ]; then
+			echo "ERROR: More than 2 release note are updated"
 			exit 1
 		fi
 

@@ -44,3 +44,10 @@ config TOYBRICK_VERIFY
 	default n
 	help
 	  U-boot can select toybrick verify for board verify.
+
+config TOYBRICK_OTP_KSN
+	bool "Support toybrick OTP KSN"
+	depends on OPTEE_CLIENT
+	default n
+	help
+	  U-boot can select toybrick opt ksn for board ksn verify.

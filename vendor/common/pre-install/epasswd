@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+
+if { $argc ne 2 } {
+	puts "Usage: epasswd USER PASSWORD"
+	exit 1
+}
+
+set user [lindex $argv 0]
+set password [lindex $argv 1]
+spawn passwd $user
+expect {
+	"New password:" {send "$password\n"}
+}
+expect {
+	"Retype new password:" {send "$password\n"}
+}
+expect eof

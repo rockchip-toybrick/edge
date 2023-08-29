@@ -1,0 +1,62 @@
+get_mem () {
+	local ram=$(grep ^MemTotal: /proc/meminfo | { read x y z; echo $y; }) || true # in kilobytes
+	if [ -z "$ram" ]; then
+		echo "Cannot determine system memory" >&2
+        	ram=0
+	else
+	        ram=$(expr "$ram" / 1024) # convert to megabytes
+	fi
+	echo $ram
+}
+
+check_gtk () {
+	if [ -n "$LIVE_INSTALLER_MODE" ]; then
+		return 0
+	fi
+
+	OS="$(udpkg --print-os)"
+	if [ "$OS" = linux -a -z "$TERM_FRAMEBUFFER" ] ; then
+		echo "Framebuffer not available; disabling graphical frontend" >&2
+		return 1
+	fi
+	if [ "$OS" = hurd -a "$TERM" != hurd ] ; then
+		echo "Hurd console not started; disabling graphical frontend" >&2
+		return 1
+	fi
+	if [ "$GTK_NOVESA" ]; then
+		echo "No VESA framebuffer available; disabling graphical frontend" >&2
+		return 1
+	fi
+
+	case "$(archdetect)" in
+	# Tested with Uyghur
+	    powerpc/*|amd64/*)
+		local MEMLIMIT=766 ;;	# is 783460kB, qemu -m 800
+	    kfreebsd-amd64/*)
+		# See Bug#783775 for derivation.
+		local MEMLIMIT=144 ;;	# is 147456kB, qemu -m 256
+	    hurd-i386/*)
+		local MEMLIMIT=750 ;;	#              qemu -m 750
+	    *)
+		local MEMLIMIT=534 ;;	# is 546188kB, qemu -m 550
+	esac
+
+	if [ $(get_mem) -lt $MEMLIMIT ] ; then
+		echo "Insufficient memory for graphical frontend; disabling" >&2
+		return 1
+	fi
+	return 0
+}
+
+if [ -z "$DEBIAN_FRONTEND" ] ; then
+	for frontend in gtk newt slang text ; do
+		if [ -e "/usr/lib/cdebconf/frontend/$frontend.so" ]; then
+			if [ "$frontend" = gtk ] ; then
+				check_gtk || continue
+			fi
+			DEBIAN_FRONTEND=$frontend
+			break
+		fi
+	done
+fi
+export DEBIAN_FRONTEND

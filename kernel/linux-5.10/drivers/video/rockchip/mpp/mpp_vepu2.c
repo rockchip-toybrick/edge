@@ -99,7 +99,7 @@ struct vepu_task {
 	u32 width;
 	u32 height;
 	u32 pixels;
-	struct dma_buf *dmabuf_bs;
+	struct mpp_dma_buffer *bs_buf;
 	u32 offset_bs;
 };
 
@@ -200,17 +200,12 @@ static int vepu_process_reg_fd(struct mpp_session *session,
 				      &task->off_inf, task->reg);
 
 	if (fmt == VEPU2_FMT_JPEGE) {
+		struct mpp_dma_buffer *bs_buf = mpp_dma_find_buffer_fd(session->dma, fd_bs);
+
 		task->offset_bs = mpp_query_reg_offset_info(&task->off_inf, VEPU2_REG_OUT_INDEX);
-
-		task->dmabuf_bs = dma_buf_get(fd_bs);
-
-		if (IS_ERR_OR_NULL(task->dmabuf_bs)) {
-			task->dmabuf_bs = NULL;
-			return 0;
-		}
-		if (task->offset_bs > 0)
-			dma_buf_end_cpu_access_partial(task->dmabuf_bs, DMA_TO_DEVICE, 0,
-						       task->offset_bs);
+		if (bs_buf && task->offset_bs > 0)
+			mpp_dma_buf_sync(bs_buf, 0, task->offset_bs, DMA_TO_DEVICE, false);
+		task->bs_buf = bs_buf;
 	}
 
 	return 0;
@@ -319,43 +314,40 @@ fail:
 
 static void *vepu_prepare(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 {
-	struct mpp_taskqueue *queue = mpp->queue;
 	struct vepu_dev *enc = to_vepu_dev(mpp);
 	struct vepu_ccu *ccu = enc->ccu;
 	unsigned long core_idle;
 	unsigned long flags;
-	u32 core_id_max;
 	s32 core_id;
 	u32 i;
 
 	spin_lock_irqsave(&ccu->lock, flags);
 
-	core_idle = queue->core_idle;
-	core_id_max = queue->core_id_max;
+	core_idle = ccu->core_idle;
 
-	for (i = 0; i <= core_id_max; i++) {
-		struct mpp_dev *mpp = queue->cores[i];
+	for (i = 0; i < ccu->core_num; i++) {
+		struct mpp_dev *mpp = ccu->cores[i];
 
 		if (mpp && mpp->disable)
-			clear_bit(i, &core_idle);
+			clear_bit(mpp->core_id, &core_idle);
 	}
 
-	core_id = find_first_bit(&ccu->core_idle, ccu->core_num);
-
-	if (core_id >= core_id_max + 1 || !queue->cores[core_id]) {
+	core_id = find_first_bit(&core_idle, ccu->core_num);
+	if (core_id >= ARRAY_SIZE(ccu->cores)) {
 		mpp_task = NULL;
 		mpp_dbg_core("core %d all busy %lx\n", core_id, ccu->core_idle);
-	} else {
-		unsigned long core_idle = ccu->core_idle;
-
-		clear_bit(core_id, &ccu->core_idle);
-		mpp_task->mpp = ccu->cores[core_id];
-		mpp_task->core_id = core_id;
-
-		mpp_dbg_core("core cnt %d core %d set idle %lx -> %lx\n",
-			     ccu->core_num, core_id, core_idle, ccu->core_idle);
+		goto done;
 	}
 
+	core_id = array_index_nospec(core_id, MPP_MAX_CORE_NUM);
+	clear_bit(core_id, &ccu->core_idle);
+	mpp_task->mpp = ccu->cores[core_id];
+	mpp_task->core_id = core_id;
+
+	mpp_dbg_core("core cnt %d core %d set idle %lx -> %lx\n",
+		     ccu->core_num, core_id, core_idle, ccu->core_idle);
+
+done:
 	spin_unlock_irqrestore(&ccu->lock, flags);
 
 	return mpp_task;
@@ -386,6 +378,10 @@ static int vepu_run(struct mpp_dev *mpp,
 
 		mpp_write_req(mpp, task->reg, s, e, reg_en);
 	}
+
+	/* flush tlb before starting hardware */
+	mpp_iommu_flush_tlb(mpp->iommu_info);
+
 	/* init current task */
 	mpp->cur_task = mpp_task;
 
@@ -484,6 +480,11 @@ static int vepu_finish(struct mpp_dev *mpp,
 	/* revert hack for irq status */
 	task->reg[VEPU2_REG_INT_INDEX] = task->irq_status;
 
+	if (task->bs_buf)
+		mpp_dma_buf_sync(task->bs_buf, 0,
+				 task->reg[VEPU2_REG_STRM_INDEX] / 8 +
+				 task->offset_bs,
+				 DMA_FROM_DEVICE, true);
 	mpp_debug_leave();
 
 	return 0;
@@ -509,11 +510,6 @@ static int vepu_result(struct mpp_dev *mpp,
 		}
 	}
 
-	if (task->dmabuf_bs)
-		dma_buf_begin_cpu_access_partial(task->dmabuf_bs, DMA_FROM_DEVICE, 0,
-						 task->reg[VEPU2_REG_STRM_INDEX] / 8 +
-						 task->offset_bs);
-
 	return 0;
 }
 
@@ -521,12 +517,6 @@ static int vepu_free_task(struct mpp_session *session,
 			  struct mpp_task *mpp_task)
 {
 	struct vepu_task *task = to_vepu_task(mpp_task);
-
-	if (task->dmabuf_bs) {
-		dma_buf_put(task->dmabuf_bs);
-		task->dmabuf_bs = NULL;
-		task->offset_bs = 0;
-	}
 
 	mpp_task_finalize(session, mpp_task);
 	kfree(task);
@@ -870,6 +860,8 @@ static int vepu_reset(struct mpp_dev *mpp)
 	struct vepu_dev *enc = to_vepu_dev(mpp);
 	struct vepu_ccu *ccu = enc->ccu;
 
+	mpp_write(mpp, VEPU2_REG_ENC_EN, 0);
+	udelay(5);
 	if (enc->rst_a && enc->rst_h) {
 		/* Don't skip this or iommu won't work after reset */
 		mpp_pmu_idle_request(mpp, true);
@@ -1055,7 +1047,8 @@ static int vepu_attach_ccu(struct device *dev, struct vepu_dev *enc)
 		ccu_info = ccu->main_core->iommu_info;
 		cur_info = enc->mpp.iommu_info;
 
-		cur_info->domain = ccu_info->domain;
+		if (cur_info)
+			cur_info->domain = ccu_info->domain;
 		mpp_iommu_attach(cur_info);
 	}
 	enc->ccu = ccu;

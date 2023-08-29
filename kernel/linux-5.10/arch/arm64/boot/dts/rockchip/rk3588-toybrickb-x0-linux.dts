@@ -8,11 +8,33 @@
 
 #include "rk3588-toybrickb-x0.dtsi"
 #include "rk3588-linux.dtsi"
-#include "rk3588-toybrickb-gc8034-csi1.dtsi"
-#include "rk3588-toybrickb-gc8034-csi2.dtsi"
+#include "rk3588-toybrickb-ov13855-csi1.dtsi"
 #include "rk3588-toybrickb-dsi1.dtsi"
 
 / {
 	model = "Rockchip RK3588 Toybrick B0 Board";
 	compatible = "rockchip,rk3588-toybrickb-x0-linux", "rockchip,rk3588";
+	chosen: chosen {
+  		bootargs = "maxcpus=6 earlycon=uart8250,mmio32,0xfeb50000 console=ttyFIQ0 irqchip.gicv3_pseudo_nmi=0 root=PARTUUID=614e0000-0000 rw rootwait";
+	 };
+
 };
+&rockchip_suspend {
+	rockchip,sleep-mode-config = <
+		(0
+		| RKPM_SLP_ARMOFF_DDRPD
+		| RKPM_SLP_PMU_PMUALIVE_32K
+		| RKPM_SLP_PMU_DIS_OSC
+		| RKPM_SLP_32K_EXT
+		| RKPM_SLP_PMU_DBG
+		)
+	>;
+};
+
+&vdd_log_s0 {
+	regulator-state-mem {
+	regulator-on-in-suspend;
+		regulator-suspend-microvolt = <750000>;
+	};
+};
+

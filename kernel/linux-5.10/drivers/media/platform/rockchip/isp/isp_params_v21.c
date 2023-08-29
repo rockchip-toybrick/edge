@@ -3648,6 +3648,7 @@ void __isp_isr_meas_config(struct rkisp_isp_params_vdev *params_vdev,
 		(struct rkisp_isp_params_v21_ops *)params_vdev->priv_ops;
 	u64 module_cfg_update = new_params->module_cfg_update;
 
+	params_vdev->cur_frame_id = new_params->frame_id;
 	if (type == RKISP_PARAMS_SHD)
 		return;
 
@@ -4110,14 +4111,14 @@ rkisp_params_get_ldchbuf_inf_v2x(struct rkisp_isp_params_vdev *params_vdev,
 	}
 }
 
-static void
+static int
 rkisp_params_set_ldchbuf_size_v2x(struct rkisp_isp_params_vdev *params_vdev,
 				  void *size)
 {
 	struct rkisp_ldchbuf_size *ldchsize = size;
 
 	rkisp_deinit_ldch_buf(params_vdev);
-	rkisp_init_ldch_buf(params_vdev, ldchsize);
+	return rkisp_init_ldch_buf(params_vdev, ldchsize);
 }
 
 static void
@@ -4263,10 +4264,14 @@ rkisp_params_cfg_v2x(struct rkisp_isp_params_vdev *params_vdev,
 		struct rkisp_isp_params_val_v21 *priv_val =
 			(struct rkisp_isp_params_val_v21 *)params_vdev->priv_val;
 
-		priv_val->last_hdrmge = priv_val->cur_hdrmge;
-		priv_val->last_hdrdrc = priv_val->cur_hdrdrc;
-		priv_val->cur_hdrmge = new_params->others.hdrmge_cfg;
-		priv_val->cur_hdrdrc = new_params->others.drc_cfg;
+		if (new_params->module_cfg_update & ISP2X_MODULE_HDRMGE) {
+			priv_val->last_hdrmge = priv_val->cur_hdrmge;
+			priv_val->cur_hdrmge = new_params->others.hdrmge_cfg;
+		}
+		if (new_params->module_cfg_update & ISP2X_MODULE_DRC) {
+			priv_val->last_hdrdrc = priv_val->cur_hdrdrc;
+			priv_val->cur_hdrdrc = new_params->others.drc_cfg;
+		}
 		new_params->module_cfg_update = 0;
 		vb2_buffer_done(&cur_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
 		cur_buf = NULL;

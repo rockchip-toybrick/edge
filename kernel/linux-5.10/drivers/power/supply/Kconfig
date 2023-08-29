@@ -549,6 +549,12 @@ config CHARGER_SC8551
 	help
 	  Say Y to enable support for the SC8551 battery pump charger.
 
+config CHARGER_SC888X
+	tristate "SC888x buck boost charger support"
+	help
+	  Say Y here to enable support for the backup battery charger
+	  in the SouthChip SC888x PMICs.
+
 config CHARGER_SC89890
 	tristate "SC89890 battery charger driver"
 	depends on I2C

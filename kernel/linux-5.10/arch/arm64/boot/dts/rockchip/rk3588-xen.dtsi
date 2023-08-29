@@ -1,0 +1,202 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	chosen: chosen {
+		xen,xen-bootargs = "dom0_mem=4G hmp-unsafe=true loglvl=all dtuart=serial2 console=dtuart";
+		xen,dom0-bootargs = "psi=1 console=hvc0 irqchip.gicv3_pseudo_nmi=0 root=PARTUUID=614e0000-0000-4b53-8000-1d28000054a9 rw rootwait";
+		dom0 {
+			#address-cells = <2>;
+			#size-cells = <2>;
+			kernel {
+				compatible = "xen,linux-zimage", "xen,multiboot-module";
+				reg = <0x0 0x00600000 0x0 0x02000000>;
+			};
+		};
+		/*
+		domU {
+			compatible = "xen,domain";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			memory = <0x0 0x100000>;
+			cpus = <2>;
+			vpl011;
+			kernel {
+				compatible = "multiboot,kernel", "multiboot,module";
+				reg = <0x0 0x02600000 0x0 0x02000000>;
+				bootargs = "earlycon=hvc0 console=ttyAMA0";
+			};
+		};
+		*/
+	};
+
+	cspmu: cspmu@fd10c000 {
+		compatible = "rockchip,cspmu";
+		reg = <0x0 0xfd10c000 0x0 0x1000>,
+		      <0x0 0xfd10d000 0x0 0x1000>,
+		      <0x0 0xfd10e000 0x0 0x1000>,
+		      <0x0 0xfd10f000 0x0 0x1000>,
+		      <0x0 0xfd12c000 0x0 0x1000>,
+		      <0x0 0xfd12d000 0x0 0x1000>,
+		      <0x0 0xfd12e000 0x0 0x1000>,
+		      <0x0 0xfd12f000 0x0 0x1000>;
+		//status = "disabled";
+	};
+
+	debug: debug@fd104000 {
+		compatible = "rockchip,debug";
+		reg = <0x0 0xfd104000 0x0 0x1000>,
+		      <0x0 0xfd105000 0x0 0x1000>,
+		      <0x0 0xfd106000 0x0 0x1000>,
+		      <0x0 0xfd107000 0x0 0x1000>,
+		      <0x0 0xfd124000 0x0 0x1000>,
+		      <0x0 0xfd125000 0x0 0x1000>,
+		      <0x0 0xfd126000 0x0 0x1000>,
+		      <0x0 0xfd127000 0x0 0x1000>;
+		//status = "disabled";
+	};
+
+	fiq_debugger: fiq-debugger {
+		compatible = "rockchip,fiq-debugger";
+		rockchip,serial-id = <0xffffffff>;
+		rockchip,wake-irq = <0>;
+		/* If enable uart uses irq instead of fiq */
+		rockchip,irq-mode-enable = <1>;
+		rockchip,baudrate = <1500000>;  /* Only 115200 and 1500000 */
+		interrupts = <GIC_SPI 423 IRQ_TYPE_LEVEL_LOW>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&uart2m0_xfer>;
+		status = "okay";
+	};
+
+	rockchip_amp: rockchip-amp {
+		compatible = "rockchip,amp";
+		clocks = <&cru SCLK_UART2>, <&cru PCLK_UART2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart2m0_xfer>;
+		status = "okay";
+	};
+
+	firmware {
+		optee: optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+			//status = "disabled";
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/delete-node/ cma;
+
+		drm_logo: drm-logo@00000000 {
+			compatible = "rockchip,drm-logo";
+			reg = <0x0 0x0 0x0 0x0>;
+		};
+
+		drm_cubic_lut: drm-cubic-lut@00000000 {
+			compatible = "rockchip,drm-cubic-lut";
+			reg = <0x0 0x0 0x0 0x0>;
+		};
+	};
+
+	ramoops: ramoops@110000 {
+		compatible = "ramoops";
+		reg = <0x0 0x110000 0x0 0xf0000>;
+		record-size = <0x20000>;
+		console-size = <0x80000>;
+		ftrace-size = <0x00000>;
+		pmsg-size = <0x50000>;
+		status ="disabled";
+	};
+
+	scmiatf: scmiatf@10000 {
+		//compatible = "xen,static-mem";
+		compatible = "rockchip,atf";
+		reg = <0x0 0x00100000 0x0 0x00010000>;
+	};
+};
+
+&soc_thermal {
+	cooling-maps {
+		/delete-node/ map0;
+		/delete-node/ map1;
+		/delete-node/ map2;
+	};
+};
+
+&display_subsystem {
+	memory-region = <&drm_logo>;
+	memory-region-names = "drm-logo";
+};
+
+&dfi {
+	status = "okay";
+};
+
+&uart2 {
+	status = "okay";
+};
+
+&dmc {
+	status = "okay";
+	center-supply = <&vdd_ddr_s0>;
+	mem-supply = <&vdd_log_s0>;
+};
+
+&rng {
+	status = "okay";
+};
+
+&pcie3x4 {
+	status = "disabled";
+};
+
+&pcie3x2 {
+	status = "disabled";
+};
+
+&pcie2x1l0 {
+	status = "disabled";
+};
+
+&pcie2x1l1 {
+	status = "disabled";
+};
+
+&pcie2x1l2 {
+	status = "disabled";
+};
+
+&pcie3x4_intc {
+        interrupts = <GIC_SPI 260 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&pcie3x2_intc {
+        interrupts = <GIC_SPI 255 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&pcie2x1l0_intc {
+        interrupts = <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&pcie2x1l1_intc {
+        interrupts = <GIC_SPI 245 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&pcie2x1l2_intc {
+        interrupts = <GIC_SPI 250 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&hdmirx_ctrler {
+	status = "disabled";
+};

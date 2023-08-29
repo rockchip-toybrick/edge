@@ -260,6 +260,9 @@ static int rkisp_params_fh_open(struct file *filp)
 	struct rkisp_isp_params_vdev *params = video_drvdata(filp);
 	int ret;
 
+	if (!params->dev->is_probe_end)
+		return -EINVAL;
+
 	ret = v4l2_fh_open(filp);
 	if (!ret) {
 		ret = v4l2_pipeline_pm_get(&params->vnode.vdev.entity);
@@ -281,10 +284,21 @@ static int rkisp_params_fop_release(struct file *file)
 	return ret;
 }
 
+static __poll_t rkisp_params_fop_poll(struct file *file, poll_table *wait)
+{
+	struct video_device *vdev = video_devdata(file);
+
+	/* buf done or subscribe event */
+	if (vdev->queue->owner == file->private_data)
+		return vb2_fop_poll(file, wait);
+	else
+		return v4l2_ctrl_poll(file, wait);
+}
+
 struct v4l2_file_operations rkisp_params_fops = {
 	.mmap = vb2_fop_mmap,
 	.unlocked_ioctl = video_ioctl2,
-	.poll = vb2_fop_poll,
+	.poll = rkisp_params_fop_poll,
 	.open = rkisp_params_fh_open,
 	.release = rkisp_params_fop_release
 };
@@ -412,11 +426,14 @@ void rkisp_params_get_meshbuf_inf(struct rkisp_isp_params_vdev *params_vdev,
 		params_vdev->ops->get_meshbuf_inf(params_vdev, meshbuf);
 }
 
-void rkisp_params_set_meshbuf_size(struct rkisp_isp_params_vdev *params_vdev,
-				   void *meshsize)
+int rkisp_params_set_meshbuf_size(struct rkisp_isp_params_vdev *params_vdev,
+				  void *meshsize)
 {
 	if (params_vdev->ops->set_meshbuf_size)
-		params_vdev->ops->set_meshbuf_size(params_vdev, meshsize);
+		return params_vdev->ops->set_meshbuf_size(params_vdev,
+							  meshsize);
+	else
+		return -EINVAL;
 }
 
 void rkisp_params_meshbuf_free(struct rkisp_isp_params_vdev *params_vdev, u64 id)

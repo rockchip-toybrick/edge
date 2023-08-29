@@ -1,0 +1,4 @@
+include ltr-latin.tti
+include num-dot8.tti
+include punc-basic.tti
+include common.tti

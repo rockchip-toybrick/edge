@@ -1,0 +1,3 @@
+title Papenmeier BrailleX EL80-II
+assign statusKeys 2
+include bar.kti

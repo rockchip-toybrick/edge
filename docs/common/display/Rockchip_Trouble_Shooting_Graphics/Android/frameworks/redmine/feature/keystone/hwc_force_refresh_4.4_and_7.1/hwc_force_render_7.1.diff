@@ -1,0 +1,89 @@
+From d149e964f6601834837cad47e33a65fcceeeb3e7 Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Wed, 13 Mar 2019 16:59:22 +0800
+Subject: [PATCH] keystone need to force refresh by property.
+
+Change-Id: I8fc23c6c1ab3c76572f2d82892ad14b2028600e2
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+
+diff --git a/rk_hwcomposer.cpp b/rk_hwcomposer.cpp
+index 9d7eb47..443ecba 100755
+--- a/rk_hwcomposer.cpp
++++ b/rk_hwcomposer.cpp
+@@ -103,6 +103,8 @@
+ int         hotplug_reset_dstpos(struct rk_fb_win_cfg_data * fb_info,int flag);
+ void*       hotplug_init_thread(void *arg);
+ void*       hotplug_invalidate_refresh(void *arg);
++void*       keystone_invalidate_refresh(void *arg);
++
+ int         hotpulg_did_hdr_video(hwcContext *ctx,struct rk_fb_win_par *win_par, struct private_handle_t* src_handle,int actw, int acth);
+ 
+ 
+@@ -5966,6 +5968,15 @@
+         LOGD("Create hotplug_invalidate_refresh error .");
+     }
+ #endif
++#if KEYSTONE_FORCE_REFRESH
++
++    pthread_t t2;
++    init_thread_pamaters(&context->mRefresh);
++    if (pthread_create(&t2, NULL, keystone_invalidate_refresh, NULL))
++    {
++        LOGD("Create hotplug_invalidate_refresh error .");
++    }
++#endif
+     init_tv_hdr_info(context);
+     context->deviceConected = getHdmiMode();
+     hotplug_change_screen_config(HWC_DISPLAY_PRIMARY, 0, 1);
+@@ -6932,6 +6943,36 @@
+     pthread_exit(NULL);
+     return NULL;
+ }
++void  *keystone_invalidate_refresh(void *arg)
++{
++#if KEYSTONE_FORCE_REFRESH
++    int count = 0;
++    int nMaxCnt = 3;
++    char value[PROPERTY_VALUE_MAX];
++    unsigned int nSleepTime = 500;
++    hwcContext *contextp = gcontextAnchor[HWC_DISPLAY_PRIMARY];
++    ALOGD("keystone_invalidate_refresh creat");
++    while(true) {
++        property_get("persist.sys.keystone.update", value, "0");
++        int new_value = 0;
++        new_value = atoi(value);
++        if(new_value > 0){
++            for(count = 0; count < nMaxCnt; count++) {
++                usleep(nSleepTime*1000);
++                ALOGD_IF(is_out_log(),"keystone:mRefresh.count=%d",count);
++                contextp->procs->invalidate(contextp->procs);
++            }
++        }else{
++            usleep(nSleepTime * 1000);
++            count = 0;
++        }
++    }
++    ALOGD("Keystone_invalidate_refresh exit");
++#endif
++    pthread_exit(NULL);
++    return NULL;
++}
++
+ 
+ int hotplug_set_overscan(int flag)
+ {
+diff --git a/rk_hwcomposer.h b/rk_hwcomposer.h
+index d2e4edd..676363d 100755
+--- a/rk_hwcomposer.h
++++ b/rk_hwcomposer.h
+@@ -49,6 +49,9 @@
+ #define FENCE_TIME_USE          (1)
+ #define ONLY_USE_FB_BUFFERS     (0)  //zxl:If close this macro,you need remove hasBlitComposition condition in DisplayDevice::swapBuffers
+ #define MaxIForVop              (3840)
++//keystone need to force refresh by property
++#define KEYSTONE_FORCE_REFRESH     0  // 0:disable  1:enable
++
+ 
+ #ifdef TARGET_BOARD_PLATFORM_RK30XXB
+ #define GPU_BASE           handle->iBase

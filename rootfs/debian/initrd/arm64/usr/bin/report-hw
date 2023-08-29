@@ -1,0 +1,89 @@
+#!/bin/sh -e
+#
+# Report the detected HW. Note that this needs to run both inside d-i
+# and in a regular debian system, as well as behaving robustly if commands
+# are missing or broken.
+
+addinfo () {
+	sed "s%^%$1: %"
+}
+
+addfile () {
+	if [ -r "$1" ]; then
+		cat "$1" | addinfo "$1"
+	fi
+}
+
+uname -a 2>&1 | addinfo "uname -a"
+
+if type lspci >/dev/null 2>&1; then
+        if [ "$(uname -s)" = Linux ] ; then
+		lspci -knn 2>&1 | addinfo "lspci -knn"
+	else
+		lspci -nn 2>&1 | addinfo "lspci -nn"
+	fi
+	#lspci -vnn 2>&1 | addinfo "lspci -vnn"
+else
+	addfile /proc/pci
+	addfile /proc/bus/pci/devices
+fi
+
+if type usb-list >/dev/null 2>&1; then
+	# only available in udeb
+	usb-list 2>&1 | addinfo usb-list
+elif [ -r /proc/bus/usb/devices ]; then
+	# usbfs dropped per 2.6.31
+	addfile /proc/bus/usb/devices
+elif [ -r /sys/debug/usb/devices ]; then
+	# added per 2.6.31 but debugfs may not be mounted
+	addfile /sys/debug/usb/devices
+elif type usb-devices >/dev/null 2>&1; then
+	# planned (2009/06) to be added in usbutils
+	usb-devices 2>&1 | addinfo usb-devices
+elif type lsusb >/dev/null 2>&1; then
+	lsusb 2>&1 | addinfo lsusb
+else
+	echo "No USB information available" | addinfo usb
+fi
+
+if type prtconf >/dev/null 2>&1 ; then
+	prtconf 2>&1 | addinfo "prtconf"
+fi
+
+# On GNU/Linux
+if type lsmod > /dev/null 2>&1 ; then
+	lsmod 2>&1 | addinfo "lsmod"
+fi
+# On GNU/kFreeBSD
+if type kldstat > /dev/null 2>&1 ; then
+	kldstat 2>&1 | addinfo "kldstat"
+fi
+
+df 2>&1 | addinfo df
+free 2>&1 | addinfo free
+
+if type pccardctl >/dev/null 2>&1; then
+	pccardctl status 2>&1 | addinfo "pccardctl status"
+	pccardctl ident 2>&1 | addinfo "pccardctl ident"
+fi
+
+if type dmraid >/dev/null 2>&1; then
+	dmraid -s 2>&1 | addinfo "dmraid -s"
+	dmraid -r 2>&1 | addinfo "dmraid -r"
+	if type dmsetup >/dev/null 2>&1; then
+		dmsetup table 2>&1 | addinfo "dmsetup table"
+	fi
+fi
+
+for file in cmdline cpuinfo device-tree/model ioports iomem interrupts \
+	meminfo bus/input/devices; do
+	addfile /proc/$file
+done
+
+if type dmidecode >/dev/null 2>&1; then
+	dmidecode 2>&1 | addinfo dmidecode
+fi
+
+if [ "$DEBIAN_FRONTEND" = gtk ]; then
+	addfile /proc/fb
+fi

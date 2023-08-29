@@ -8,7 +8,7 @@
   },
   "kernel": {
     "version": "5.10",
-    "config": "rk3588_toybrickb.config",
+    "config": "rk3588_edge.config rk3588_toybrickb.config",
     "dtbname": "rk3588-toybrickb-x0-linux",
     "debug": "0xfeb50000"
   },

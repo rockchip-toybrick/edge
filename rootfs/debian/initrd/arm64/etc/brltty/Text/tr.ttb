@@ -1,0 +1,25 @@
+include ltr-latin.tti
+char \u0131 ( 3 5 )
+char \x49 ( 3 5 7 )
+char \x69 ( 2 4 )
+char \u0130 ( 2 4 7 )
+char \xE7 (1 6 )
+char \u011F (12 6 )
+char \xF6 ( 2 4 6 )
+char \u015F (1 4 6 )
+char \xFC (12 56 )
+char \xE2 ( 345 )
+char \xEE ( 34 )
+char \xFB (1 56 )
+char \xC7 (1 67 )
+char \u011E (12 67 )
+char \xD6 ( 2 4 67 )
+char \u015E (1 4 67 )
+char \xDC (12 567 )
+char \xC2 ( 345 7 )
+char \xCE ( 34 7 )
+char \xDB (1 567 )
+include num-dot8.tti
+include punc-basic.tti
+char \x3F ( 2 6 )
+include common.tti

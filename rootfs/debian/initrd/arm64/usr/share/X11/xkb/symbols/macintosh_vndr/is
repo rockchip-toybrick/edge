@@ -1,0 +1,127 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+partial default alphanumeric_keys
+xkb_symbols "basic" {
+ name[Group1]= "Iceland - Mac";
+
+ 
+ key <TLDE> { [ sterling, section, UF8FF, apostrophe ] };
+ key <AE01> { [ 1, exclam, exclamdown, VoidSymbol ] };
+ key <AE02> { [ 2, quotedbl, at, VoidSymbol ] };
+ key <AE03> { [ 3, numbersign, U2122, sterling ] };
+ key <AE04> { [ 4, dollar, U00A2, EuroSign ] };
+ key <AE05> { [ 5, percent, U2030, infinity ] };
+ key <AE06> { [ 6, ampersand, asciicircum, U2044 ] };
+ key <AE07> { [ 7, slash, backslash, U00F7 ] };
+ key <AE08> { [ 8, parenleft, bracketleft, braceleft ] };
+ key <AE09> { [ 9, parenright, bracketright, braceright ] };
+ key <AE10> { [ 0, equal, U2260, U2248 ] };
+ key <AE11> { [ odiaeresis, Odiaeresis, oslash, Ooblique ] };
+ key <AE12> { [ minus, underscore, endash, emdash ] };
+
+ 
+ 
+ key <AD01> { [ q, Q, paragraph, VoidSymbol ] };
+ key <AD02> { [ w, W, U2211, VoidSymbol ] };
+ key <AD03> { [ e, E, dead_grave, VoidSymbol ] };
+ key <AD04> { [ r, R, registered, VoidSymbol ] };
+ key <AD05> { [ t, T, degree, VoidSymbol ] };
+ key <AD06> { [ y, Y, yen, VoidSymbol ] };
+ key <AD07> { [ u, U, dead_diaeresis, VoidSymbol ] };
+ key <AD08> { [ i, I, U0131, U00AA ] };
+ key <AD09> { [ o, O, dead_circumflex,U00BA ] };
+ key <AD10> { [ p, P, Greek_pi, Greek_PI ] };
+ key <AD11> { [ eth, Eth, U201e, U201c ] };
+ key <AD12> { [ apostrophe, question, questiondown, U00B7 ] };
+ 
+ 
+ 
+ key <AC01> { [ a, A, aring, Aring ] };
+ key <AC02> { [ s, S, ssharp, abovedot ] };
+ key <AC03> { [ d, D, U2202, U2DA ] };
+ key <AC04> { [ f, F, U192, macron ] };
+ key <AC05> { [ g, G, copyright, breve ] };
+ key <AC06> { [ h, H, bar, VoidSymbol ] };
+ key <AC07> { [ j, J, U2206, U2dd ] };
+ key <AC08> { [ k, K, U00AC, VoidSymbol ] };
+ key <AC09> { [ l, L, U2026, caron ] };
+ key <AC10> { [ ae, AE, oe, OE ] };
+ key <AC11> { [ dead_acute, dead_diaeresis, U201A, U2018 ] };
+ key <BKSL> { [ plus, asterisk, U2022, plusminus ] };
+ 
+ 
+ 
+ key <LSGT> { [ less, greater, section, UF8FF ] };
+ key <AB01> { [ z, Z, U3A9, VoidSymbol ] };
+ key <AB02> { [ x, X, asciitilde, VoidSymbol ] };
+ key <AB03> { [ c, C, ccedilla, Ccedilla ] };
+ key <AB04> { [ v, V, U221A, U25CA ] };
+ key <AB05> { [ b, B, U222B, VoidSymbol ] };
+ key <AB06> { [ n, N, dead_tilde, VoidSymbol ] };
+ key <AB07> { [ m, M, U00B5, VoidSymbol ] };
+ key <AB08> { [ comma, semicolon, lessthanequal, guillemotleft ] };
+ key <AB09> { [ period, colon, greaterthanequal,guillemotright ] };
+ key <AB10> { [ thorn, Thorn, U2019, U201d ] };
+
+ include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "nodeadkeys" {
+ include "macintosh_vndr/is(basic)" 
+ name[Group1]= "Iceland - Mac, no dead keys";
+};

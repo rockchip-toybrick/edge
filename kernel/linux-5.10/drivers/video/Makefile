@@ -10,6 +10,8 @@ obj-y				  += rockchip/
 
 obj-y				  += fbdev/
 
+obj-y				  += virtio/
+
 obj-$(CONFIG_VIDEOMODE_HELPERS) += display_timing.o videomode.o
 ifeq ($(CONFIG_OF),y)
 obj-$(CONFIG_VIDEOMODE_HELPERS) += of_display_timing.o of_videomode.o

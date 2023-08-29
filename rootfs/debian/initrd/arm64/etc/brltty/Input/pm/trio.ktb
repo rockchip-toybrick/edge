@@ -1,0 +1,4 @@
+title Papenmeier BrailleX Trio
+assign statusKeys 0
+include bar.kti
+include keyboard.kti

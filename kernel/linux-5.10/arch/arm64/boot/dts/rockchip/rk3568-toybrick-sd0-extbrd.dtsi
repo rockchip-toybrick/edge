@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ *
+ */
+/ {
+	compatible = "rockchip,rk3568s-toybrick-extboard","rockchip,rk3568s";
+	extbrd: extbrd {
+		status = "okay";
+		compatible = "toybrick-extboard";
+	};
+};
+
+&extbrd {
+	status = "okay";
+	ext-gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>,	 /* GPIO1_A0 */
+				<&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>,	 /* GPIO1_A1 */
+				<&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A6 */
+				<&gpio3 RK_PA0 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A0 */
+				<&gpio3 RK_PA1 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A1 */
+				<&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>,	 /* GPIO3_B7 */
+				<&gpio0 RK_PB6 GPIO_ACTIVE_HIGH>,	 /* GPIO0_B6 */
+				<&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>,	 /* GPIO0_C5 */
+				<&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>,	 /* GPIO0_B5 */
+				<&gpio3 RK_PB4 GPIO_ACTIVE_HIGH>,	 /* GPIO3_B4 */
+				<&gpio3 RK_PA2 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A2 */
+				<&gpio3 RK_PC0 GPIO_ACTIVE_HIGH>,	 /* GPIO3_C0 */
+				<&gpio3 RK_PA3 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A3 */
+				<&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>,	 /* GPIO3_C2 */
+				<&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>,	 /* GPIO0_C0 */
+				<&gpio0 RK_PC1 GPIO_ACTIVE_HIGH>,	 /* GPIO0_C1 */
+				<&gpio3 RK_PA4 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A4 */
+				<&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>,	 /* GPIO3_B2 */
+				<&gpio3 RK_PB1 GPIO_ACTIVE_HIGH>,	 /* GPIO3_B1 */
+				<&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>,	 /* GPIO3_C1 */
+				<&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>,	 /* GPIO0_C6 */
+				<&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>,	 /* GPIO0_C4 */
+				<&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>,	 /* GPIO3_B3 */
+				<&gpio3 RK_PA7 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A7 */
+				<&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>,	 /* GPIO3_A5 */
+				<&gpio3 RK_PB0 GPIO_ACTIVE_HIGH>;	 /* GPIO3_B0 */
+};

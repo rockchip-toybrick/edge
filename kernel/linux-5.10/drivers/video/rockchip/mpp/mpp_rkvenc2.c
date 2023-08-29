@@ -43,6 +43,7 @@
 #define RKVENC_MAX_CORE_NUM			4
 #define RKVENC_MAX_DCHS_ID			4
 #define RKVENC_MAX_SLICE_FIFO_LEN		256
+#define RKVENC_SCLR_DONE_STA			BIT(2)
 
 #define to_rkvenc_info(info)		\
 		container_of(info, struct rkvenc_hw_info, hw)
@@ -177,6 +178,12 @@ union rkvenc2_dual_core_handshake_id {
 #define RKVENC2_REG_SLICE_NUM_BASE	(0x4034)
 #define RKVENC2_REG_SLICE_LEN_BASE	(0x4038)
 
+#define RKVENC2_REG_ST_BSB		(0x402c)
+#define RKVENC2_REG_ADR_BSBT		(0x2b0)
+#define RKVENC2_REG_ADR_BSBB		(0x2b4)
+#define RKVENC2_REG_ADR_BSBR		(0x2b8)
+#define RKVENC2_REG_ADR_BSBS		(0x2bc)
+
 union rkvenc2_slice_len_info {
 	u32 val;
 
@@ -226,6 +233,10 @@ struct rkvenc_task {
 	u32 slice_wr_cnt;
 	u32 slice_rd_cnt;
 	DECLARE_KFIFO(slice_info, union rkvenc2_slice_len_info, RKVENC_MAX_SLICE_FIFO_LEN);
+
+	/* jpege bitstream */
+	struct mpp_dma_buffer *bs_buf;
+	u32 offset_bs;
 };
 
 #define RKVENC_MAX_RCB_NUM		(4)
@@ -277,6 +288,13 @@ struct rkvenc_dev {
 	dma_addr_t sram_iova;
 	u32 sram_enabled;
 	struct page *rcb_page;
+
+	u32 bs_overflow;
+
+#ifdef CONFIG_PM_DEVFREQ
+	struct rockchip_opp_info opp_info;
+	struct monitor_dev_info *mdev_info;
+#endif
 };
 
 struct rkvenc_ccu {
@@ -911,6 +929,7 @@ static void *rkvenc_alloc_task(struct mpp_session *session,
 		u32 off;
 		const u16 *tbl;
 		struct rkvenc_hw_info *hw = task->hw_info;
+		int fd_bs = -1;
 
 		for (i = 0; i < hw->fd_class; i++) {
 			u32 class = hw->fd_reg[i].class;
@@ -920,6 +939,15 @@ static void *rkvenc_alloc_task(struct mpp_session *session,
 
 			if (!reg)
 				continue;
+
+			if (fmt == RKVENC_FMT_JPEGE && class == RKVENC_CLASS_PIC && fd_bs == -1) {
+				int bs_index;
+
+				bs_index = mpp->var->trans_info[fmt].table[2];
+				fd_bs = reg[bs_index];
+				task->offset_bs = mpp_query_reg_offset_info(&task->off_inf,
+									    bs_index + ss);
+			}
 
 			ret = mpp_translate_reg_address(session, mpp_task, fmt, reg, NULL);
 			if (ret)
@@ -932,6 +960,15 @@ static void *rkvenc_alloc_task(struct mpp_session *session,
 				mpp_debug(DEBUG_IOMMU, "reg[%d] + offset %d\n", tbl[j] + ss, off);
 				reg[tbl[j]] += off;
 			}
+		}
+
+		if (fd_bs >= 0) {
+			struct mpp_dma_buffer *bs_buf =
+					mpp_dma_find_buffer_fd(session->dma, fd_bs);
+
+			if (bs_buf && task->offset_bs > 0)
+				mpp_dma_buf_sync(bs_buf, 0, task->offset_bs, DMA_TO_DEVICE, false);
+			task->bs_buf = bs_buf;
 		}
 	}
 	rkvenc2_setup_task_id(session->index, task);
@@ -1261,6 +1298,8 @@ static int rkvenc_irq(struct mpp_dev *mpp)
 	struct rkvenc_hw_info *hw = enc->hw_info;
 	struct mpp_task *mpp_task = NULL;
 	struct rkvenc_task *task = NULL;
+	u32 int_clear = 1;
+	u32 irq_mask = 0;
 	int ret = IRQ_NONE;
 
 	mpp_debug_enter();
@@ -1282,12 +1321,12 @@ static int rkvenc_irq(struct mpp_dev *mpp)
 			wake_up(&mpp_task->wait);
 		}
 
-		mpp_write(mpp, hw->int_mask_base, 0x100);
-		mpp_write(mpp, hw->int_clr_base, 0xffffffff);
-		udelay(5);
-		mpp_write(mpp, hw->int_sta_base, 0);
-
+		irq_mask = INT_STA_ENC_DONE_STA;
 		ret = IRQ_WAKE_THREAD;
+		if (enc->bs_overflow) {
+			mpp->irq_status |= INT_STA_BSF_OFLW_STA;
+			enc->bs_overflow = 0;
+		}
 	} else if (mpp->irq_status & INT_STA_SLC_DONE_STA) {
 		if (task && task->task_split) {
 			mpp_time_part_diff(mpp_task);
@@ -1296,7 +1335,42 @@ static int rkvenc_irq(struct mpp_dev *mpp)
 			wake_up(&mpp_task->wait);
 		}
 
-		mpp_write(mpp, hw->int_clr_base, INT_STA_SLC_DONE_STA);
+		irq_mask = INT_STA_ENC_DONE_STA;
+		int_clear = 0;
+	} else if (mpp->irq_status & INT_STA_BSF_OFLW_STA) {
+		u32 bs_rd = mpp_read(mpp, RKVENC2_REG_ADR_BSBR);
+		u32 bs_wr = mpp_read(mpp, RKVENC2_REG_ST_BSB);
+		u32 bs_top = mpp_read(mpp, RKVENC2_REG_ADR_BSBT);
+		u32 bs_bot = mpp_read(mpp, RKVENC2_REG_ADR_BSBB);
+
+		if (mpp_task)
+			dev_err(mpp->dev, "task %d found bitstream overflow [%#08x %#08x %#08x %#08x]\n",
+				mpp_task->task_index, bs_top, bs_bot, bs_wr, bs_rd);
+		bs_wr += 128;
+		if (bs_wr >= bs_top)
+			bs_wr = bs_bot;
+		/* clear int first */
+		mpp_write(mpp, hw->int_clr_base, mpp->irq_status);
+		/* update write addr for enc continue */
+		mpp_write(mpp, RKVENC2_REG_ADR_BSBS, bs_wr);
+		enc->bs_overflow = 1;
+		irq_mask = 0;
+		int_clear = 0;
+		ret = IRQ_HANDLED;
+	} else {
+		dev_err(mpp->dev, "found error status %08x\n", mpp->irq_status);
+
+		irq_mask = mpp->irq_status;
+		ret = IRQ_WAKE_THREAD;
+	}
+
+	if (irq_mask)
+		mpp_write(mpp, hw->int_mask_base, irq_mask);
+
+	if (int_clear) {
+		mpp_write(mpp, hw->int_clr_base, mpp->irq_status);
+		udelay(5);
+		mpp_write(mpp, hw->int_sta_base, 0);
 	}
 
 	mpp_debug_leave();
@@ -1379,6 +1453,13 @@ static int rkvenc_finish(struct mpp_dev *mpp, struct mpp_task *mpp_task)
 		for (j = s; j < e; j++)
 			reg[j] = mpp_read_relaxed(mpp, msg.offset + j * sizeof(u32));
 
+	}
+
+	if (task->bs_buf) {
+		u32 bs_size = mpp_read(mpp, 0x4064);
+
+		mpp_dma_buf_sync(task->bs_buf, 0, bs_size / 8 + task->offset_bs,
+				 DMA_FROM_DEVICE, true);
 	}
 
 	/* revert hack for irq status */
@@ -1641,6 +1722,101 @@ static inline int rkvenc_procfs_ccu_init(struct mpp_dev *mpp)
 }
 #endif
 
+#ifdef CONFIG_PM_DEVFREQ
+static int rk3588_venc_set_read_margin(struct device *dev,
+				       struct rockchip_opp_info *opp_info,
+				       u32 rm)
+{
+	if (!opp_info->grf || !opp_info->volt_rm_tbl)
+		return 0;
+
+	if (rm == opp_info->current_rm || rm == UINT_MAX)
+		return 0;
+
+	dev_dbg(dev, "set rm to %d\n", rm);
+
+	regmap_write(opp_info->grf, 0x214, 0x001c0000 | (rm << 2));
+	regmap_write(opp_info->grf, 0x218, 0x001c0000 | (rm << 2));
+	regmap_write(opp_info->grf, 0x220, 0x003c0000 | (rm << 2));
+	regmap_write(opp_info->grf, 0x224, 0x003c0000 | (rm << 2));
+
+	opp_info->current_rm = rm;
+
+	return 0;
+}
+
+static const struct rockchip_opp_data rk3588_venc_opp_data = {
+	.set_read_margin = rk3588_venc_set_read_margin,
+};
+
+static const struct of_device_id rockchip_rkvenc_of_match[] = {
+	{
+		.compatible = "rockchip,rk3588",
+		.data = (void *)&rk3588_venc_opp_data,
+	},
+	{},
+};
+
+static struct monitor_dev_profile venc_mdevp = {
+	.type = MONITOR_TYPE_DEV,
+	.update_volt = rockchip_monitor_check_rate_volt,
+};
+
+static int rkvenc_devfreq_init(struct mpp_dev *mpp)
+{
+	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
+	struct clk *clk_core = enc->core_clk_info.clk;
+	struct device *dev = mpp->dev;
+	struct opp_table *reg_table = NULL;
+	struct opp_table *clk_table = NULL;
+	const char *const reg_names[] = { "venc", "mem" };
+	int ret = 0;
+
+	if (!clk_core)
+		return 0;
+
+	if (of_find_property(dev->of_node, "venc-supply", NULL) &&
+	    of_find_property(dev->of_node, "mem-supply", NULL)) {
+		reg_table = dev_pm_opp_set_regulators(dev, reg_names, 2);
+		if (IS_ERR(reg_table))
+			return PTR_ERR(reg_table);
+	} else {
+		reg_table = dev_pm_opp_set_regulators(dev, reg_names, 1);
+		if (IS_ERR(reg_table))
+			return PTR_ERR(reg_table);
+	}
+
+	clk_table = dev_pm_opp_set_clkname(dev, "clk_core");
+	if (IS_ERR(clk_table))
+		return PTR_ERR(clk_table);
+
+	rockchip_get_opp_data(rockchip_rkvenc_of_match, &enc->opp_info);
+	ret = rockchip_init_opp_table(dev, &enc->opp_info, "leakage", "venc");
+	if (ret) {
+		dev_err(dev, "failed to init_opp_table\n");
+		return ret;
+	}
+
+	enc->mdev_info = rockchip_system_monitor_register(dev, &venc_mdevp);
+	if (IS_ERR(enc->mdev_info)) {
+		dev_dbg(dev, "without system monitor\n");
+		enc->mdev_info = NULL;
+	}
+
+	return ret;
+}
+
+static int rkvenc_devfreq_remove(struct mpp_dev *mpp)
+{
+	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
+
+	if (enc->mdev_info)
+		rockchip_system_monitor_unregister(enc->mdev_info);
+
+	return 0;
+}
+#endif
+
 static int rkvenc_init(struct mpp_dev *mpp)
 {
 	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
@@ -1677,26 +1853,59 @@ static int rkvenc_init(struct mpp_dev *mpp)
 	if (!enc->rst_core)
 		mpp_err("No core reset resource define\n");
 
+#ifdef CONFIG_PM_DEVFREQ
+	ret = rkvenc_devfreq_init(mpp);
+	if (ret)
+		mpp_err("failed to add venc devfreq\n");
+#endif
+
 	return 0;
+}
+
+static int rkvenc_exit(struct mpp_dev *mpp)
+{
+#ifdef CONFIG_PM_DEVFREQ
+	rkvenc_devfreq_remove(mpp);
+#endif
+
+	return 0;
+}
+
+static int rkvenc_soft_reset(struct mpp_dev *mpp)
+{
+	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
+	struct rkvenc_hw_info *hw = enc->hw_info;
+	u32 rst_status = 0;
+	int ret = 0;
+
+	/* safe reset */
+	mpp_write(mpp, hw->int_mask_base, 0x3FF);
+	mpp_write(mpp, hw->enc_clr_base, 0x1);
+	ret = readl_relaxed_poll_timeout(mpp->reg_base + hw->int_sta_base,
+					 rst_status,
+					 rst_status & RKVENC_SCLR_DONE_STA,
+					 0, 5);
+	mpp_write(mpp, hw->int_clr_base, 0xffffffff);
+	mpp_write(mpp, hw->int_sta_base, 0);
+
+	return ret;
+
 }
 
 static int rkvenc_reset(struct mpp_dev *mpp)
 {
 	struct rkvenc_dev *enc = to_rkvenc_dev(mpp);
-	struct rkvenc_hw_info *hw = enc->hw_info;
+	int ret = 0;
 	struct mpp_taskqueue *queue = mpp->queue;
 
 	mpp_debug_enter();
 
-	/* safe reset */
-	mpp_write(mpp, hw->int_mask_base, 0x3FF);
-	mpp_write(mpp, hw->enc_clr_base, 0x1);
-	udelay(5);
-	mpp_write(mpp, hw->int_clr_base, 0xffffffff);
-	mpp_write(mpp, hw->int_sta_base, 0);
+	/* safe reset first*/
+	ret = rkvenc_soft_reset(mpp);
 
 	/* cru reset */
-	if (enc->rst_a && enc->rst_h && enc->rst_core) {
+	if (ret && enc->rst_a && enc->rst_h && enc->rst_core) {
+		mpp_err("soft reset timeout, use cru reset\n");
 		mpp_pmu_idle_request(mpp, true);
 		mpp_safe_reset(enc->rst_a);
 		mpp_safe_reset(enc->rst_h);
@@ -1840,38 +2049,31 @@ static int rkvenc2_wait_result(struct mpp_session *session,
 
 	if (!enc_task->task_split || enc_task->task_split_done) {
 task_done_ret:
-		ret = wait_event_timeout(task->wait,
-					 test_bit(TASK_STATE_DONE, &task->state),
-					 msecs_to_jiffies(RKVENC2_WAIT_TIMEOUT_DELAY));
+		ret = wait_event_interruptible(task->wait, test_bit(TASK_STATE_DONE, &task->state));
+		if (ret == -ERESTARTSYS)
+			mpp_err("wait task break by signal in normal mode\n");
 
-		if (ret > 0)
-			return rkvenc2_task_default_process(mpp, task);
+		return rkvenc2_task_default_process(mpp, task);
 
-		rkvenc2_task_timeout_process(session, task);
-		return ret;
 	}
 
 	/* not slice return just wait all slice length */
 	if (!req) {
 		do {
-			ret = wait_event_timeout(task->wait,
-						 kfifo_out(&enc_task->slice_info, &slice_info, 1),
-						 msecs_to_jiffies(RKVENC2_WORK_TIMEOUT_DELAY));
-			if (ret > 0) {
-				mpp_dbg_slice("task %d rd %3d len %d %s\n",
-					      task_id, enc_task->slice_rd_cnt, slice_info.slice_len,
-					      slice_info.last ? "last" : "");
-
-				enc_task->slice_rd_cnt++;
-
-				if (slice_info.last)
-					goto task_done_ret;
-
-				continue;
+			ret = wait_event_interruptible(task->wait, kfifo_out(&enc_task->slice_info,
+									     &slice_info, 1));
+			if (ret == -ERESTARTSYS) {
+				mpp_err("wait task break by signal in slice all mode\n");
+				return 0;
 			}
+			mpp_dbg_slice("task %d rd %3d len %d %s\n",
+					task_id, enc_task->slice_rd_cnt, slice_info.slice_len,
+					slice_info.last ? "last" : "");
 
-			rkvenc2_task_timeout_process(session, task);
-			return ret;
+			enc_task->slice_rd_cnt++;
+
+			if (slice_info.last)
+				goto task_done_ret;
 		} while (1);
 	}
 
@@ -1886,39 +2088,40 @@ task_done_ret:
 
 	/* handle slice mode poll return */
 	do {
-		ret = wait_event_timeout(task->wait,
-					 kfifo_out(&enc_task->slice_info, &slice_info, 1),
-					 msecs_to_jiffies(RKVENC2_WORK_TIMEOUT_DELAY));
-		if (ret > 0) {
-			mpp_dbg_slice("core %d task %d rd %3d len %d %s\n", task_id,
-				      mpp->core_id, enc_task->slice_rd_cnt, slice_info.slice_len,
-				      slice_info.last ? "last" : "");
-			enc_task->slice_rd_cnt++;
-			if (cfg.count_ret < cfg.count_max) {
-				struct rkvenc_poll_slice_cfg __user *ucfg =
-					(struct rkvenc_poll_slice_cfg __user *)(req->data);
-				u32 __user *dst = (u32 __user *)(ucfg + 1);
-
-				/* Do NOT return here when put_user error. Just continue */
-				if (put_user(slice_info.val, dst + cfg.count_ret))
-					ret = -EFAULT;
-
-				cfg.count_ret++;
-				if (put_user(cfg.count_ret, &ucfg->count_ret))
-					ret = -EFAULT;
-			}
-
-			if (slice_info.last) {
-				enc_task->task_split_done = 1;
-				goto task_done_ret;
-			}
-
-			if (cfg.count_ret >= cfg.count_max)
-				return 0;
-
-			if (ret < 0)
-				return ret;
+		ret = wait_event_interruptible(task->wait, kfifo_out(&enc_task->slice_info,
+								     &slice_info, 1));
+		if (ret == -ERESTARTSYS) {
+			mpp_err("wait task break by signal in slice one mode\n");
+			return 0;
 		}
+		mpp_dbg_slice("core %d task %d rd %3d len %d %s\n", task_id,
+				mpp->core_id, enc_task->slice_rd_cnt, slice_info.slice_len,
+				slice_info.last ? "last" : "");
+		enc_task->slice_rd_cnt++;
+		if (cfg.count_ret < cfg.count_max) {
+			struct rkvenc_poll_slice_cfg __user *ucfg =
+				(struct rkvenc_poll_slice_cfg __user *)(req->data);
+			u32 __user *dst = (u32 __user *)(ucfg + 1);
+
+			/* Do NOT return here when put_user error. Just continue */
+			if (put_user(slice_info.val, dst + cfg.count_ret))
+				ret = -EFAULT;
+
+			cfg.count_ret++;
+			if (put_user(cfg.count_ret, &ucfg->count_ret))
+				ret = -EFAULT;
+		}
+
+		if (slice_info.last) {
+			enc_task->task_split_done = 1;
+			goto task_done_ret;
+		}
+
+		if (cfg.count_ret >= cfg.count_max)
+			return 0;
+
+		if (ret < 0)
+			return ret;
 	} while (ret > 0);
 
 	rkvenc2_task_timeout_process(session, task);
@@ -1928,6 +2131,7 @@ task_done_ret:
 
 static struct mpp_hw_ops rkvenc_hw_ops = {
 	.init = rkvenc_init,
+	.exit = rkvenc_exit,
 	.clk_on = rkvenc_clk_on,
 	.clk_off = rkvenc_clk_off,
 	.set_freq = rkvenc_set_freq,
@@ -1998,6 +2202,12 @@ static const struct of_device_id mpp_rkvenc_dt_match[] = {
 #ifdef CONFIG_CPU_RK3528
 	{
 		.compatible = "rockchip,rkv-encoder-rk3528",
+		.data = &rkvenc_540c_data,
+	},
+#endif
+#ifdef CONFIG_CPU_RK3562
+	{
+		.compatible = "rockchip,rkv-encoder-rk3562",
 		.data = &rkvenc_540c_data,
 	},
 #endif
@@ -2072,8 +2282,10 @@ static int rkvenc_attach_ccu(struct device *dev, struct rkvenc_dev *enc)
 		ccu_info = ccu->main_core->iommu_info;
 		cur_info = enc->mpp.iommu_info;
 
-		cur_info->domain = ccu_info->domain;
-		cur_info->rw_sem = ccu_info->rw_sem;
+		if (cur_info) {
+			cur_info->domain = ccu_info->domain;
+			cur_info->rw_sem = ccu_info->rw_sem;
+		}
 		mpp_iommu_attach(cur_info);
 
 		/* increase main core message capacity */
@@ -2251,7 +2463,8 @@ static int rkvenc_core_probe(struct platform_device *pdev)
 	}
 	mpp->session_max_buffers = RKVENC_SESSION_MAX_BUFFERS;
 	enc->hw_info = to_rkvenc_info(mpp->var->hw_info);
-	mpp->iommu_info->hdl = rkvenc2_iommu_fault_handle;
+	if (mpp->iommu_info)
+		mpp->iommu_info->hdl = rkvenc2_iommu_fault_handle;
 	rkvenc_procfs_init(mpp);
 	rkvenc_procfs_ccu_init(mpp);
 
@@ -2337,8 +2550,9 @@ static int rkvenc2_free_rcbbuf(struct platform_device *pdev, struct rkvenc_dev *
 
 	if (enc->rcb_page) {
 		size_t page_size = PAGE_ALIGN(enc->sram_used - enc->sram_size);
+		int order = min(get_order(page_size), MAX_ORDER);
 
-		__free_pages(enc->rcb_page, get_order(page_size));
+		__free_pages(enc->rcb_page, order);
 	}
 	if (enc->sram_iova) {
 		domain = enc->mpp.iommu_info->domain;

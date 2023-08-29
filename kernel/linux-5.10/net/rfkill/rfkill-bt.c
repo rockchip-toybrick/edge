@@ -323,8 +323,6 @@ static int rfkill_rk_set_power(void *data, bool blocked)
 				gpio_direction_output(poweron->io,
 						      poweron->enable);
 				msleep(20);
-				if (gpio_is_valid(wake_host->io))
-					gpio_direction_input(wake_host->io);
 			}
 		}
 
@@ -335,6 +333,11 @@ static int rfkill_rk_set_power(void *data, bool blocked)
 				msleep(20);
 				gpio_direction_output(reset->io, reset->enable);
 			}
+		}
+
+		if (gpio_is_valid(wake_host->io)) {
+			LOG("%s: set bt wake_host input!\n", __func__);
+			gpio_direction_input(wake_host->io);
 		}
 
 		if (pinctrl && gpio_is_valid(rts->io)) {
@@ -711,7 +714,20 @@ static int rfkill_rk_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&rfkill->bt_sleep_delay_work,
 			  rfkill_rk_delay_sleep_bt);
 
+#if 0
+	//rfkill_rk_set_power(rfkill, BT_BLOCKED);
+	// bt turn off power
+	if (gpio_is_valid(pdata->poweron_gpio.io)) {
+		gpio_direction_output(pdata->poweron_gpio.io,
+				      !pdata->poweron_gpio.enable);
+	}
+	if (gpio_is_valid(pdata->reset_gpio.io)) {
+		gpio_direction_output(pdata->reset_gpio.io,
+				      !pdata->reset_gpio.enable);
+	}
+#else
 	rfkill_rk_set_power(rfkill, BT_UNBLOCK);
+#endif
 
 	platform_set_drvdata(pdev, rfkill);
 

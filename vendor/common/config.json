@@ -2,6 +2,7 @@
   "board": "not set",
   "chip": "not set",
   "arch": "not set",
+  "hyper": "not set",
   "bootmode": "extlinux",
   "secureboot": {
     "enable": false,
@@ -92,5 +93,17 @@
     "dtbname": "not set",
     "docker": false,
     "debug": "not set"
+  },
+  "rootfs": {
+    "osname": "debian",
+    "version": 11,
+    "type": "gnome",
+    "uuid": "614e0000-0000-4b53-8000-1d28000054a9",
+    "apturl": "http://repo.rock-chips.com",
+    "size": "auto",
+    "user": "not set",
+    "password": "not set",
+    "key": "GPG-KEY-ROCKCHIP",
+    "relver": "1.1.0"
   }
 }

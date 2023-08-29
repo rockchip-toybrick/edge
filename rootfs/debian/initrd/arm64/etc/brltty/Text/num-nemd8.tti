@@ -1,0 +1,11 @@
+char \x30 ( 3 56 8)
+char \x31 ( 2 8)
+char \x32 ( 23 8)
+char \x33 ( 2 5 8)
+char \x34 ( 2 56 8)
+char \x35 ( 2 6 8)
+char \x36 ( 23 5 8)
+char \x37 ( 23 56 8)
+char \x38 ( 23 6 8)
+char \x39 ( 3 5 8)
+include num-alias.tti

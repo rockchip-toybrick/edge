@@ -1,0 +1,21 @@
+{
+  "board": "TB-RK3568SD0",
+  "chip": "rk3568",
+  "arch": "arm64",
+  "uboot": {
+    "config": "rk3568-toybrick-sd0"
+  },
+  "kernel": {
+    "version": "5.10",
+    "config": "rk3568_toybrick.config rk3568_toybrick_sd0.config",
+    "dtbname": "rk3568-toybrick-sd0-linux",
+    "debug": "0xfe660000"
+  },
+  "rootfs": {
+    "osname": "debian",
+    "version": "11",
+    "type": "gnome",
+    "user": "toybrick",
+    "password": "toybrick"
+  }
+}

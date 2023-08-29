@@ -59,6 +59,9 @@
 #define VDPU1_REG_DEC_EN		0x008
 #define	VDPU1_CLOCK_GATE_EN		BIT(10)
 
+#define VDPU1_REG_SOFT_RESET		0x194
+#define VDPU1_REG_SOFT_RESET_INDEX	(101)
+
 #define VDPU1_REG_SYS_CTRL		0x00c
 #define VDPU1_REG_SYS_CTRL_INDEX	(3)
 #define VDPU1_RGE_WIDTH_INDEX		(4)
@@ -406,6 +409,10 @@ static int vdpu_run(struct mpp_dev *mpp,
 
 		mpp_write_req(mpp, task->reg, s, e, reg_en);
 	}
+
+	/* flush tlb before starting hardware */
+	mpp_iommu_flush_tlb(mpp->iommu_info);
+
 	/* init current task */
 	mpp->cur_task = mpp_task;
 
@@ -684,11 +691,27 @@ static int vdpu_isr(struct mpp_dev *mpp)
 	return IRQ_HANDLED;
 }
 
+static int vdpu_soft_reset(struct mpp_dev *mpp)
+{
+	u32 val;
+	u32 ret;
+
+	mpp_write(mpp, VDPU1_REG_SOFT_RESET, 1);
+	ret = readl_relaxed_poll_timeout(mpp->reg_base + VDPU1_REG_SOFT_RESET,
+					 val, !val, 0, 5);
+
+	return ret;
+}
+
 static int vdpu_reset(struct mpp_dev *mpp)
 {
 	struct vdpu_dev *dec = to_vdpu_dev(mpp);
+	u32 ret = 0;
 
-	if (dec->rst_a && dec->rst_h) {
+	/* soft reset first */
+	ret = vdpu_soft_reset(mpp);
+	if (ret && dec->rst_a && dec->rst_h) {
+		mpp_err("soft reset failed, use cru reset!\n");
 		mpp_debug(DEBUG_RESET, "reset in\n");
 
 		/* Don't skip this or iommu won't work after reset */
@@ -728,9 +751,14 @@ static int vdpu_3036_set_grf(struct mpp_dev *mpp)
 
 		list_for_each_entry_safe(loop, n, &queue->dev_list, queue_link) {
 			if (test_bit(loop->var->device_type, &queue->dev_active_flags)) {
+				mpp_set_grf(loop->grf_info);
+				if (loop->hw_ops->clk_on)
+					loop->hw_ops->clk_on(loop);
 				if (loop->hw_ops->reset)
 					loop->hw_ops->reset(loop);
 				rockchip_iommu_disable(loop->dev);
+				if (loop->hw_ops->clk_off)
+					loop->hw_ops->clk_off(loop);
 				clear_bit(loop->var->device_type, &queue->dev_active_flags);
 			}
 		}
@@ -860,12 +888,10 @@ static const struct of_device_id mpp_vdpu1_dt_match[] = {
 		.data = &vdpu_3368_data,
 	},
 #endif
-#ifdef CONFIG_CPU_RK3328
 	{
 		.compatible = "rockchip,avs-plus-decoder",
 		.data = &avsd_plus_data,
 	},
-#endif
 	{},
 };
 

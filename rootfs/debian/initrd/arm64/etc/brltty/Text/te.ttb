@@ -1,0 +1,3 @@
+include telugu.tti
+include ascii-basic.tti
+include common.tti

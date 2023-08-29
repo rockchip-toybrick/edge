@@ -1,0 +1,10 @@
+include ltr-cyrillic.tti
+include ltr-dot8.tti
+include num-nemeth.tti
+include punc-alternate.tti
+char \u2219 ( 23 8)
+char \xB0 ( 23 567 )
+char \xB2 ( 2 6 8)
+char \xB7 ( 345 78)
+char \xA9 ( 34 678)
+include common.tti

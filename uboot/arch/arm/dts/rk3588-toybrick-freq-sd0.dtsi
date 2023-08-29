@@ -1,0 +1,79 @@
+/ {
+	/* cluster0:
+	 	"opp-1800000000",
+	 	"opp-1608000000",
+        "opp-1416000000",
+		...
+
+	   cluster1:
+		"opp-2304000000",
+		"opp-2208000000",
+		"opp-2016000000",
+		"opp-1800000000",
+        "opp-1608000000",
+        "opp-1416000000",
+	    ...
+
+	   cluster2:
+	    "opp-2400000000",
+        "opp-2256000000",
+        "opp-2208000000",
+        "opp-2016000000",
+        "opp-1800000000",
+        "opp-1608000000",
+        "opp-1416000000",
+		...
+
+	   gpu:
+	    "opp-1000000000",
+        "opp-900000000",
+        "opp-800000000",
+        "opp-700000000",
+        "opp-600000000",
+		...
+
+	   npu:
+		"opp-1000000000",
+		...
+
+	 */
+
+	d0_freq_info:d0-freq-info {
+		u-boot,dm-pre-reloc;
+		compatible = "d0-freq-info";
+		cluster0_freq_limits_low =  "opp-1800000000",
+                               	    "opp-1608000000",
+                                    "opp-1416000000";
+		cluster1_freq_limits_low =  "opp-2304000000",
+                                    "opp-2208000000",
+                                    "opp-2016000000",
+                                    "opp-1800000000";
+		cluster2_freq_limits_low =  "opp-2400000000",
+                                    "opp-2304000000",
+                               	    "opp-2256000000",
+                                    "opp-2208000000",
+                                    "opp-2016000000",
+                                    "opp-1800000000";
+		gpu_freq_limits_low = 	    "opp-1000000000",
+                          		     "opp-900000000",
+                                     "opp-800000000",
+                                     "opp-700000000",
+                                     "opp-600000000";
+		cluster0_freq_limits_high = "opp-1800000000";
+		cluster1_freq_limits_high = "opp-2304000000",
+                                    "opp-2208000000",
+                                    "opp-2016000000";
+		cluster2_freq_limits_high = "opp-2400000000",
+                                    "opp-2304000000",
+                              	    "opp-2256000000",
+                                    "opp-2208000000",
+                                    "opp-2016000000";
+		gpu_freq_limits_high = 	    "opp-1000000000",
+                          		     "opp-900000000";
+		npu_freq_limit = "opp-1000000000";
+		i2c_bus = "5";
+		uart_index = <3>;
+		i2c_addr = <0x6b>;
+		status = "okay";
+	};
+};

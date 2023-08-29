@@ -29,6 +29,10 @@
 #define STORAGE_CMD_WRITE_OEM_OTP_KEY		14
 #define STORAGE_CMD_SET_OEM_HR_OTP_READ_LOCK	15
 #define STORAGE_CMD_OEM_OTP_KEY_IS_WRITTEN	16
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+#define STORAGE_CMD_WRITE_TOYBRICK_KSN	17
+#define STORAGE_CMD_READ_TOYBRICK_KSN	18
+#endif
 
 #define CRYPTO_SERVICE_CMD_OEM_OTP_KEY_PHYS_CIPHER	0x00000002
 
@@ -71,6 +75,20 @@ static void crypto_flush_cacheline(uint32_t addr, uint32_t size)
 	aligned_input = round_down(addr, alignment);
 	aligned_len = round_up(size + (addr - aligned_input), alignment);
 	flush_cache(aligned_input, aligned_len);
+}
+
+static void crypto_invalidate_cacheline(uint32_t addr, uint32_t size)
+{
+	ulong alignment = CONFIG_SYS_CACHELINE_SIZE;
+	ulong aligned_input, aligned_len;
+
+	if (!addr || !size)
+		return;
+
+	/* Must invalidate dcache after crypto DMA write data region */
+	aligned_input = round_down(addr, alignment);
+	aligned_len = round_up(size + (addr - aligned_input), alignment);
+	invalidate_dcache_range(aligned_input, aligned_input + aligned_len);
 }
 
 static uint32_t trusty_base_write_security_data(char *filename,
@@ -868,6 +886,20 @@ uint32_t trusty_oem_otp_key_is_written(enum RK_OEM_OTP_KEYID key_id, uint8_t *va
 	return TeecResult;
 }
 
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+uint32_t toybrick_write_ksn(uint32_t *buf, uint32_t length)
+{
+	return trusty_base_efuse_or_otp_operation(STORAGE_CMD_WRITE_TOYBRICK_KSN,
+						  true, buf, length);
+}
+
+uint32_t toybrick_read_ksn(uint32_t *buf, uint32_t length)
+{
+	return trusty_base_efuse_or_otp_operation(STORAGE_CMD_READ_TOYBRICK_KSN,
+						  false, buf, length);
+}
+#endif
+
 uint32_t trusty_set_oem_hr_otp_read_lock(enum RK_OEM_OTP_KEYID key_id)
 {
 	TEEC_Result TeecResult;
@@ -1013,6 +1045,8 @@ uint32_t trusty_oem_otp_key_cipher(enum RK_OEM_OTP_KEYID key_id, rk_cipher_confi
 					CRYPTO_SERVICE_CMD_OEM_OTP_KEY_PHYS_CIPHER,
 					&TeecOperation,
 					&ErrorOrigin);
+
+	crypto_invalidate_cacheline(dst_phys_addr, len);
 
 exit:
 	TEEC_ReleaseSharedMemory(&SharedMem_config);

@@ -179,4 +179,109 @@ static inline int toybrick_check_SnMacAc(void)
 	return ret;
 }
 
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+static inline int ksn_load_SnMac_from_vendor(char *sn, char *mac)
+{
+	int ret;
+
+	memset(sn, 0, TOYBRICK_SN_SLEN + 1);
+	memset(mac, 0, TOYBRICK_MAC_LEN + 1);
+
+	ret = toybrick_get_sn(sn);
+	if (ret <= 0) {
+		printf("Load sn form vendor failed\n");
+		return -EIO;
+	}
+
+	ret = toybrick_get_mac(mac);
+	if (ret != TOYBRICK_MAC_LEN) {
+		printf("Load mac form vendor failed\n");
+		return -EIO;
+	}
+
+	printf("Load SnMac from vendor: sn %s, mac %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x\n",
+			sn, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return 0;
+}
+
+
+static inline int ksn_save_SnMac_to_vendor(char *sn, char *mac)
+{
+	int ret;
+
+	ret = toybrick_set_sn(sn);
+	if (ret <= 0) {
+		printf("Save sn to vendor failed\n");
+		return -EIO;
+	}
+
+	ret = toybrick_set_mac(mac);
+	if (ret != TOYBRICK_MAC_LEN) {
+		printf("Save mac to vendor failed\n");
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static inline int otp_ksn_is_valid_check(uint32_t *data, int len)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		if (data[i] != 0)
+			break;
+	}
+
+	return data[i] ? 1 : 0;
+}
+
+static inline int toybrick_ksn_check_SnMac(void)
+{
+	int ret = 0;
+	int ret_vendor, ret_otp, ksn_is_valid;
+	char vendor_sn[TOYBRICK_SN_LEN + 1];
+	char vendor_mac[TOYBRICK_MAC_LEN + 1];
+	char otp_sn[TOYBRICK_SN_SLEN + 1];
+	char otp_mac[TOYBRICK_MAC_LEN + 1];
+	uint32_t data[5];
+
+	memset(data, 0, sizeof(data));
+	memset(vendor_sn, 0, sizeof(vendor_sn));
+	memset(vendor_mac, 0, sizeof(vendor_mac));
+	memset(otp_sn, 0, sizeof(otp_sn));
+	memset(otp_mac, 0, sizeof(otp_mac));
+
+	ret_otp = toybrick_read_ksn((uint32_t *)data, 5);
+	if (ret_otp) {
+		printf("Read ksn fail ret: %d, try goto loader ...\n", ret_otp);
+		run_command_list("rockusb 0 ${devtype} ${devnum}", -1, 0);
+		do_reset(NULL, 0, 0, NULL);
+	}
+
+	ksn_is_valid = otp_ksn_is_valid_check(data, 5);
+	ret_vendor = ksn_load_SnMac_from_vendor(vendor_sn, vendor_mac);
+	memcpy(otp_sn, (char *)data, TOYBRICK_SN_SLEN);
+	memcpy(otp_mac, (char *)data + TOYBRICK_SN_SLEN, TOYBRICK_MAC_LEN);
+
+	if (!ksn_is_valid) {
+		printf("No SnMac on OTP, goto loader ...\n");
+		run_command_list("rockusb 0 ${devtype} ${devnum}", -1, 0);
+		do_reset(NULL, 0, 0, NULL);
+	} else if (ksn_is_valid && ret_vendor < 0) {
+		printf("No SnMac found in vendor, load from OTP and save to vendor\n");
+		ret = ksn_save_SnMac_to_vendor(otp_sn, otp_mac);
+		do_reset(NULL, 0, 0, NULL);
+	} else if (strncmp(otp_sn, vendor_sn, TOYBRICK_SN_SLEN) || strncmp(otp_mac, vendor_mac, TOYBRICK_MAC_LEN)) {
+		printf("Vendor SnMac is not valid, load from OTP and save to vendor\n");
+		ret = ksn_save_SnMac_to_vendor(otp_sn, otp_mac);
+		do_reset(NULL, 0, 0, NULL);
+	} else {
+		printf("Toybrick check SnMac OK, sn %s\n", vendor_sn);
+		ret = 0;
+	}
+
+	return ret;
+}
+#endif
 #endif

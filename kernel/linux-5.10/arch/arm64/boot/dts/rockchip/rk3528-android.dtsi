@@ -6,7 +6,7 @@
 
 / {
 	chosen: chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff9f0000 console=ttyFIQ0 driver_async_probe=dwmmc_rockchip,rk_gmac-dwmac,rockchip-drm drm_kms_helper.fbdev_emulation=0";
+		bootargs = "earlycon=uart8250,mmio32,0xff9f0000 console=ttyFIQ0 driver_async_probe=dwmmc_rockchip,rockchip-drm drm_kms_helper.fbdev_emulation=0";
 	};
 
 	fiq-debugger {
@@ -95,5 +95,12 @@
 };
 
 &vop {
+	/*
+	 * VOP3_ESMART_8K_MODE = 0,
+	 * VOP3_ESMART_4K_4K_MODE = 1,
+	 * VOP3_ESMART_4K_2K_2K_MODE = 2,
+	 * VOP3_ESMART_2K_2K_2K_2K_MODE = 3,
+	 */
+	esmart_lb_mode = /bits/ 8 <3>;
 	support-multi-area;
 };

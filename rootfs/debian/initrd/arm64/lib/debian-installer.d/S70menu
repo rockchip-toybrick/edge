@@ -1,0 +1,34 @@
+bterm=/usr/bin/bterm
+font=/lib/unifont.bgf
+screen_bin=/usr/bin/screen
+
+if [ -x "$bterm" ] && [ -e "$font" ] && [ -n "$TERM_UTF8" ] && [ -n "$TERM_FRAMEBUFFER" ] && [ "$DEBIAN_FRONTEND" != gtk ]; then
+	TERM=bterm
+	export TERM
+	set +e
+	$bterm -f $font -l $LANG /lib/debian-installer/menu
+	EXIT=$?
+	set -e
+else
+	if [ -x "$screen_bin" -a \( "$TERM_TYPE" = network -o "$TERM_TYPE" = serial \) -a "$TERM" != dumb ]; then
+		# there's GNU/screen binary, run menu in it.
+		# call this script again with in GNU/screen, possibly in UTF-8 mode
+		SCREEN_OPT=""
+		[ -n "$TERM_UTF8" ] &&
+			SCREEN_OPT="$SCREEN_OPT -U"
+		set +e
+		if [ -d /var/run/screen/S-root -a -e /var/run/screen/S-root/* ]
+		then
+			$screen_bin $SCREEN_OPT -x -p 1	# If GNU/screen is already started, just resume it
+		else
+			$screen_bin $SCREEN_OPT sh -c 'printf "\033k%s\033\\" installer ; /lib/debian-installer/menu'
+		fi
+		EXIT=$?
+		set -e
+	else
+		set +e
+		/lib/debian-installer/menu
+		EXIT=$?
+		set -e
+	fi
+fi

@@ -107,6 +107,30 @@ bool rga_is_yuv420_packed_format(uint32_t format)
 	}
 }
 
+bool rga_is_yuv420_planar_format(uint32_t format)
+{
+	switch (format) {
+	case RGA_FORMAT_YCbCr_420_P:
+	case RGA_FORMAT_YCrCb_420_P:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool rga_is_yuv420_semi_planar_format(uint32_t format)
+{
+	switch (format) {
+	case RGA_FORMAT_YCbCr_420_SP:
+	case RGA_FORMAT_YCrCb_420_SP:
+	case RGA_FORMAT_YCbCr_420_SP_10B:
+	case RGA_FORMAT_YCrCb_420_SP_10B:
+		return true;
+	default:
+		return false;
+	}
+}
+
 bool rga_is_yuv422_packed_format(uint32_t format)
 {
 	switch (format) {
@@ -114,6 +138,30 @@ bool rga_is_yuv422_packed_format(uint32_t format)
 	case RGA_FORMAT_VYUY_422:
 	case RGA_FORMAT_YUYV_422:
 	case RGA_FORMAT_UYVY_422:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool rga_is_yuv422_planar_format(uint32_t format)
+{
+	switch (format) {
+	case RGA_FORMAT_YCbCr_422_P:
+	case RGA_FORMAT_YCrCb_422_P:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool rga_is_yuv422_semi_planar_format(uint32_t format)
+{
+	switch (format) {
+	case RGA_FORMAT_YCbCr_422_SP:
+	case RGA_FORMAT_YCrCb_422_SP:
+	case RGA_FORMAT_YCbCr_422_SP_10B:
+	case RGA_FORMAT_YCrCb_422_SP_10B:
 		return true;
 	default:
 		return false;
@@ -481,20 +529,49 @@ const char *rga_get_rotate_mode_str(uint8_t mode)
 	}
 }
 
-const char *rga_get_blend_mode_str(uint16_t alpha_rop_flag,
-				   uint16_t alpha_mode_0,
-				   uint16_t alpha_mode_1)
+const char *rga_get_blend_mode_str(enum rga_alpha_blend_mode mode)
 {
-	if (alpha_rop_flag == 0) {
+	switch (mode) {
+	case RGA_ALPHA_NONE:
 		return "no blend";
-	} else if (alpha_rop_flag == 0x9) {
-		if (alpha_mode_0 == 0x381A && alpha_mode_1 == 0x381A)
-			return "105 src + (1-src.a)*dst";
-		else if (alpha_mode_0 == 0x483A && alpha_mode_1 == 0x483A)
-			return "405 src.a * src + (1-src.a) * dst";
-		else
-			return "check reg for more imformation";
-	} else {
+
+	case RGA_ALPHA_BLEND_SRC:
+		return "src";
+
+	case RGA_ALPHA_BLEND_DST:
+		return "dst";
+
+	case RGA_ALPHA_BLEND_SRC_OVER:
+		return "src-over";
+
+	case RGA_ALPHA_BLEND_DST_OVER:
+		return "dst-over";
+
+	case RGA_ALPHA_BLEND_SRC_IN:
+		return "src-in";
+
+	case RGA_ALPHA_BLEND_DST_IN:
+		return "dst-in";
+
+	case RGA_ALPHA_BLEND_SRC_OUT:
+		return "src-out";
+
+	case RGA_ALPHA_BLEND_DST_OUT:
+		return "dst-out";
+
+	case RGA_ALPHA_BLEND_SRC_ATOP:
+		return "src-atop";
+
+	case RGA_ALPHA_BLEND_DST_ATOP:
+		return "dst-atop";
+
+	case RGA_ALPHA_BLEND_XOR:
+		return "xor";
+
+	case RGA_ALPHA_BLEND_CLEAR:
+		return "clear";
+
+	default:
 		return "check reg for more imformation";
 	}
 }

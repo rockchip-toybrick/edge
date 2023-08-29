@@ -1,0 +1,5 @@
+#!/bin/sh
+pid=/var/run/brltty.pid
+[ -r $pid ] && kill -0 `cat $pid` || exit 0
+[ -n "$(debconf-get tasksel/desktop)" ] || debconf-set-selections /usr/share/brltty-udeb/mate-preseed.cfg
+exit 0

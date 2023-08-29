@@ -1,0 +1,122 @@
+default partial xkb_compatibility "misc" {
+
+ virtual_modifiers Alt,Meta,Super,Hyper,ScrollLock;
+
+ 
+
+ interpret Terminate_Server {
+ action = Terminate();
+ };
+
+ setMods.clearLocks= True;
+
+ 
+
+ interpret Alt_L+Any {
+ 
+ virtualModifier= Alt;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Alt_L {
+ action = SetMods(modifiers=Alt);
+ };
+
+ interpret Alt_R+Any {
+ 
+ virtualModifier= Alt;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Alt_R {
+ action = SetMods(modifiers=Alt);
+ };
+
+ 
+
+ interpret Meta_L+Any {
+ 
+ virtualModifier= Meta;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Meta_L {
+ action = SetMods(modifiers=Meta);
+ };
+
+ interpret Meta_R+Any {
+ 
+ virtualModifier= Meta;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Meta_R {
+ action = SetMods(modifiers=Meta);
+ };
+
+ 
+
+ interpret Super_L+Any {
+ 
+ virtualModifier= Super;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Super_L {
+ action = SetMods(modifiers=Super);
+ };
+
+ interpret Super_R+Any {
+ 
+ virtualModifier= Super;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Super_R {
+ action = SetMods(modifiers=Super);
+ };
+
+ 
+
+ interpret Hyper_L+Any {
+ 
+ virtualModifier= Hyper;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Hyper_L {
+ action = SetMods(modifiers=Hyper);
+ };
+
+ interpret Hyper_R+Any {
+ 
+ virtualModifier= Hyper;
+ action = SetMods(modifiers=modMapMods);
+ };
+
+ interpret Hyper_R {
+ action = SetMods(modifiers=Hyper);
+ };
+
+ 
+ 
+ 
+ interpret Scroll_Lock+Any {
+ virtualModifier= ScrollLock;
+ action = LockMods(modifiers=modMapMods);
+ };
+
+ include "ledscroll"
+
+ include "misc(assign_shift_left_action)"
+};
+
+partial xkb_compatibility "assign_shift_left_action" {
+ 
+ 
+ 
+ 
+ interpret Shift_L {
+ action = SetMods(modifiers = Shift);
+ };
+};

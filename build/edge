@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+#encoding=utf-8
+__author__ = 'addy.ke@rock-chips.com'
+
+import traceback
+import os
+import sys
+import getopt
+
+sys.path.append('./build/python3')
+from utils import *
+from env import Env
+from build import Build
+from flash import Flash
+from sdcard import Sdcard
+
+def help():
+    text = 'Usage: %s {flash, sdcard, build, set, env}\n\n' % EDGE_NAME
+    text += 'Edge Compute SDK Build System Version: %s\n\n' % VERSION
+    text += 'Arguments:\n'
+    text += '  flash                    Flash images\n'
+    text += '  sdcard                   Falsh images to sd card\n'
+    text += '  build                    Build source code\n'
+    text += '  set                      Set build env\n'
+    text += '  env                      Show build env\n'
+    EDGE_DBG(text)
+
+root_path = os.getcwd()
+if len(sys.argv) <= 1:
+    help()
+    sys.exit(1)
+elif sys.argv[1] == 'flash':
+    flash = Flash(root_path)
+    ret = flash.flash(sys.argv[2:])
+elif sys.argv[1] == 'sdcard':
+    sdcard = Sdcard(root_path)
+    ret = sdcard.flash(sys.argv[2:])
+elif sys.argv[1] == 'build':
+    build = Build(root_path)
+    ret = build.build(sys.argv[2:])
+elif sys.argv[1] == 'set':
+    env = Env(root_path)
+    ret = env.set()
+elif sys.argv[1] == 'env':
+    env = Env(root_path)
+    ret = env.show()
+else:
+    help()
+    sys.exit(1)
+
+sys.exit(ret)

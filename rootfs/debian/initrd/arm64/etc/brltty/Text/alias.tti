@@ -1,0 +1,42 @@
+ifNotGlyph \s
+ ifCell 0
+ glyph \s 0
+ else
+ char \s 0
+ endIf
+endIf
+alias \xA0 \s 
+alias \u2002 \s 
+alias \u2003 \s 
+alias \u2004 \s 
+alias \u2005 \s 
+alias \u2006 \s 
+alias \u2007 \s 
+alias \u2008 \s 
+alias \u2009 \s 
+alias \u200A \s 
+alias \u202F \s 
+alias \u205F \s 
+ifGlyph -
+ alias \u2012 - 
+ alias \u2013 - 
+ alias \u2014 - 
+ alias \u2448 - 
+ alias \u301C - 
+ alias \u3030 - 
+ alias \uFE58 - 
+ alias \xAD - 
+ alias \u2010 - 
+ alias \u2011 - 
+ alias \u2052 - 
+ alias \u2212 - 
+ alias \uFE63 - 
+ alias \uFF0D - 
+ alias \u2015 - 
+endIf
+ifGlyph '
+ alias \u2018 ' 
+ alias \u2019 ' 
+endIf
+ifGlyph C alias \u2103 C 
+ifGlyph F alias \u2109 F 

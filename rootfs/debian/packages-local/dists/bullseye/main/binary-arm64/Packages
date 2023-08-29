@@ -1,0 +1,1174 @@
+Package: factory-test
+Version: 1.0.1-6
+Architecture: arm64
+Maintainer: Addy Ke <addy.ke@rock-chips.com>
+Installed-Size: 193203
+Depends: python
+Priority: optional
+Section: utils
+Filename: pool/main/f/factory-test/factory-test_1.0.1-6_arm64.deb
+Size: 121494840
+SHA256: 02f69b0ebd66462ee106e3bc828dca53a2708a00a1cf96ee2f2749a3b5418b4d
+SHA1: 9930c6da0b2c2ad726e03d9cd5b8d32b3413bc43
+MD5sum: 441fe303e016e4adb152f22dfb8fdd68
+Description: factory test package.
+
+Package: gir1.2-gst-plugins-bad-1.0
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 2058
+Depends: gir1.2-glib-2.0 (>= 0.9.12-4~), gir1.2-gst-plugins-base-1.0 (>= 1.18.0), gir1.2-gstreamer-1.0 (>= 1.18.0), libgstreamer-plugins-bad1.0-0 (>= 1.18.4)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: introspection
+Filename: pool/main/g/gst-plugins-bad1.0/gir1.2-gst-plugins-bad-1.0_1.18.4-5_arm64.deb
+Size: 1939220
+SHA256: fd49b49ae3033f1e108a5c008a187a774bc07b3a396a841171e93d1422b1db6f
+SHA1: b2dd3a053bd4b1f993280473bf8ef9e9f851f315
+MD5sum: 411569a700d22744eb592a8bd6f46e5a
+Description: GObject introspection data for the GStreamer libraries from the "bad" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains introspection data for the GStreamer libraries from
+ the "bad" set. It can be used by packages using the GIRepository format to
+ generate dynamic bindings.
+
+Package: gir1.2-gst-plugins-base-1.0
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1738
+Depends: gir1.2-glib-2.0 (>= 0.9.12-4~), gir1.2-gstreamer-1.0 (>= 1.18.0), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-base1.0-0 (>= 1.18.0)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: introspection
+Filename: pool/main/g/gst-plugins-base1.0/gir1.2-gst-plugins-base-1.0_1.18.4-3_arm64.deb
+Size: 1435628
+SHA256: cc0e14118674b3df7e168f91dee2e45ad865e01a86895d8a14f66abca4f329d9
+SHA1: b1f66a1faf747fdaeb2acce611de520ec967c82e
+MD5sum: e81aed54aa848e73ad3acdd2686ed6af
+Description: GObject introspection data for the GStreamer Plugins Base library
+ This package contains introspection data for the GStreamer Plugins Base library.
+ .
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ It can be used by packages using the GIRepository format to generate
+ dynamic bindings.
+
+Package: gstreamer1.0-alsa
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1460
+Depends: libasound2 (>= 1.0.27), libc6 (>= 2.17), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0)
+Suggests: alsa-utils (>= 0.9.0)
+Provides: gstreamer1.0-audiosink, gstreamer1.0-audiosource
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-alsa_1.18.4-3_arm64.deb
+Size: 1380072
+SHA256: ecc1eaa7003479035b19d31031ea04a0c94f26420bf6224308bef7cdb939bc3d
+SHA1: e32d0be865f8587411a306aab831175e09ef4536
+MD5sum: 66386f7bbfcdc18d135c29452cdc8bdd
+Description: GStreamer plugin for ALSA
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugin for the ALSA library.  ALSA
+ is the Advanced Linux Sound Architecture.
+Gstreamer-Elements: alsamidisrc, alsasink, alsasrc
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-alsa-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 122
+Depends: gstreamer1.0-alsa (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-alsa-dbgsym_1.18.4-3_arm64.deb
+Size: 93920
+SHA256: 91e142395bd4269216ccfadddb7f1cad3162059c97a0befa6d33a8214288c849
+SHA1: 62354043fa28b37dccbee5d9cb4759072107b8af
+MD5sum: b92968124f7ad94c9090299dce6a477e
+Description: debug symbols for gstreamer1.0-alsa
+Build-Ids: 80c0bbaaac8a63d74c172deb511e66ce619f3f90
+Gstreamer-Elements: alsamidisrc, alsasink, alsasrc
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-gl
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1683
+Depends: libc6 (>= 2.27), libglib2.0-0 (>= 2.44), libgraphene-1.0-0 (>= 1.5.4), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libjpeg62-turbo (>= 1.3.1), libpng16-16 (>= 1.6.2-1), libx11-6
+Breaks: gstreamer1.0-plugins-bad (<< 1.15.1)
+Replaces: gstreamer1.0-plugins-bad (<< 1.15.1)
+Provides: gstreamer1.0-videosink, gstreamer1.0-videosource
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-gl_1.18.4-3_arm64.deb
+Size: 1447404
+SHA256: e5c5c5a97d7c006aca61ae50a9554083b362a07849345b06efd6a2a05ac086d1
+SHA1: 20d48e80389a5f4199ac3a53a55de5c8a5e455a1
+MD5sum: 14f744026bb63e60928aa3506f7269ae
+Description: GStreamer plugins for GL
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugins for GL.
+Gstreamer-Elements: glalpha, glcolorbalance, glcolorconvert, glcolorscale, gldeinterlace, gldifferencematte, gldownload, gleffects, gleffects_blur, gleffects_bulge, gleffects_fisheye, gleffects_glow, gleffects_heat, gleffects_identity, gleffects_laplacian, gleffects_lumaxpro, gleffects_mirror, gleffects_sepia, gleffects_sin, gleffects_sobel, gleffects_square, gleffects_squeeze, gleffects_stretch, gleffects_tunnel, gleffects_twirl, gleffects_xpro, gleffects_xray, glfilterapp, glfilterbin, glfiltercube, glfilterglass, glimagesink, glimagesinkelement, glmixerbin, glmosaic, gloverlay, gloverlaycompositor, glshader, glsinkbin, glsrcbin, glstereomix, glstereosplit, gltestsrc, gltransformation, glupload, glvideoflip, glvideomixer, glvideomixerelement, glviewconvert
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-gl-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 399
+Depends: gstreamer1.0-gl (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-gl-dbgsym_1.18.4-3_arm64.deb
+Size: 327060
+SHA256: f4f81f033f2c2a0de88fb3543895aebb6207982496300b292de83abe722fce0b
+SHA1: 01fe60c61a074e91f8488b71119dc9e5a79cecb3
+MD5sum: 954f567a0b5b3f50b5cad1d69576327c
+Description: debug symbols for gstreamer1.0-gl
+Build-Ids: 623c464f348375a2a4e6c54a058d1441ebebcaf8
+Gstreamer-Elements: glalpha, glcolorbalance, glcolorconvert, glcolorscale, gldeinterlace, gldifferencematte, gldownload, gleffects, gleffects_blur, gleffects_bulge, gleffects_fisheye, gleffects_glow, gleffects_heat, gleffects_identity, gleffects_laplacian, gleffects_lumaxpro, gleffects_mirror, gleffects_sepia, gleffects_sin, gleffects_sobel, gleffects_square, gleffects_squeeze, gleffects_stretch, gleffects_tunnel, gleffects_twirl, gleffects_xpro, gleffects_xray, glfilterapp, glfilterbin, glfiltercube, glfilterglass, glimagesink, glimagesinkelement, glmixerbin, glmosaic, gloverlay, gloverlaycompositor, glshader, glsinkbin, glsrcbin, glstereomix, glstereosplit, gltestsrc, gltransformation, glupload, glvideoflip, glvideomixer, glvideomixerelement, glviewconvert
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-gtk3
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 1430
+Depends: libc6 (>= 2.17), libcairo2 (>= 1.10.0), libglib2.0-0 (>= 2.44), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libgtk-3-0 (>= 3.16.2)
+Breaks: gstreamer1.0-plugins-bad (<< 1.13.1)
+Replaces: gstreamer1.0-plugins-bad (<< 1.13.1)
+Provides: gstreamer1.0-videosink
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: graphics
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-gtk3_1.18.4-3_arm64.deb
+Size: 1375124
+SHA256: 0920dbda6c360ace84477c0b26b53361cbb82eb468f61130f093a4ba0957fcc4
+SHA1: ae75e8645a57c4f6fc17032033acda2a0f806671
+MD5sum: e51c40c1443aa61f57792ba1bc22f857
+Description: GStreamer plugin for GTK+3
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugin for GTK+3.
+Gstreamer-Elements: gtkglsink, gtksink
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-gtk3-dbgsym
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 99
+Depends: gstreamer1.0-gtk3 (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-gtk3-dbgsym_1.18.4-3_arm64.deb
+Size: 76148
+SHA256: 4883788cb13213c780f58cf670c52171112ad1c51d4ce0c2ee31461724b49b4b
+SHA1: 03f8206442e796e5c8d3a9d193771cb40407bbff
+MD5sum: 4701123b65e3a5ffa59bb6d955bf8054
+Description: debug symbols for gstreamer1.0-gtk3
+Build-Ids: 94a7d3b61840d872e0a107041fdd5c835621485e
+Gstreamer-Elements: gtkglsink, gtksink
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-libav
+Source: gst-libav1.0
+Version: 1.18.4-4
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-libav1.0@packages.debian.org>
+Installed-Size: 357
+Depends: libavcodec58 (>= 7:4.2), libavfilter7 (>= 7:4.0), libavformat58 (>= 7:4.2), libavutil56 (>= 7:4.0), libc6 (>= 2.17), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-libav1.0/gstreamer1.0-libav_1.18.4-4_arm64.deb
+Size: 201204
+SHA256: eb52dff2178bf9054dba9deab4606f78885f2ceca8312a154c9a8673ae7f8c75
+SHA1: 90451d5613bec824b8e2d52fecbe5d52945a49fb
+MD5sum: d615913ad2a71c2374f5dec50d222d6b
+Description: ffmpeg plugin for GStreamer
+ This GStreamer plugin supports a large number of audio and video compression
+ formats through the use of the ffmpeg library.  The plugin contains GStreamer
+ elements for encoding 40+ formats (MPEG, DivX, MPEG4, AC3, DV, ...), decoding
+ elements for decoding 90+ formats (AVI, MPEG, OGG, Matroska, ASF, ...),
+ demuxing 30+ formats and colorspace conversion.
+ .
+ http://www.ffmpeg.org/
+ http://gstreamer.freedesktop.org/
+ http://gstreamer.freedesktop.org/modules/gst-libav.html
+Gstreamer-Decoders: application/gxf; application/mxf; application/x-ape; application/x-gst-av-avs; application/x-gst-av-daud; application/x-gst-av-dsf; application/x-gst-av-ea; application/x-gst-av-film_cpk; application/x-gst-av-idcin; application/x-gst-av-iff; application/x-gst-av-ipmovie; application/x-gst-av-mm; application/x-gst-av-mmf; application/x-gst-av-nut; application/x-gst-av-nuv; application/x-gst-av-psxstr; application/x-gst-av-smk; application/x-gst-av-sol; application/x-gst-av-vmd; application/x-gst-av-wc3movie; application/x-gst-av-wsaud; application/x-gst-av-wsvqa; application/x-yuv4mpeg, y4mversion=(int)2; audio/AMR; audio/AMR-WB; audio/G729; audio/aptx; audio/aptx-hd; audio/mpeg, mpegversion=(int)1, layer=(int)[ 1, 3 ]; audio/mpeg, mpegversion=(int)4, stream-format=(string)loas; audio/mpeg, mpegversion=(int){ 2, 4 }, stream-format=(string){ raw, adts, adif }; audio/ms-gsm; audio/qcelp; audio/x-aiff; audio/x-alac; audio/x-bfstm; audio/x-brstm; audio/x-dpcm, layout=(string){ xan, sol, roq, interplay }; audio/x-dsd, lsbf=(boolean){ false, true }, planar=(boolean){ false, true }; audio/x-dv; audio/x-ffmpeg-parsed-ape; audio/x-ffmpeg-parsed-musepack, streamversion=(int){ 8, 7 }; audio/x-flac; audio/x-gsm; audio/x-gst-av-mp3adufloat; audio/x-gst-av-mp3on4float; audio/x-gst-av-vmdaudio; audio/x-gst-av-ws_snd1; audio/x-imc; audio/x-mace, maceversion=(int){ 6, 3 }; audio/x-mlp; audio/x-musepack, streamversion=(int){ 8, 7 }; audio/x-nellymoser; audio/x-opus, channel-mapping-family=(int)0; audio/x-pn-realaudio, raversion=(int){ 2, 1, 8 }; audio/x-qdm2; audio/x-shorten; audio/x-sipro; audio/x-smpte-302m; audio/x-truespeech; audio/x-tta; audio/x-ttafile; audio/x-twin-vq; audio/x-vnd.sony.atrac1; audio/x-vnd.sony.atrac3; audio/x-voc; audio/x-voxware; audio/x-wma, wmaversion=(int){ 2, 1, 3, 4 }; audio/x-wms; image/bmp; image/gif; image/gst-libav-gif, parsed=(boolean)true; image/jp2; image/jpeg, parsed=(boolean)true; image/pbm; image/png; image/ppm; image/tiff; image/x-j2c; image/x-jpc; image/x-pcx; image/x-portable-anymap; image/x-portable-graymap; image/x-sgi; image/x-sun-raster; image/x-tga; unknown/unknown; video/mpeg, mpegversion=(int)[ 1, 2 ], systemstream=(boolean)false; video/sp5x; video/x-4xm; video/x-aasc; video/x-amv; video/x-apple-intermediate-codec; video/x-apple-video; video/x-asus, asusversion=(int){ 2, 1 }; video/x-ati-vcr, vcrversion=(int)1; video/x-camstudio; video/x-camtasia; video/x-cavs; video/x-cineform; video/x-cinepak; video/x-cirrus-logic-accupak; video/x-compressed-yuv; video/x-dnxhd; video/x-dv, systemstream=(boolean)false; video/x-ffv, ffvversion=(int)1; video/x-flash-screen; video/x-flash-screen2; video/x-flash-video, flvversion=(int)1; video/x-fraps; video/x-gst-av-8bps; video/x-gst-av-avs; video/x-gst-av-ffvhuff; video/x-gst-av-flic; video/x-gst-av-idcinvideo; video/x-gst-av-interplayvideo; video/x-gst-av-mdec; video/x-gst-av-mmvideo; video/x-gst-av-pgmyuv; video/x-gst-av-qpeg; video/x-gst-av-roqvideo; video/x-gst-av-vmdvideo; video/x-gst-av-vqavideo; video/x-gst-av-wnv1; video/x-gst-av-xl; video/x-h261; video/x-h263, variant=(string)itu; video/x-h264, alignment=(string)au, stream-format=(string){ avc, byte-stream }; video/x-h265, alignment=(string)au, stream-format=(string){ hvc1, hev1, byte-stream }; video/x-huffyuv; video/x-indeo, indeoversion=(int){ 5, 4, 3, 2 }; video/x-intel-h263, variant=(string)intel; video/x-ivf; video/x-kmvc; video/x-lagarith; video/x-loco; video/x-mimic; video/x-mjpeg-b; video/x-msvideocodec, msvideoversion=(int)1; video/x-mszh; video/x-nsv; video/x-nuv; video/x-pn-realvideo, rmversion=(int){ 4, 3, 2, 1 }; video/x-prores; video/x-pva; video/x-qdrw; video/x-rle, layout=(string){ quicktime, microsoft }; video/x-smc; video/x-speedhq; video/x-truemotion, trueversion=(int){ 2, 1 }; video/x-tscc, tsccversion=(int)2; video/x-ultimotion; video/x-vmnc; video/x-vp3; video/x-vp5; video/x-vp6; video/x-vp6-alpha; video/x-vp8; video/x-vp9; video/x-wmv, wmvversion=(int)3, format=(string){ WMV3, WVC1, WMVA, MSS2 }; video/x-wmv, wmvversion=(int){ 2, 1 }; video/x-xan, wcversion=(int){ 4, 3 }; video/x-zmbv
+Gstreamer-Elements: avdec_4xm, avdec_8bps, avdec_8svx_exp, avdec_8svx_fib, avdec_aac, avdec_aac_fixed, avdec_aac_latm, avdec_aasc, avdec_ac3, avdec_ac3_fixed, avdec_acelp_kelvin, avdec_adpcm_4xm, avdec_adpcm_adx, avdec_adpcm_afc, avdec_adpcm_agm, avdec_adpcm_aica, avdec_adpcm_argo, avdec_adpcm_ct, avdec_adpcm_dtk, avdec_adpcm_ea, avdec_adpcm_ea_maxis_xa, avdec_adpcm_ea_r1, avdec_adpcm_ea_r2, avdec_adpcm_ea_r3, avdec_adpcm_ea_xas, avdec_adpcm_ima_alp, avdec_adpcm_ima_amv, avdec_adpcm_ima_apc, avdec_adpcm_ima_apm, avdec_adpcm_ima_cunning, avdec_adpcm_ima_dat4, avdec_adpcm_ima_dk3, avdec_adpcm_ima_dk4, avdec_adpcm_ima_ea_eacs, avdec_adpcm_ima_ea_sead, avdec_adpcm_ima_iss, avdec_adpcm_ima_mtf, avdec_adpcm_ima_oki, avdec_adpcm_ima_qt, avdec_adpcm_ima_rad, avdec_adpcm_ima_smjpeg, avdec_adpcm_ima_ssi, avdec_adpcm_ima_wav, avdec_adpcm_ima_ws, avdec_adpcm_ms, avdec_adpcm_mtaf, avdec_adpcm_psx, avdec_adpcm_sbpro_2, avdec_adpcm_sbpro_3, avdec_adpcm_sbpro_4, avdec_adpcm_swf, avdec_adpcm_thp, avdec_adpcm_thp_le, avdec_adpcm_vima, avdec_adpcm_xa, avdec_adpcm_yamaha, avdec_adpcm_zork, avdec_agm, avdec_aic, avdec_alac, avdec_alias_pix, avdec_als, avdec_amrnb, avdec_amrwb, avdec_amv, avdec_anm, avdec_ansi, avdec_ape, avdec_apng, avdec_aptx, avdec_aptx_hd, avdec_arbc, avdec_asv1, avdec_asv2, avdec_atrac1, avdec_atrac3, avdec_atrac3al, avdec_atrac3plus, avdec_atrac3plusal, avdec_atrac9, avdec_aura, avdec_aura2, avdec_avrn, avdec_avrp, avdec_avs, avdec_avui, avdec_bethsoftvid, avdec_bfi, avdec_binkaudio_dct, avdec_binkaudio_rdft, avdec_binkvideo, avdec_bintext, avdec_bitpacked, avdec_bmp, avdec_bmv_audio, avdec_bmv_video, avdec_brender_pix, avdec_c93, avdec_camstudio, avdec_camtasia, avdec_cavs, avdec_cdtoons, avdec_cdxl, avdec_cfhd, avdec_cinepak, avdec_clearvideo, avdec_cljr, avdec_cllc, avdec_comfortnoise, avdec_cook, avdec_cpia, avdec_cyuv, avdec_dca, avdec_dds, avdec_derf_dpcm, avdec_dfa, avdec_dirac, avdec_dnxhd, avdec_dolby_e, avdec_dpx, avdec_dsd_lsbf, avdec_dsd_lsbf_planar, avdec_dsd_msbf, avdec_dsd_msbf_planar, avdec_dsicinaudio, avdec_dsicinvideo, avdec_dss_sp, avdec_dst, avdec_dvaudio, avdec_dvvideo, avdec_dxa, avdec_dxtory, avdec_dxv, avdec_eac3, avdec_eacmv, avdec_eamad, avdec_eatgq, avdec_eatgv, avdec_eatqi, avdec_escape124, avdec_escape130, avdec_evrc, avdec_exr, avdec_ffv1, avdec_ffvhuff, avdec_fic, avdec_fits, avdec_flac, avdec_flashsv, avdec_flashsv2, avdec_flic, avdec_flv, avdec_fmvc, avdec_fraps, avdec_frwu, avdec_g2m, avdec_g722, avdec_g723_1, avdec_g726, avdec_g726le, avdec_g729, avdec_gdv, avdec_gif, avdec_gremlin_dpcm, avdec_gsm, avdec_gsm_ms, avdec_h261, avdec_h263, avdec_h263i, avdec_h263p, avdec_h264, avdec_h265, avdec_hap, avdec_hca, avdec_hcom, avdec_hnm4video, avdec_hq_hqa, avdec_hqx, avdec_huffyuv, avdec_hymt, avdec_iac, avdec_idcinvideo, avdec_idf, avdec_iff, avdec_ilbc, avdec_imc, avdec_imm4, avdec_imm5, avdec_indeo2, avdec_indeo3, avdec_indeo4, avdec_indeo5, avdec_interplay_dpcm, avdec_interplayacm, avdec_interplayvideo, avdec_jpeg2000, avdec_jpegls, avdec_jv, avdec_kgv1, avdec_kmvc, avdec_lagarith, avdec_loco, avdec_lscr, avdec_m101, avdec_mace3, avdec_mace6, avdec_magicyuv, avdec_mdec, avdec_metasound, avdec_mimic, avdec_mjpeg, avdec_mjpegb, avdec_mlp, avdec_mmvideo, avdec_motionpixels, avdec_mp1float, avdec_mp2float, avdec_mp3, avdec_mp3adu, avdec_mp3adufloat, avdec_mp3float, avdec_mp3on4, avdec_mp3on4float, avdec_mpc7, avdec_mpc8, avdec_mpeg2video, avdec_mpeg4, avdec_mpegvideo, avdec_msa1, avdec_mscc, avdec_msmpeg4, avdec_msmpeg4v1, avdec_msmpeg4v2, avdec_msrle, avdec_mss1, avdec_mss2, avdec_msvideo1, avdec_mszh, avdec_mts2, avdec_mv30, avdec_mvc1, avdec_mvc2, avdec_mvdv, avdec_mvha, avdec_mwsc, avdec_mxpeg, avdec_nellymoser, avdec_notchlc, avdec_nuv, avdec_on2avc, avdec_opus, avdec_paf_audio, avdec_paf_video, avdec_pam, avdec_pbm, avdec_pcm_lxf, avdec_pcm_vidc, avdec_pcx, avdec_pfm, avdec_pgm, avdec_pgmyuv, avdec_pictor, avdec_pixlet, avdec_png, avdec_ppm, avdec_prores, avdec_prosumer, avdec_psd, avdec_ptx, avdec_qcelp, avdec_qdm2, avdec_qdmc, avdec_qdraw, avdec_qpeg, avdec_qtrle, avdec_r10k, avdec_ralf, avdec_rasc, avdec_real_144, avdec_real_288, avdec_rl2, avdec_roq_dpcm, avdec_roqvideo, avdec_rpza, avdec_rscc, avdec_rv10, avdec_rv20, avdec_rv30, avdec_rv40, avdec_s302m, avdec_sanm, avdec_sbc, avdec_scpr, avdec_screenpresso, avdec_sdx2_dpcm, avdec_sgi, avdec_sgirle, avdec_sheervideo, avdec_shorten, avdec_sipr, avdec_siren, avdec_smackaud, avdec_smackvid, avdec_smc, avdec_smvjpeg, avdec_snow, avdec_sol_dpcm, avdec_sonic, avdec_sp5x, avdec_speedhq, avdec_srgc, avdec_sunrast, avdec_svq1, avdec_svq3, avdec_tak, avdec_targa, avdec_targa_y216, avdec_tdsc, avdec_thp, avdec_tiertexseqvideo, avdec_tiff, avdec_tmv, avdec_truehd, avdec_truemotion1, avdec_truemotion2, avdec_truemotion2rt, avdec_truespeech, avdec_tscc2, avdec_tta, avdec_twinvq, avdec_txd, avdec_ultimotion, avdec_utvideo, avdec_vb, avdec_vble, avdec_vc1, avdec_vc1image, avdec_vcr1, avdec_vmdaudio, avdec_vmdvideo, avdec_vmnc, avdec_vp3, avdec_vp4, avdec_vp5, avdec_vp6, avdec_vp6a, avdec_vp6f, avdec_vp7, avdec_vp8, avdec_vp9, avdec_vqavideo, avdec_wavesynth, avdec_wcmv, avdec_webp, avdec_wmalossless, avdec_wmapro, avdec_wmav1, avdec_wmav2, avdec_wmavoice, avdec_wmv1, avdec_wmv2, avdec_wmv3, avdec_wmv3image, avdec_wnv1, avdec_ws_snd1, avdec_xan_dpcm, avdec_xan_wc3, avdec_xan_wc4, avdec_xbin, avdec_xbm, avdec_xface, avdec_xl, avdec_xma1, avdec_xma2, avdec_xpm, avdec_xwd, avdec_ylc, avdec_yop, avdec_zerocodec, avdec_zmbv, avdeinterlace, avdemux_4xm, avdemux_aiff, avdemux_ape, avdemux_avs, avdemux_bfstm, avdemux_brstm, avdemux_daud, avdemux_dsf, avdemux_ea, avdemux_film_cpk, avdemux_gif, avdemux_gxf, avdemux_idcin, avdemux_iff, avdemux_ipmovie, avdemux_ivf, avdemux_mm, avdemux_mmf, avdemux_mpc, avdemux_mpc8, avdemux_mxf, avdemux_nsv, avdemux_nut, avdemux_nuv, avdemux_psxstr, avdemux_pva, avdemux_smk, avdemux_sol, avdemux_tta, avdemux_vmd, avdemux_voc, avdemux_wc3movie, avdemux_wsaud, avdemux_wsvqa, avdemux_yuv4mpegpipe, avenc_a64multi, avenc_a64multi5, avenc_aac, avenc_ac3, avenc_ac3_fixed, avenc_adpcm_adx, avenc_adpcm_ima_qt, avenc_adpcm_ima_ssi, avenc_adpcm_ima_wav, avenc_adpcm_ms, avenc_adpcm_swf, avenc_adpcm_yamaha, avenc_alac, avenc_alias_pix, avenc_amv, avenc_apng, avenc_aptx, avenc_aptx_hd, avenc_asv1, avenc_asv2, avenc_avrp, avenc_avui, avenc_bmp, avenc_cinepak, avenc_cljr, avenc_comfortnoise, avenc_dca, avenc_dnxhd, avenc_dpx, avenc_dvvideo, avenc_eac3, avenc_ffv1, avenc_ffvhuff, avenc_fits, avenc_flashsv, avenc_flashsv2, avenc_flv, avenc_g722, avenc_g723_1, avenc_g726, avenc_g726le, avenc_h261, avenc_h263, avenc_h263p, avenc_h264_omx, avenc_hap, avenc_huffyuv, avenc_jpeg2000, avenc_jpegls, avenc_ljpeg, avenc_magicyuv, avenc_mjpeg, avenc_mlp, avenc_mp2, avenc_mp2fixed, avenc_mpeg1video, avenc_mpeg2video, avenc_mpeg4, avenc_mpeg4_omx, avenc_msmpeg4, avenc_msmpeg4v2, avenc_msvideo1, avenc_nellymoser, avenc_opus, avenc_pam, avenc_pbm, avenc_pcm_vidc, avenc_pcx, avenc_pgm, avenc_pgmyuv, avenc_png, avenc_ppm, avenc_prores, avenc_prores_aw, avenc_prores_ks, avenc_qtrle, avenc_r10k, avenc_real_144, avenc_roq_dpcm, avenc_roqvideo, avenc_rv10, avenc_rv20, avenc_s302m, avenc_sbc, avenc_sgi, avenc_snow, avenc_sonic, avenc_sonicls, avenc_sunrast, avenc_svq1, avenc_targa, avenc_tiff, avenc_truehd, avenc_tta, avenc_utvideo, avenc_vc2, avenc_wavpack, avenc_wmav1, avenc_wmav2, avenc_wmv1, avenc_wmv2, avenc_xbm, avenc_xface, avenc_xwd, avenc_zmbv, avmux_3g2, avmux_3gp, avmux_a64, avmux_adts, avmux_adx, avmux_aiff, avmux_amr, avmux_apng, avmux_asf, avmux_asf_stream, avmux_ast, avmux_au, avmux_avi, avmux_avm2, avmux_bit, avmux_caf, avmux_codec2, avmux_dash, avmux_daud, avmux_dv, avmux_dvd, avmux_f4v, avmux_film_cpk, avmux_filmstrip, avmux_fits, avmux_flv, avmux_gxf, avmux_hash, avmux_hds, avmux_hls, avmux_ico, avmux_ilbc, avmux_ipod, avmux_ircam, avmux_ismv, avmux_ivf, avmux_kvag, avmux_latm, avmux_matroska, avmux_md5, avmux_mkvtimestamp_v2, avmux_mmf, avmux_mov, avmux_mp2, avmux_mp3, avmux_mp4, avmux_mpeg, avmux_mpegts, avmux_mpjpeg, avmux_mxf, avmux_mxf_d10, avmux_mxf_opatom, avmux_nut, avmux_oga, avmux_ogg, avmux_ogv, avmux_oma, avmux_opus, avmux_psp, avmux_rm, avmux_rso, avmux_rtsp, avmux_sap, avmux_singlejpeg, avmux_smjpeg, avmux_smoothstreaming, avmux_sox, avmux_spdif, avmux_spx, avmux_streamhash, avmux_svcd, avmux_swf, avmux_tta, avmux_uncodedframecrc, avmux_vc1test, avmux_vcd, avmux_vidc, avmux_vob, avmux_voc, avmux_w64, avmux_wav, avmux_webp, avmux_wtv, avmux_yuv4mpegpipe
+Gstreamer-Encoders: application/gxf; application/mxf; application/ogg; application/x-gst-av-a64; application/x-gst-av-adts; application/x-gst-av-adx; application/x-gst-av-apng; application/x-gst-av-asf_stream; application/x-gst-av-ast; application/x-gst-av-avm2; application/x-gst-av-bit; application/x-gst-av-caf; application/x-gst-av-codec2; application/x-gst-av-dash; application/x-gst-av-daud; application/x-gst-av-dvd; application/x-gst-av-f4v; application/x-gst-av-film_cpk; application/x-gst-av-filmstrip; application/x-gst-av-fits; application/x-gst-av-hash; application/x-gst-av-hds; application/x-gst-av-hls; application/x-gst-av-ico; application/x-gst-av-ilbc; application/x-gst-av-ircam; application/x-gst-av-ismv; application/x-gst-av-kvag; application/x-gst-av-latm; application/x-gst-av-md5; application/x-gst-av-mkvtimestamp_v2; application/x-gst-av-mmf; application/x-gst-av-mpjpeg; application/x-gst-av-mxf_opatom; application/x-gst-av-nut; application/x-gst-av-oga; application/x-gst-av-ogv; application/x-gst-av-oma; application/x-gst-av-opus; application/x-gst-av-rso; application/x-gst-av-rtsp; application/x-gst-av-sap; application/x-gst-av-singlejpeg; application/x-gst-av-smjpeg; application/x-gst-av-smoothstreaming; application/x-gst-av-sox; application/x-gst-av-spdif; application/x-gst-av-spx; application/x-gst-av-streamhash; application/x-gst-av-svcd; application/x-gst-av-uncodedframecrc; application/x-gst-av-vc1test; application/x-gst-av-vcd; application/x-gst-av-vidc; application/x-gst-av-vob; application/x-gst-av-w64; application/x-gst-av-webp; application/x-gst-av-wtv; application/x-pn-realmedia, systemstream=(boolean)true; application/x-shockwave-flash; application/x-yuv4mpeg, y4mversion=(int)2; audio/aptx; audio/aptx-hd; audio/mpeg, mpegversion=(int)1, layer=(int)2; audio/mpeg, mpegversion=(int)4, base-profile=(string)lc; audio/x-aiff; audio/x-alac; audio/x-amr-nb-sh; audio/x-au; audio/x-dpcm, layout=(string)roq; audio/x-mlp; audio/x-nellymoser; audio/x-pn-realaudio, raversion=(int)1; audio/x-smpte-302m; audio/x-tta; audio/x-ttafile; audio/x-voc; audio/x-wav; audio/x-wma, wmaversion=(int){ 2, 1 }; image/bmp; image/jpeg, parsed=(boolean)true; image/pbm; image/png; image/ppm; image/tiff; image/x-j2c; image/x-pcx; image/x-portable-anymap; image/x-portable-graymap; image/x-sgi; image/x-sun-raster; image/x-tga; unknown/unknown; video/mpeg, mpegversion=(int){ 2, 1 }, systemstream=(boolean)false; video/mpeg, systemstream=(boolean)true; video/mpegts, systemstream=(boolean)true; video/quicktime, variant=(string){ 3gpp, 3g2, psp, iso, apple, ipod }; video/x-amv; video/x-asus, asusversion=(int){ 2, 1 }; video/x-cinepak; video/x-cirrus-logic-accupak; video/x-dnxhd; video/x-dv, systemstream=(boolean){ true, false }; video/x-ffv, ffvversion=(int)1; video/x-flash-screen; video/x-flash-screen2; video/x-flash-video, flvversion=(int)1; video/x-flv; video/x-gst-av-ffvhuff; video/x-gst-av-pgmyuv; video/x-gst-av-roqvideo; video/x-h261; video/x-h263, variant=(string)itu, h263version=(string){ h263p, h263 }; video/x-h264, alignment=(string)au; video/x-huffyuv; video/x-ivf; video/x-matroska; video/x-ms-asf; video/x-msvideo; video/x-msvideocodec, msvideoversion=(int)1; video/x-pn-realvideo, rmversion=(int){ 2, 1 }; video/x-prores; video/x-rle, layout=(string)quicktime; video/x-wmv, wmvversion=(int){ 2, 1 }; video/x-zmbv
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-libav-dbgsym
+Source: gst-libav1.0
+Version: 1.18.4-4
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-libav1.0@packages.debian.org>
+Installed-Size: 285
+Depends: gstreamer1.0-libav (= 1.18.4-4)
+Breaks: gstreamer1.0-libav-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-libav-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-libav1.0/gstreamer1.0-libav-dbgsym_1.18.4-4_arm64.deb
+Size: 246508
+SHA256: d0b925fa13d7dbf2b5ed86a3edc443b899358e15465ee02bfe2855ace7da9110
+SHA1: 39b3fd2118bccf9c311c1c9db67c38e996977a96
+MD5sum: cb9e9baff24d4df7c99152178ff00488
+Description: debug symbols for gstreamer1.0-libav
+Build-Ids: d1b1bb6bfee18bdd61f6263532ee34bfde1e9127
+Gstreamer-Decoders: application/gxf; application/mxf; application/x-ape; application/x-gst-av-avs; application/x-gst-av-daud; application/x-gst-av-dsf; application/x-gst-av-ea; application/x-gst-av-film_cpk; application/x-gst-av-idcin; application/x-gst-av-iff; application/x-gst-av-ipmovie; application/x-gst-av-mm; application/x-gst-av-mmf; application/x-gst-av-nut; application/x-gst-av-nuv; application/x-gst-av-psxstr; application/x-gst-av-smk; application/x-gst-av-sol; application/x-gst-av-vmd; application/x-gst-av-wc3movie; application/x-gst-av-wsaud; application/x-gst-av-wsvqa; application/x-yuv4mpeg, y4mversion=(int)2; audio/AMR; audio/AMR-WB; audio/G729; audio/aptx; audio/aptx-hd; audio/mpeg, mpegversion=(int)1, layer=(int)[ 1, 3 ]; audio/mpeg, mpegversion=(int)4, stream-format=(string)loas; audio/mpeg, mpegversion=(int){ 2, 4 }, stream-format=(string){ raw, adts, adif }; audio/ms-gsm; audio/qcelp; audio/x-aiff; audio/x-alac; audio/x-bfstm; audio/x-brstm; audio/x-dpcm, layout=(string){ xan, sol, roq, interplay }; audio/x-dsd, lsbf=(boolean){ false, true }, planar=(boolean){ false, true }; audio/x-dv; audio/x-ffmpeg-parsed-ape; audio/x-ffmpeg-parsed-musepack, streamversion=(int){ 8, 7 }; audio/x-flac; audio/x-gsm; audio/x-gst-av-mp3adufloat; audio/x-gst-av-mp3on4float; audio/x-gst-av-vmdaudio; audio/x-gst-av-ws_snd1; audio/x-imc; audio/x-mace, maceversion=(int){ 6, 3 }; audio/x-mlp; audio/x-musepack, streamversion=(int){ 8, 7 }; audio/x-nellymoser; audio/x-opus, channel-mapping-family=(int)0; audio/x-pn-realaudio, raversion=(int){ 2, 1, 8 }; audio/x-qdm2; audio/x-shorten; audio/x-sipro; audio/x-smpte-302m; audio/x-truespeech; audio/x-tta; audio/x-ttafile; audio/x-twin-vq; audio/x-vnd.sony.atrac1; audio/x-vnd.sony.atrac3; audio/x-voc; audio/x-voxware; audio/x-wma, wmaversion=(int){ 2, 1, 3, 4 }; audio/x-wms; image/bmp; image/gif; image/gst-libav-gif, parsed=(boolean)true; image/jp2; image/jpeg, parsed=(boolean)true; image/pbm; image/png; image/ppm; image/tiff; image/x-j2c; image/x-jpc; image/x-pcx; image/x-portable-anymap; image/x-portable-graymap; image/x-sgi; image/x-sun-raster; image/x-tga; unknown/unknown; video/mpeg, mpegversion=(int)[ 1, 2 ], systemstream=(boolean)false; video/sp5x; video/x-4xm; video/x-aasc; video/x-amv; video/x-apple-intermediate-codec; video/x-apple-video; video/x-asus, asusversion=(int){ 2, 1 }; video/x-ati-vcr, vcrversion=(int)1; video/x-camstudio; video/x-camtasia; video/x-cavs; video/x-cineform; video/x-cinepak; video/x-cirrus-logic-accupak; video/x-compressed-yuv; video/x-dnxhd; video/x-dv, systemstream=(boolean)false; video/x-ffv, ffvversion=(int)1; video/x-flash-screen; video/x-flash-screen2; video/x-flash-video, flvversion=(int)1; video/x-fraps; video/x-gst-av-8bps; video/x-gst-av-avs; video/x-gst-av-ffvhuff; video/x-gst-av-flic; video/x-gst-av-idcinvideo; video/x-gst-av-interplayvideo; video/x-gst-av-mdec; video/x-gst-av-mmvideo; video/x-gst-av-pgmyuv; video/x-gst-av-qpeg; video/x-gst-av-roqvideo; video/x-gst-av-vmdvideo; video/x-gst-av-vqavideo; video/x-gst-av-wnv1; video/x-gst-av-xl; video/x-h261; video/x-h263, variant=(string)itu; video/x-h264, alignment=(string)au, stream-format=(string){ avc, byte-stream }; video/x-h265, alignment=(string)au, stream-format=(string){ hvc1, hev1, byte-stream }; video/x-huffyuv; video/x-indeo, indeoversion=(int){ 5, 4, 3, 2 }; video/x-intel-h263, variant=(string)intel; video/x-ivf; video/x-kmvc; video/x-lagarith; video/x-loco; video/x-mimic; video/x-mjpeg-b; video/x-msvideocodec, msvideoversion=(int)1; video/x-mszh; video/x-nsv; video/x-nuv; video/x-pn-realvideo, rmversion=(int){ 4, 3, 2, 1 }; video/x-prores; video/x-pva; video/x-qdrw; video/x-rle, layout=(string){ quicktime, microsoft }; video/x-smc; video/x-speedhq; video/x-truemotion, trueversion=(int){ 2, 1 }; video/x-tscc, tsccversion=(int)2; video/x-ultimotion; video/x-vmnc; video/x-vp3; video/x-vp5; video/x-vp6; video/x-vp6-alpha; video/x-vp8; video/x-vp9; video/x-wmv, wmvversion=(int)3, format=(string){ WMV3, WVC1, WMVA, MSS2 }; video/x-wmv, wmvversion=(int){ 2, 1 }; video/x-xan, wcversion=(int){ 4, 3 }; video/x-zmbv
+Gstreamer-Elements: avdec_4xm, avdec_8bps, avdec_8svx_exp, avdec_8svx_fib, avdec_aac, avdec_aac_fixed, avdec_aac_latm, avdec_aasc, avdec_ac3, avdec_ac3_fixed, avdec_acelp_kelvin, avdec_adpcm_4xm, avdec_adpcm_adx, avdec_adpcm_afc, avdec_adpcm_agm, avdec_adpcm_aica, avdec_adpcm_argo, avdec_adpcm_ct, avdec_adpcm_dtk, avdec_adpcm_ea, avdec_adpcm_ea_maxis_xa, avdec_adpcm_ea_r1, avdec_adpcm_ea_r2, avdec_adpcm_ea_r3, avdec_adpcm_ea_xas, avdec_adpcm_ima_alp, avdec_adpcm_ima_amv, avdec_adpcm_ima_apc, avdec_adpcm_ima_apm, avdec_adpcm_ima_cunning, avdec_adpcm_ima_dat4, avdec_adpcm_ima_dk3, avdec_adpcm_ima_dk4, avdec_adpcm_ima_ea_eacs, avdec_adpcm_ima_ea_sead, avdec_adpcm_ima_iss, avdec_adpcm_ima_mtf, avdec_adpcm_ima_oki, avdec_adpcm_ima_qt, avdec_adpcm_ima_rad, avdec_adpcm_ima_smjpeg, avdec_adpcm_ima_ssi, avdec_adpcm_ima_wav, avdec_adpcm_ima_ws, avdec_adpcm_ms, avdec_adpcm_mtaf, avdec_adpcm_psx, avdec_adpcm_sbpro_2, avdec_adpcm_sbpro_3, avdec_adpcm_sbpro_4, avdec_adpcm_swf, avdec_adpcm_thp, avdec_adpcm_thp_le, avdec_adpcm_vima, avdec_adpcm_xa, avdec_adpcm_yamaha, avdec_adpcm_zork, avdec_agm, avdec_aic, avdec_alac, avdec_alias_pix, avdec_als, avdec_amrnb, avdec_amrwb, avdec_amv, avdec_anm, avdec_ansi, avdec_ape, avdec_apng, avdec_aptx, avdec_aptx_hd, avdec_arbc, avdec_asv1, avdec_asv2, avdec_atrac1, avdec_atrac3, avdec_atrac3al, avdec_atrac3plus, avdec_atrac3plusal, avdec_atrac9, avdec_aura, avdec_aura2, avdec_avrn, avdec_avrp, avdec_avs, avdec_avui, avdec_bethsoftvid, avdec_bfi, avdec_binkaudio_dct, avdec_binkaudio_rdft, avdec_binkvideo, avdec_bintext, avdec_bitpacked, avdec_bmp, avdec_bmv_audio, avdec_bmv_video, avdec_brender_pix, avdec_c93, avdec_camstudio, avdec_camtasia, avdec_cavs, avdec_cdtoons, avdec_cdxl, avdec_cfhd, avdec_cinepak, avdec_clearvideo, avdec_cljr, avdec_cllc, avdec_comfortnoise, avdec_cook, avdec_cpia, avdec_cyuv, avdec_dca, avdec_dds, avdec_derf_dpcm, avdec_dfa, avdec_dirac, avdec_dnxhd, avdec_dolby_e, avdec_dpx, avdec_dsd_lsbf, avdec_dsd_lsbf_planar, avdec_dsd_msbf, avdec_dsd_msbf_planar, avdec_dsicinaudio, avdec_dsicinvideo, avdec_dss_sp, avdec_dst, avdec_dvaudio, avdec_dvvideo, avdec_dxa, avdec_dxtory, avdec_dxv, avdec_eac3, avdec_eacmv, avdec_eamad, avdec_eatgq, avdec_eatgv, avdec_eatqi, avdec_escape124, avdec_escape130, avdec_evrc, avdec_exr, avdec_ffv1, avdec_ffvhuff, avdec_fic, avdec_fits, avdec_flac, avdec_flashsv, avdec_flashsv2, avdec_flic, avdec_flv, avdec_fmvc, avdec_fraps, avdec_frwu, avdec_g2m, avdec_g722, avdec_g723_1, avdec_g726, avdec_g726le, avdec_g729, avdec_gdv, avdec_gif, avdec_gremlin_dpcm, avdec_gsm, avdec_gsm_ms, avdec_h261, avdec_h263, avdec_h263i, avdec_h263p, avdec_h264, avdec_h265, avdec_hap, avdec_hca, avdec_hcom, avdec_hnm4video, avdec_hq_hqa, avdec_hqx, avdec_huffyuv, avdec_hymt, avdec_iac, avdec_idcinvideo, avdec_idf, avdec_iff, avdec_ilbc, avdec_imc, avdec_imm4, avdec_imm5, avdec_indeo2, avdec_indeo3, avdec_indeo4, avdec_indeo5, avdec_interplay_dpcm, avdec_interplayacm, avdec_interplayvideo, avdec_jpeg2000, avdec_jpegls, avdec_jv, avdec_kgv1, avdec_kmvc, avdec_lagarith, avdec_loco, avdec_lscr, avdec_m101, avdec_mace3, avdec_mace6, avdec_magicyuv, avdec_mdec, avdec_metasound, avdec_mimic, avdec_mjpeg, avdec_mjpegb, avdec_mlp, avdec_mmvideo, avdec_motionpixels, avdec_mp1float, avdec_mp2float, avdec_mp3, avdec_mp3adu, avdec_mp3adufloat, avdec_mp3float, avdec_mp3on4, avdec_mp3on4float, avdec_mpc7, avdec_mpc8, avdec_mpeg2video, avdec_mpeg4, avdec_mpegvideo, avdec_msa1, avdec_mscc, avdec_msmpeg4, avdec_msmpeg4v1, avdec_msmpeg4v2, avdec_msrle, avdec_mss1, avdec_mss2, avdec_msvideo1, avdec_mszh, avdec_mts2, avdec_mv30, avdec_mvc1, avdec_mvc2, avdec_mvdv, avdec_mvha, avdec_mwsc, avdec_mxpeg, avdec_nellymoser, avdec_notchlc, avdec_nuv, avdec_on2avc, avdec_opus, avdec_paf_audio, avdec_paf_video, avdec_pam, avdec_pbm, avdec_pcm_lxf, avdec_pcm_vidc, avdec_pcx, avdec_pfm, avdec_pgm, avdec_pgmyuv, avdec_pictor, avdec_pixlet, avdec_png, avdec_ppm, avdec_prores, avdec_prosumer, avdec_psd, avdec_ptx, avdec_qcelp, avdec_qdm2, avdec_qdmc, avdec_qdraw, avdec_qpeg, avdec_qtrle, avdec_r10k, avdec_ralf, avdec_rasc, avdec_real_144, avdec_real_288, avdec_rl2, avdec_roq_dpcm, avdec_roqvideo, avdec_rpza, avdec_rscc, avdec_rv10, avdec_rv20, avdec_rv30, avdec_rv40, avdec_s302m, avdec_sanm, avdec_sbc, avdec_scpr, avdec_screenpresso, avdec_sdx2_dpcm, avdec_sgi, avdec_sgirle, avdec_sheervideo, avdec_shorten, avdec_sipr, avdec_siren, avdec_smackaud, avdec_smackvid, avdec_smc, avdec_smvjpeg, avdec_snow, avdec_sol_dpcm, avdec_sonic, avdec_sp5x, avdec_speedhq, avdec_srgc, avdec_sunrast, avdec_svq1, avdec_svq3, avdec_tak, avdec_targa, avdec_targa_y216, avdec_tdsc, avdec_thp, avdec_tiertexseqvideo, avdec_tiff, avdec_tmv, avdec_truehd, avdec_truemotion1, avdec_truemotion2, avdec_truemotion2rt, avdec_truespeech, avdec_tscc2, avdec_tta, avdec_twinvq, avdec_txd, avdec_ultimotion, avdec_utvideo, avdec_vb, avdec_vble, avdec_vc1, avdec_vc1image, avdec_vcr1, avdec_vmdaudio, avdec_vmdvideo, avdec_vmnc, avdec_vp3, avdec_vp4, avdec_vp5, avdec_vp6, avdec_vp6a, avdec_vp6f, avdec_vp7, avdec_vp8, avdec_vp9, avdec_vqavideo, avdec_wavesynth, avdec_wcmv, avdec_webp, avdec_wmalossless, avdec_wmapro, avdec_wmav1, avdec_wmav2, avdec_wmavoice, avdec_wmv1, avdec_wmv2, avdec_wmv3, avdec_wmv3image, avdec_wnv1, avdec_ws_snd1, avdec_xan_dpcm, avdec_xan_wc3, avdec_xan_wc4, avdec_xbin, avdec_xbm, avdec_xface, avdec_xl, avdec_xma1, avdec_xma2, avdec_xpm, avdec_xwd, avdec_ylc, avdec_yop, avdec_zerocodec, avdec_zmbv, avdeinterlace, avdemux_4xm, avdemux_aiff, avdemux_ape, avdemux_avs, avdemux_bfstm, avdemux_brstm, avdemux_daud, avdemux_dsf, avdemux_ea, avdemux_film_cpk, avdemux_gif, avdemux_gxf, avdemux_idcin, avdemux_iff, avdemux_ipmovie, avdemux_ivf, avdemux_mm, avdemux_mmf, avdemux_mpc, avdemux_mpc8, avdemux_mxf, avdemux_nsv, avdemux_nut, avdemux_nuv, avdemux_psxstr, avdemux_pva, avdemux_smk, avdemux_sol, avdemux_tta, avdemux_vmd, avdemux_voc, avdemux_wc3movie, avdemux_wsaud, avdemux_wsvqa, avdemux_yuv4mpegpipe, avenc_a64multi, avenc_a64multi5, avenc_aac, avenc_ac3, avenc_ac3_fixed, avenc_adpcm_adx, avenc_adpcm_ima_qt, avenc_adpcm_ima_ssi, avenc_adpcm_ima_wav, avenc_adpcm_ms, avenc_adpcm_swf, avenc_adpcm_yamaha, avenc_alac, avenc_alias_pix, avenc_amv, avenc_apng, avenc_aptx, avenc_aptx_hd, avenc_asv1, avenc_asv2, avenc_avrp, avenc_avui, avenc_bmp, avenc_cinepak, avenc_cljr, avenc_comfortnoise, avenc_dca, avenc_dnxhd, avenc_dpx, avenc_dvvideo, avenc_eac3, avenc_ffv1, avenc_ffvhuff, avenc_fits, avenc_flashsv, avenc_flashsv2, avenc_flv, avenc_g722, avenc_g723_1, avenc_g726, avenc_g726le, avenc_h261, avenc_h263, avenc_h263p, avenc_h264_omx, avenc_hap, avenc_huffyuv, avenc_jpeg2000, avenc_jpegls, avenc_ljpeg, avenc_magicyuv, avenc_mjpeg, avenc_mlp, avenc_mp2, avenc_mp2fixed, avenc_mpeg1video, avenc_mpeg2video, avenc_mpeg4, avenc_mpeg4_omx, avenc_msmpeg4, avenc_msmpeg4v2, avenc_msvideo1, avenc_nellymoser, avenc_opus, avenc_pam, avenc_pbm, avenc_pcm_vidc, avenc_pcx, avenc_pgm, avenc_pgmyuv, avenc_png, avenc_ppm, avenc_prores, avenc_prores_aw, avenc_prores_ks, avenc_qtrle, avenc_r10k, avenc_real_144, avenc_roq_dpcm, avenc_roqvideo, avenc_rv10, avenc_rv20, avenc_s302m, avenc_sbc, avenc_sgi, avenc_snow, avenc_sonic, avenc_sonicls, avenc_sunrast, avenc_svq1, avenc_targa, avenc_tiff, avenc_truehd, avenc_tta, avenc_utvideo, avenc_vc2, avenc_wavpack, avenc_wmav1, avenc_wmav2, avenc_wmv1, avenc_wmv2, avenc_xbm, avenc_xface, avenc_xwd, avenc_zmbv, avmux_3g2, avmux_3gp, avmux_a64, avmux_adts, avmux_adx, avmux_aiff, avmux_amr, avmux_apng, avmux_asf, avmux_asf_stream, avmux_ast, avmux_au, avmux_avi, avmux_avm2, avmux_bit, avmux_caf, avmux_codec2, avmux_dash, avmux_daud, avmux_dv, avmux_dvd, avmux_f4v, avmux_film_cpk, avmux_filmstrip, avmux_fits, avmux_flv, avmux_gxf, avmux_hash, avmux_hds, avmux_hls, avmux_ico, avmux_ilbc, avmux_ipod, avmux_ircam, avmux_ismv, avmux_ivf, avmux_kvag, avmux_latm, avmux_matroska, avmux_md5, avmux_mkvtimestamp_v2, avmux_mmf, avmux_mov, avmux_mp2, avmux_mp3, avmux_mp4, avmux_mpeg, avmux_mpegts, avmux_mpjpeg, avmux_mxf, avmux_mxf_d10, avmux_mxf_opatom, avmux_nut, avmux_oga, avmux_ogg, avmux_ogv, avmux_oma, avmux_opus, avmux_psp, avmux_rm, avmux_rso, avmux_rtsp, avmux_sap, avmux_singlejpeg, avmux_smjpeg, avmux_smoothstreaming, avmux_sox, avmux_spdif, avmux_spx, avmux_streamhash, avmux_svcd, avmux_swf, avmux_tta, avmux_uncodedframecrc, avmux_vc1test, avmux_vcd, avmux_vidc, avmux_vob, avmux_voc, avmux_w64, avmux_wav, avmux_webp, avmux_wtv, avmux_yuv4mpegpipe
+Gstreamer-Encoders: application/gxf; application/mxf; application/ogg; application/x-gst-av-a64; application/x-gst-av-adts; application/x-gst-av-adx; application/x-gst-av-apng; application/x-gst-av-asf_stream; application/x-gst-av-ast; application/x-gst-av-avm2; application/x-gst-av-bit; application/x-gst-av-caf; application/x-gst-av-codec2; application/x-gst-av-dash; application/x-gst-av-daud; application/x-gst-av-dvd; application/x-gst-av-f4v; application/x-gst-av-film_cpk; application/x-gst-av-filmstrip; application/x-gst-av-fits; application/x-gst-av-hash; application/x-gst-av-hds; application/x-gst-av-hls; application/x-gst-av-ico; application/x-gst-av-ilbc; application/x-gst-av-ircam; application/x-gst-av-ismv; application/x-gst-av-kvag; application/x-gst-av-latm; application/x-gst-av-md5; application/x-gst-av-mkvtimestamp_v2; application/x-gst-av-mmf; application/x-gst-av-mpjpeg; application/x-gst-av-mxf_opatom; application/x-gst-av-nut; application/x-gst-av-oga; application/x-gst-av-ogv; application/x-gst-av-oma; application/x-gst-av-opus; application/x-gst-av-rso; application/x-gst-av-rtsp; application/x-gst-av-sap; application/x-gst-av-singlejpeg; application/x-gst-av-smjpeg; application/x-gst-av-smoothstreaming; application/x-gst-av-sox; application/x-gst-av-spdif; application/x-gst-av-spx; application/x-gst-av-streamhash; application/x-gst-av-svcd; application/x-gst-av-uncodedframecrc; application/x-gst-av-vc1test; application/x-gst-av-vcd; application/x-gst-av-vidc; application/x-gst-av-vob; application/x-gst-av-w64; application/x-gst-av-webp; application/x-gst-av-wtv; application/x-pn-realmedia, systemstream=(boolean)true; application/x-shockwave-flash; application/x-yuv4mpeg, y4mversion=(int)2; audio/aptx; audio/aptx-hd; audio/mpeg, mpegversion=(int)1, layer=(int)2; audio/mpeg, mpegversion=(int)4, base-profile=(string)lc; audio/x-aiff; audio/x-alac; audio/x-amr-nb-sh; audio/x-au; audio/x-dpcm, layout=(string)roq; audio/x-mlp; audio/x-nellymoser; audio/x-pn-realaudio, raversion=(int)1; audio/x-smpte-302m; audio/x-tta; audio/x-ttafile; audio/x-voc; audio/x-wav; audio/x-wma, wmaversion=(int){ 2, 1 }; image/bmp; image/jpeg, parsed=(boolean)true; image/pbm; image/png; image/ppm; image/tiff; image/x-j2c; image/x-pcx; image/x-portable-anymap; image/x-portable-graymap; image/x-sgi; image/x-sun-raster; image/x-tga; unknown/unknown; video/mpeg, mpegversion=(int){ 2, 1 }, systemstream=(boolean)false; video/mpeg, systemstream=(boolean)true; video/mpegts, systemstream=(boolean)true; video/quicktime, variant=(string){ 3gpp, 3g2, psp, iso, apple, ipod }; video/x-amv; video/x-asus, asusversion=(int){ 2, 1 }; video/x-cinepak; video/x-cirrus-logic-accupak; video/x-dnxhd; video/x-dv, systemstream=(boolean){ true, false }; video/x-ffv, ffvversion=(int)1; video/x-flash-screen; video/x-flash-screen2; video/x-flash-video, flvversion=(int)1; video/x-flv; video/x-gst-av-ffvhuff; video/x-gst-av-pgmyuv; video/x-gst-av-roqvideo; video/x-h261; video/x-h263, variant=(string)itu, h263version=(string){ h263p, h263 }; video/x-h264, alignment=(string)au; video/x-huffyuv; video/x-ivf; video/x-matroska; video/x-ms-asf; video/x-msvideo; video/x-msvideocodec, msvideoversion=(int)1; video/x-pn-realvideo, rmversion=(int){ 2, 1 }; video/x-prores; video/x-rle, layout=(string)quicktime; video/x-wmv, wmvversion=(int){ 2, 1 }; video/x-zmbv
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-opencv
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 2151
+Depends: libc6 (>= 2.29), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.44), libgstreamer-opencv1.0-0 (= 1.18.4-5), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libopencv-calib3d4.5 (>= 4.5.1+dfsg), libopencv-contrib4.5 (>= 4.5.1+dfsg), libopencv-core4.5 (>= 4.5.1+dfsg), libopencv-features2d4.5 (>= 4.5.1+dfsg), libopencv-imgcodecs4.5 (>= 4.5.1+dfsg), libopencv-imgproc4.5 (>= 4.5.1+dfsg), libopencv-objdetect4.5 (>= 4.5.1+dfsg), libopencv-video4.5 (>= 4.5.1+dfsg), libstdc++6 (>= 5.2), gstreamer1.0-plugins-base, libgstreamer-plugins-bad1.0-0 (= 1.18.4-5)
+Recommends: opencv-data
+Conflicts: gstreamer1.0-plugins-bad (<< 1.17.2~)
+Replaces: gstreamer1.0-plugins-bad (<< 1.17.2~)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-opencv_1.18.4-5_arm64.deb
+Size: 1977184
+SHA256: d182409d5f9ed0f72c253e5ca68ff2beff37f1703516043569179db50b4098d3
+SHA1: 25611e94bbc7d326529c7221295bb95a0c656140
+MD5sum: 2f7c943d2504fa3c565a33df74e72d19
+Description: GStreamer OpenCV plugins
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains the OpenCV plugins.
+Gstreamer-Elements: cameracalibrate, cameraundistort, cvdilate, cvequalizehist, cverode, cvlaplace, cvsmooth, cvsobel, dewarp, disparity, edgedetect, faceblur, facedetect, grabcut, handdetect, motioncells, opencvtextoverlay, retinex, segmentation, skindetect, templatematch
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-opencv-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 908
+Depends: gstreamer1.0-opencv (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-opencv-dbgsym_1.18.4-5_arm64.deb
+Size: 852960
+SHA256: c46ca204b4c018494b3c0e8e13deb7985eb6b6faaa740eb889bc77a37d0ba01d
+SHA1: 6444fd2ffd7d38f8b9637118cbf3cbde9d080063
+MD5sum: c84194d709d3c4164973a94c3758a7de
+Description: debug symbols for gstreamer1.0-opencv
+Build-Ids: fe6a26c8f9475b9e3ae7c4b537b8d38510e32566
+Gstreamer-Elements: cameracalibrate, cameraundistort, cvdilate, cvequalizehist, cverode, cvlaplace, cvsmooth, cvsobel, dewarp, disparity, edgedetect, faceblur, facedetect, grabcut, handdetect, motioncells, opencvtextoverlay, retinex, segmentation, skindetect, templatematch
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-bad
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 9363
+Depends: libaom0 (>= 1.0.0), libass9 (>= 1:0.13.6), libbs2b0, libbz2-1.0, libc6 (>= 2.29), libcairo2 (>= 1.6.0), libchromaprint1 (>= 1.3.2), libcurl3-gnutls (>= 7.55.0), libdc1394-25 (>= 2.2.6), libde265-0 (>= 0.9), libdrm2 (>= 2.4.47), libdvdnav4 (>= 4.1.3), libdvdread8 (>= 4.1.3), libfaad2 (>= 2.7), libflite1 (>= 1.4-release-9~), libfluidsynth2 (>= 2.0.5), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.53.2), libgme0 (>= 0.6.0), libgsm1 (>= 1.0.18), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-bad1.0-0 (= 1.18.4-5), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libgudev-1.0-0 (>= 146), libilmbase25 (>= 2.5.4), libkate1 (>= 0.4.1), liblcms2-2 (>= 2.7), liblilv-0-0 (>= 0.22), libltc11 (>= 1.2.0), libmjpegutils-2.1-0, libmms0 (>= 0.4), libmodplug1 (>= 1:0.8.8.5), libmpcdec6 (>= 1:0.1~r435), libmpeg2encpp-2.1-0, libmplex2-2.1-0, libnettle8 (>= 3), libnice10 (>= 0.1.14), libofa0 (>= 0.9.3), libopenal1 (>= 1.14), libopenexr25 (>= 2.5.4), libopenjp2-7 (>= 2.2.0), libopenmpt0 (>= 0.3.0), libopenni2-0 (>= 2.2.0.33+dfsg), libopus0 (>= 1.1), liborc-0.4-0 (>= 1:0.4.25), libpango-1.0-0 (>= 1.22.0), libpangocairo-1.0-0 (>= 1.22), librsvg2-2 (>= 2.36.2), librtmp1 (>= 2.3), libsbc1 (>= 1.5), libsndfile1 (>= 1.0.20), libsoundtouch1 (>= 2.0.0), libspandsp2 (>= 0.0.6~pre18), libsrt1.4-gnutls (>= 1.4.2), libsrtp2-1 (>= 2.0.0+20170516), libssl1.1 (>= 1.1.0), libstdc++6 (>= 5), libusb-1.0-0 (>= 2:1.0.8), libva-drm2 (>= 1.6), libva2 (>= 2.2.0), libvo-aacenc0 (>= 0.1.3), libvo-amrwbenc0 (>= 0.1.3), libwayland-client0 (>= 1.11.0), libwebp6 (>= 0.5.1), libwebrtc-audio-processing1, libwildmidi2 (>= 0.2.3), libx11-6, libx265-192 (>= 3.2), libxml2 (>= 2.9.0), libzbar0 (>= 0.10), libzvbi0 (>= 0.2.35), gstreamer1.0-plugins-base
+Suggests: frei0r-plugins
+Conflicts: gstreamer1.0-plugins-bad-faad (<< 1.11.91-1ubuntu1), gstreamer1.0-plugins-bad-videoparsers (<< 1.11.91-1ubuntu1)
+Breaks: gstreamer1.0-plugins-base (<< 0.11.94), gstreamer1.0-plugins-good (<< 1.1.2)
+Replaces: gstreamer1.0-plugins-bad-faad (<< 1.11.91-1ubuntu1), gstreamer1.0-plugins-bad-videoparsers (<< 1.11.91-1ubuntu1), gstreamer1.0-plugins-base (<< 0.11.94), gstreamer1.0-plugins-good (<< 1.1.2)
+Provides: gstreamer1.0-audiosink, gstreamer1.0-audiosource, gstreamer1.0-plugins-bad-faad, gstreamer1.0-plugins-bad-videoparsers, gstreamer1.0-videosink, gstreamer1.0-videosource, gstreamer1.0-visualization
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-plugins-bad_1.18.4-5_arm64.deb
+Size: 3796108
+SHA256: 12f90acb50150bea813aa7e2a65c45d2d45903c081db7d3eb3951fa85a27e543
+SHA1: 15569c30877f4c9874681e79fc863d5e335ee128
+MD5sum: 060646ed2b343cd044e0a890b7a40bea
+Description: GStreamer plugins from the "bad" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+Gstreamer-Decoders: application/dash+xml; application/mxf; application/vnd.ms-sstr+xml; application/x-hls; application/x-yuv4mpeg, y4mversion=(int)2; audio/midi; audio/mpeg, mpegversion=(int)4, stream-format=(string){ raw, adts }; audio/mpeg, mpegversion=(int)2; audio/ms-gsm; audio/riff-midi; audio/x-aiff; audio/x-ay; audio/x-gbs; audio/x-gsm; audio/x-gym; audio/x-hes; audio/x-ircam; audio/x-it; audio/x-kss; audio/x-midi-event; audio/x-mod; audio/x-musepack, streamversion=(int){ 7, 8 }; audio/x-nist; audio/x-nsf; audio/x-paris; audio/x-rf64; audio/x-s3m; audio/x-sap; audio/x-sbc, parsed=(boolean)true; audio/x-sds; audio/x-siren, dct-length=(int)320; audio/x-spc; audio/x-stm; audio/x-svx; audio/x-vgm; audio/x-voc; audio/x-w64; audio/x-xi; audio/x-xm; image/jp2; image/png; image/svg; image/svg+xml; image/webp; image/x-exr; image/x-j2c; image/x-jpc; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; subtitle/x-kate; video/mpeg, mpegversion=(int){ 1, 2 }, systemstream=(boolean){ true, false }; video/mpeg, mpegversion=(int)4, systemstream=(boolean)false; video/x-av1; video/x-cdxa; video/x-divx, divxversion=(int)[ 4, 5 ]; video/x-h263, variant=(string)itu; video/x-h264; video/x-h265; video/x-ivf; video/x-vmnc, version=(int)1
+Gstreamer-Elements: a2dpsink, accurip, aiffmux, aiffparse, asfmux, asfparse, assrender, audiobuffersplit, audiochannelmix, audiolatency, audiomixmatrix, audioparse, audiosegmentclip, autoconvert, autovideoconvert, av1dec, av1enc, avdtpsink, avdtpsrc, avwait, bayer2rgb, bpmdetect, bs2b, bulge, burn, bz2dec, bz2enc, camerabin, cc708overlay, cccombiner, ccconverter, ccextractor, checksumsink, chopmydata, chromahold, chromaprint, chromium, circle, clockselect, coloreffects, combdetect, compare, curlfilesink, curlftpsink, curlhttpsink, curlhttpsrc, curlsftpsink, curlsmtpsink, dashdemux, dashsink, dc1394src, debugspy, decklinkaudiosink, decklinkaudiosrc, decklinkvideosink, decklinkvideosrc, diffuse, dilate, diracparse, dodge, dtlsdec, dtlsenc, dtlssrtpdec, dtlssrtpdemux, dtlssrtpenc, dtmfdetect, dvbbasebin, dvbsrc, dvbsubenc, dvbsuboverlay, dvdspu, errorignore, exclusion, faad, faceoverlay, fakevideosink, fbdevsink, festival, fieldanalysis, fisheye, flitetestsrc, fluiddec, fpsdisplaysink, freeverb, gaussianblur, gdpdepay, gdppay, gmedec, gsmdec, gsmenc, h263parse, h264parse, h265parse, hlsdemux, hlssink, hlssink2, id3mux, interaudiosink, interaudiosrc, interlace, intersubsink, intersubsrc, intervideosink, intervideosrc, ipcpipelinesink, ipcpipelinesrc, ipcslavepipeline, irtspparse, ivfparse, ivtc, jifmux, jp2kdecimator, jpeg2000parse, jpegparse, kaleidoscope, katedec, kateenc, kateparse, katetag, kmssink, ladspa-amp-so-amp-mono, ladspa-amp-so-amp-stereo, ladspa-delay-so-delay-5s, ladspa-filter-so-hpf, ladspa-filter-so-lpf, ladspa-sine-so-sine-faaa, ladspa-sine-so-sine-faac, ladspa-sine-so-sine-fcaa, ladspasrc-noise-so-noise-white, ladspasrc-sine-so-sine-fcac, lcms, libde265dec, line21decoder, line21encoder, marble, midiparse, mirror, mmssrc, modplug, mpeg2enc, mpeg4videoparse, mpegpsdemux, mpegpsmux, mpegvideoparse, mplex, mssdemux, musepackdec, mxfdemux, mxfmux, netsim, ofa, openalsink, openalsrc, openexrdec, openjpegdec, openjpegenc, openmptdec, openni2src, opusparse, pcapparse, perspective, pinch, pitch, pngparse, pnmdec, pnmenc, proxysink, proxysrc, removesilence, rfbsrc, rgb2bayer, ristrtpdeext, ristrtpext, ristrtxreceive, ristrtxsend, ristsink, ristsrc, rotate, roundrobin, rsndvdbin, rsvgdec, rsvgoverlay, rtmp2sink, rtmp2src, rtmpsink, rtmpsrc, rtpasfpay, rtponvifparse, rtponviftimestamp, rtpsink, rtpsrc, sbcdec, sbcenc, scenechange, sctpdec, sctpenc, sdpdemux, sdpsrc, sfdec, shmsink, shmsrc, simplevideomark, simplevideomarkdetect, sirendec, sirenenc, smooth, solarize, spacescope, spanplc, spectrascope, speed, sphere, square, srtclientsink, srtclientsrc, srtenc, srtpdec, srtpenc, srtserversink, srtserversrc, srtsink, srtsrc, stretch, switchbin, synaescope, teletextdec, testsrcbin, timecodestamper, tonegeneratesrc, transcodebin, ttmlparse, ttmlrender, tunnel, twirl, uritranscodebin, uvch264mjpgdemux, uvch264src, vc1parse, videoanalyse, videodiff, videoframe-audiolevel, videoparse, videosegmentclip, viewfinderbin, vmncdec, voaacenc, voamrwbenc, watchdog, waterripple, wavescope, waylandsink, webpdec, webpenc, webrtcbin, webrtcdsp, webrtcechoprobe, webvttenc, wildmididec, wrappercamerabinsrc, x265enc, y4mdec, zbar, zebrastripe
+Gstreamer-Encoders: application/mxf; application/x-bzip; application/x-dtls; application/x-gdp; application/x-kate; application/x-rtp, media=(string){ audio, video, application }, encoding-name=(string)X-ASF-PF; application/x-sctp; application/x-subtitle; application/x-subtitle-vtt; audio/AMR-WB; audio/mpeg, mpegversion=(int)4, stream-format=(string){ adts, raw }, base-profile=(string)lc; audio/x-aiff; audio/x-gsm; audio/x-sbc, channel-mode=(string){ mono, dual, stereo, joint }, blocks=(int){ 4, 8, 12, 16 }, subbands=(int){ 4, 8 }, allocation-method=(string){ snr, loudness }, bitpool=(int)[ 2, 64 ]; audio/x-siren, dct-length=(int)320; image/jp2; image/webp; image/x-j2c, num-components=(int)[ 1, 4 ], num-stripes=(int)[ 1, 2147483647 ], sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE, YCbCrA-4:4:4:4 }, colorspace=(string){ sRGB, sYUV, GRAY }; image/x-jpc, num-components=(int)[ 1, 4 ], sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE, YCbCrA-4:4:4:4 }, colorspace=(string){ sRGB, sYUV, GRAY }; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; subtitle/x-kate; video/mpeg, systemstream=(boolean)false, mpegversion=(int){ 1, 2 }; video/mpeg, systemstream=(boolean)true; video/x-av1; video/x-h265, stream-format=(string)byte-stream, alignment=(string)au, profile=(string){ main, main-still-picture, main-intra, main-444, main-444-intra, main-444-still-picture, main-10, main-10-intra, main-422-10, main-422-10-intra, main-444-10, main-444-10-intra, main-12, main-12-intra, main-422-12, main-422-12-intra, main-444-12, main-444-12-intra }; video/x-ms-asf, parsed=(boolean)true
+Gstreamer-Uri-Sinks: rtmfp, rtmp, rtmpe, rtmps, rtmpt, rtmpte, rtmpts, rtp, srt
+Gstreamer-Uri-Sources: dvb, dvd, http, https, mms, mmsh, mmst, mmsu, rist, rtmfp, rtmp, rtmpe, rtmps, rtmpt, rtmpte, rtmpts, rtp, sdp, srt, testbin
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-bad-apps
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 1953
+Depends: libc6 (>= 2.17), libglib2.0-0 (>= 2.44), libgstreamer-plugins-bad1.0-0 (>= 1.18.4), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), gstreamer1.0-plugins-bad (= 1.18.4-5)
+Conflicts: pitivi (<< 0.9999)
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: utils
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-plugins-bad-apps_1.18.4-5_arm64.deb
+Size: 1917644
+SHA256: 1990747d667fbdf6ba0f580551069ca2ffd2dfbe50ee16321d1e8712d2b31c90
+SHA1: 5af902a0af191b39b2b49f5b8cc84629de66dfb1
+MD5sum: 1cb7ea2209acbfeb066a3398ef9e8534
+Description: GStreamer helper programs from the "bad" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains helper programs from the "bad" set, a set of
+ plug-ins that aren't up to par compared to the rest. They might be
+ close to being good quality, but they're missing something - be it a
+ good code review, some documentation, a set of tests, a real live
+ maintainer, or some actual wide use.
+
+Package: gstreamer1.0-plugins-bad-apps-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 37
+Depends: gstreamer1.0-plugins-bad-apps (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-plugins-bad-apps-dbgsym_1.18.4-5_arm64.deb
+Size: 19812
+SHA256: 5697570bdbc789099c02a0467cb60b1c87c12684799673320bdd536f15802e06
+SHA1: 76ea9ae546ae89ed6e30ea1efd95da23966fb345
+MD5sum: c75893a16a8843fd262a82fb9a223b3d
+Description: debug symbols for gstreamer1.0-plugins-bad-apps
+Build-Ids: 0166029c7988f170e18a4750ce5d91201bdb6947
+
+Package: gstreamer1.0-plugins-bad-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 8330
+Depends: gstreamer1.0-plugins-bad (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-plugins-bad-dbgsym_1.18.4-5_arm64.deb
+Size: 6480888
+SHA256: cb0da0aadc116509ba5086b87947690a15b992e50458230c14f108d78d9cb64f
+SHA1: fdd80e493f75079b4388c39676a6258696761925
+MD5sum: 5267c15da10ce0e95a77581961a86863
+Description: debug symbols for gstreamer1.0-plugins-bad
+Build-Ids: 00e9c3bb720bd09cc2e08ecc48f68a451ffbf5f9 0278194a06e82dc679cfb1aea1814a5f5376debf 0879c1e2afa93a666ecb8672970f1a4194df9ac7 0baefb224312cd7f625638ccbb7daec19274b611 0c528c441d11dcbb3ef6851ebaf848d02c8e6f0d 0fa4c568d3233417d85e104205be6834a273a2de 11b3ef6500927a1e32aba31ddb917688d633c8df 1348630faf2f2fac14c80d2e551eb7e1d8e3655b 15563c87398a36f33e9be6361692c81b581f408b 156ec03a0f8b53243e1e254af657120aacd2d157 19f163921e89caf1654dbd2447a1c5f7ffd99977 2174d70e3afdcd225d573c3f6f8c00e8fb4056df 21fc7fc65ddedd094bcac10f6af7b9663b54bece 2454a316f3e0c34affdca5a2f4f9b795ce62579c 2507cf1b58d47256ed63466a0671200eb1424b6a 279888bc09f523723ca23bb1e71d7b74c6ac761a 28bc73dab84242b81f3f6eb4c1a17fbcbb365db8 2a025116824b3b60c6e9382e3fc56caa19f468c8 2aaf55ab3d5715753598b2bfc2a64b489cab5690 2bd1253282c1e042857b66279e52a426c9a940b4 2ec361c96afcab60cf86eb672148a2f33cb1434a 2f7d72ea573b56c01eadd6dc0e4f36b027fcf4e9 311e8af2a4a98d1e980f715abaa34fab7c248e7d 33758a04483e7e7168da29bfc2cb21f0efb4a584 34ba5b0b9c3c90af7d4ebe3a898e6ae1170e3a67 35e0c44f0e0eda10ba5349ff2360b6ec3050e145 372e0a8d96255055cf44170883a1435bb546bdb9 3753ce51770f66c21c9d8cea40dbd6c136fa8487 3964dfd5cd8a1e04290cae03a05ba5fc98553bb7 3ab6111ed54fb2322429965a799c27e1bfe46a2f 3d24d0b7b14ef162e77481d0974d36c6cea2a463 3e740b57f0e0dd6f0ff7d1b62342dd6b8d52adb0 3e9d2f70e51ab56a96f95ae433e20da15304ae50 43a2902d35eaecfc1ba545ddb93da8426bbf8d96 4cb474081ce0550e4aafeb309d9dd3a9f0c3dc14 4d8414b9b4a64adf074f2c893c6ea49b42d21a97 4dad4e5e63610dd1530c6938fa961bb28c661144 4e14f16a85ae4910209d32c51307ce91a6fd7608 52abde93dd0abf6478f878f5386ce45d840d78a8 52e9ba93a6545afbab0b6e05db39c204f0c4b39e 55ec739e16129251f13361bf1f7e0ece4b3e12df 5f14b8cb873cdea44b71b78abfc29ef943bbe78b 5ff6abfae80695dfa0613a97ea73058f64b66dda 602d059fee7d0fb5ade4d91ab5fb22d565869610 62f60be6e5f369cb1534a19e10fa0cd11b028aa4 63b8ede5ae3510caf53e7e1dee8ff4d8a8c75c9f 63fa0833893e11daa6350af1a8d411fa22cab79d 64749eb281692653985b09fcafa659a3c14469dc 67614596769dba6c5fd36947b9ddea9e6c1413cb 67f9ca123fbdb0d477173e36deedd6229c20953a 69776a38be1aea23ec7f6559947a1cd940be5cfb 6b023f9d225383c7c2075695d39cee508a53ec01 6d19b78ccfa490189b8042648d97f6919166ca81 6d526032e997ed9f8ba01383421af5a5e38c67dd 747a4d500ece222b32096e9d03109f37ae4e5f03 76237cd6c383e668b59af3a2c0c2bb084e8b5181 76498550730eccd4e160fcb99bdd9dad722be80a 77b476aff54aca5112d50e37283a18a6d6cfc9fd 7b36b7ebf88b6a96a03f1a700977d2b03534504c 7d2ce8642efb9320f75f27ff6d3d4505f59aff93 7ee566d33e04c3043b2ec23fb0e099785b167d38 80afdcc09415ddd35b33f4b6f7766929fcd8fcad 844ef547d0b51403e7c5bb790450af8bcbab091b 866ef3778d0a2cf5be84d3da6718496fd3e78e5d 8bbcb34d3e59059457b368f2742b3b025d7c0fbd 8e80a74bd1caa18ff9dd2b424fedc10a7d076bfe 8e9ee28f8c623505304194dc2f74667df598ed14 90ef3ec80401c522aec1108a18a78af79745be04 96092da5b2436e141c0e11c72ff02af31ae8f131 963e7de30cca987ed22e66c4768b2f58693149dd 966f8959581ad916ac3ca2712ffc351e57b98291 9903ab0172c071d27358691012308f9df6229e20 994c654653b8e0e6a057ae2c6956d9aabd77018b 99ebc863afa7312e89d149c2882ec6830b358b54 9a2e52f0317acb6062ca8acc1d7d450feccca4b0 9c9825cf1466df11157e58f3a66404fc18348eab 9f2f4427f1f243a7c3f108dbca0855f77ee500a1 9ff7a848db6b5b776aef7363d5b435e1d49422a5 a07bce5d4b4e1584ff83de6c7e3fbbddb34c0474 a255db09119d8c85e9ea4c7e4a5ce5122ecb0a48 a2decd5450cfad5df6cf866c3f02bf0c8ac7713a a38a71014899f02895804ef7aceaa629caed06f2 a38f3ce1f3ba8b5925ab20fd356363763b35763b a8957bae9f38f0bbd3a0b5599c2da2df94b53f62 aa600cf824793ddc87b7458e2eeb80eec90a6e55 ab7c668cb34718e81293190d3006819c044fcdd6 abafc06d6de8f271c232e5824c11a99ccb445085 af58e796b25e49c87011d47d95b72e0fd9da2911 b183fcb65b1f4377de9d52a01fc13f7ac7141195 b3b832472c378ed94bd63bb32515ce1607d35191 b4b93e1ff929d39df22db961a2413e5e211fe48b b9316519199dc74a2bf460b4b7e2a4792a300005 ba8f85682dab94751fca8480db3fac1aa34ff978 bd5b13781cdc1dc8547efccd7360e474a609422d be287f620f7d8ef709cae4e68a7aa19031c6372a c3f9bf15b919022b5e7e892ec1601c4558d0d8aa c625b3a716f27d97c4dd7ba74cd61d6dfc897dbb c6e379622a1806847ff6c9f2f06a217c967bf3e3 c88257ee8ee9fd5ce924836952b3d8ce06952398 c95ffb8feeac0d9770c52a297dbfdd6b276a0e7e cc94650a248ca7e0ac68a159ce1346be5632b7b1 cca3be6c27a6bb786972a4de25e675c0894a1a59 cd684b476903fe5040e8cd0b3262700d609e0d30 cfaa01c77dc95674470f48eece1152d2e6fbef0e d4396d5bc056dfb6cc1a8e1750ad72b76dae7b7d d53464d0e3f9749498f8be54b3ed91a6bc598d4f d95e5e7c1c786f68b4d7cba148ee8d87f76501e5 d99af0e64aa08cf48f1f17391d8841bce4e0743e dbd75a567cd1ecacf1a4f3a25650f6f68ca47008 e030f6fabb2499fc44b8a2ef1e260a0842001284 e168c3a54e274f16383ac48f1c635c384a237bba e4a1692711d487ff921f9175d98d65ea20df4a44 e6ad9c4d8b79ec41cdd3126f2045e25c97c07f75 e702df99e68098957e70710900f465276336f14a e7d481be00e61a5ce4f557adb88db607790fb3e5 e899ad31919dc92e505ca72fce81fb057932a2b8 e9ebfdedb93b7a4e676d20edc6d2b89adfe90eab ea8156b9077b2f7aa0c170928407d09dfbed8ad7 eca5f45308aaa1d68a519b55957ad3063bd67992 ed36a26b6dcd96fa49d09212e9fafa1a9aaa354d ed762990a56a26d01157a3b81c0063bca722ca2e edd24515f8a1d42adf4dd9ce5d6af837aad9b5cb eee661de2c4eae9d84462d5c5c864653852f744b f4450d9b554073ddbbfc74f7039c1f0ea6b1a0c7 f9cc506326a338b678747fc2e6bc8d478748a757 fd36ae1829373ca4d7eca901965d188b6d38126d ff95f64e7879379fba34313153120559d809b827
+Gstreamer-Decoders: application/dash+xml; application/mxf; application/vnd.ms-sstr+xml; application/x-hls; application/x-yuv4mpeg, y4mversion=(int)2; audio/midi; audio/mpeg, mpegversion=(int)4, stream-format=(string){ raw, adts }; audio/mpeg, mpegversion=(int)2; audio/ms-gsm; audio/riff-midi; audio/x-aiff; audio/x-ay; audio/x-gbs; audio/x-gsm; audio/x-gym; audio/x-hes; audio/x-ircam; audio/x-it; audio/x-kss; audio/x-midi-event; audio/x-mod; audio/x-musepack, streamversion=(int){ 7, 8 }; audio/x-nist; audio/x-nsf; audio/x-paris; audio/x-rf64; audio/x-s3m; audio/x-sap; audio/x-sbc, parsed=(boolean)true; audio/x-sds; audio/x-siren, dct-length=(int)320; audio/x-spc; audio/x-stm; audio/x-svx; audio/x-vgm; audio/x-voc; audio/x-w64; audio/x-xi; audio/x-xm; image/jp2; image/png; image/svg; image/svg+xml; image/webp; image/x-exr; image/x-j2c; image/x-jpc; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; subtitle/x-kate; video/mpeg, mpegversion=(int){ 1, 2 }, systemstream=(boolean){ true, false }; video/mpeg, mpegversion=(int)4, systemstream=(boolean)false; video/x-av1; video/x-cdxa; video/x-divx, divxversion=(int)[ 4, 5 ]; video/x-h263, variant=(string)itu; video/x-h264; video/x-h265; video/x-ivf; video/x-vmnc, version=(int)1
+Gstreamer-Elements: a2dpsink, accurip, aiffmux, aiffparse, asfmux, asfparse, assrender, audiobuffersplit, audiochannelmix, audiolatency, audiomixmatrix, audioparse, audiosegmentclip, autoconvert, autovideoconvert, av1dec, av1enc, avdtpsink, avdtpsrc, avwait, bayer2rgb, bpmdetect, bs2b, bulge, burn, bz2dec, bz2enc, camerabin, cc708overlay, cccombiner, ccconverter, ccextractor, checksumsink, chopmydata, chromahold, chromaprint, chromium, circle, clockselect, coloreffects, combdetect, compare, curlfilesink, curlftpsink, curlhttpsink, curlhttpsrc, curlsftpsink, curlsmtpsink, dashdemux, dashsink, dc1394src, debugspy, decklinkaudiosink, decklinkaudiosrc, decklinkvideosink, decklinkvideosrc, diffuse, dilate, diracparse, dodge, dtlsdec, dtlsenc, dtlssrtpdec, dtlssrtpdemux, dtlssrtpenc, dtmfdetect, dvbbasebin, dvbsrc, dvbsubenc, dvbsuboverlay, dvdspu, errorignore, exclusion, faad, faceoverlay, fakevideosink, fbdevsink, festival, fieldanalysis, fisheye, flitetestsrc, fluiddec, fpsdisplaysink, freeverb, gaussianblur, gdpdepay, gdppay, gmedec, gsmdec, gsmenc, h263parse, h264parse, h265parse, hlsdemux, hlssink, hlssink2, id3mux, interaudiosink, interaudiosrc, interlace, intersubsink, intersubsrc, intervideosink, intervideosrc, ipcpipelinesink, ipcpipelinesrc, ipcslavepipeline, irtspparse, ivfparse, ivtc, jifmux, jp2kdecimator, jpeg2000parse, jpegparse, kaleidoscope, katedec, kateenc, kateparse, katetag, kmssink, ladspa-amp-so-amp-mono, ladspa-amp-so-amp-stereo, ladspa-delay-so-delay-5s, ladspa-filter-so-hpf, ladspa-filter-so-lpf, ladspa-sine-so-sine-faaa, ladspa-sine-so-sine-faac, ladspa-sine-so-sine-fcaa, ladspasrc-noise-so-noise-white, ladspasrc-sine-so-sine-fcac, lcms, libde265dec, line21decoder, line21encoder, marble, midiparse, mirror, mmssrc, modplug, mpeg2enc, mpeg4videoparse, mpegpsdemux, mpegpsmux, mpegvideoparse, mplex, mssdemux, musepackdec, mxfdemux, mxfmux, netsim, ofa, openalsink, openalsrc, openexrdec, openjpegdec, openjpegenc, openmptdec, openni2src, opusparse, pcapparse, perspective, pinch, pitch, pngparse, pnmdec, pnmenc, proxysink, proxysrc, removesilence, rfbsrc, rgb2bayer, ristrtpdeext, ristrtpext, ristrtxreceive, ristrtxsend, ristsink, ristsrc, rotate, roundrobin, rsndvdbin, rsvgdec, rsvgoverlay, rtmp2sink, rtmp2src, rtmpsink, rtmpsrc, rtpasfpay, rtponvifparse, rtponviftimestamp, rtpsink, rtpsrc, sbcdec, sbcenc, scenechange, sctpdec, sctpenc, sdpdemux, sdpsrc, sfdec, shmsink, shmsrc, simplevideomark, simplevideomarkdetect, sirendec, sirenenc, smooth, solarize, spacescope, spanplc, spectrascope, speed, sphere, square, srtclientsink, srtclientsrc, srtenc, srtpdec, srtpenc, srtserversink, srtserversrc, srtsink, srtsrc, stretch, switchbin, synaescope, teletextdec, testsrcbin, timecodestamper, tonegeneratesrc, transcodebin, ttmlparse, ttmlrender, tunnel, twirl, uritranscodebin, uvch264mjpgdemux, uvch264src, vc1parse, videoanalyse, videodiff, videoframe-audiolevel, videoparse, videosegmentclip, viewfinderbin, vmncdec, voaacenc, voamrwbenc, watchdog, waterripple, wavescope, waylandsink, webpdec, webpenc, webrtcbin, webrtcdsp, webrtcechoprobe, webvttenc, wildmididec, wrappercamerabinsrc, x265enc, y4mdec, zbar, zebrastripe
+Gstreamer-Encoders: application/mxf; application/x-bzip; application/x-dtls; application/x-gdp; application/x-kate; application/x-rtp, media=(string){ audio, video, application }, encoding-name=(string)X-ASF-PF; application/x-sctp; application/x-subtitle; application/x-subtitle-vtt; audio/AMR-WB; audio/mpeg, mpegversion=(int)4, stream-format=(string){ adts, raw }, base-profile=(string)lc; audio/x-aiff; audio/x-gsm; audio/x-sbc, channel-mode=(string){ mono, dual, stereo, joint }, blocks=(int){ 4, 8, 12, 16 }, subbands=(int){ 4, 8 }, allocation-method=(string){ snr, loudness }, bitpool=(int)[ 2, 64 ]; audio/x-siren, dct-length=(int)320; image/jp2; image/webp; image/x-j2c, num-components=(int)[ 1, 4 ], num-stripes=(int)[ 1, 2147483647 ], sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE, YCbCrA-4:4:4:4 }, colorspace=(string){ sRGB, sYUV, GRAY }; image/x-jpc, num-components=(int)[ 1, 4 ], sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE, YCbCrA-4:4:4:4 }, colorspace=(string){ sRGB, sYUV, GRAY }; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; subtitle/x-kate; video/mpeg, systemstream=(boolean)false, mpegversion=(int){ 1, 2 }; video/mpeg, systemstream=(boolean)true; video/x-av1; video/x-h265, stream-format=(string)byte-stream, alignment=(string)au, profile=(string){ main, main-still-picture, main-intra, main-444, main-444-intra, main-444-still-picture, main-10, main-10-intra, main-422-10, main-422-10-intra, main-444-10, main-444-10-intra, main-12, main-12-intra, main-422-12, main-422-12-intra, main-444-12, main-444-12-intra }; video/x-ms-asf, parsed=(boolean)true
+Gstreamer-Uri-Sinks: rtmfp, rtmp, rtmpe, rtmps, rtmpt, rtmpte, rtmpts, rtp, srt
+Gstreamer-Uri-Sources: dvb, dvd, http, https, mms, mmsh, mmst, mmsu, rist, rtmfp, rtmp, rtmpe, rtmps, rtmpt, rtmpte, rtmpts, rtp, sdp, srt, testbin
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-base
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 3405
+Depends: libc6 (>= 2.29), libcdparanoia0 (>= 3.10.2+debian), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libogg0 (>= 1.0rc3), libopus0 (>= 1.1), liborc-0.4-0 (>= 1:0.4.25), libtheora0 (>= 1.1), libvisual-0.4-0 (>= 0.4.0), libvorbis0a (>= 1.3.1), libvorbisenc2 (>= 1.3.1)
+Suggests: gvfs
+Breaks: gstreamer1.0-plugins-bad (<< 1.15.1)
+Replaces: gstreamer1.0-plugins-bad (<< 1.15.1)
+Provides: gstreamer1.0-audiosource, gstreamer1.0-videosource
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-plugins-base_1.18.4-3_arm64.deb
+Size: 1902352
+SHA256: 7b9316a0756a76e7c8802aeb31dcf47ef29b96bc8321340354b5f923a666c5c7
+SHA1: 08f0850e8fd6b4c40a50c4fd10ecd7400e389db5
+MD5sum: 2e47ee88c420db7a96fb66da5f41c6aa
+Description: GStreamer plugins from the "base" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugins from the "base" set, an
+ essential exemplary set of elements.
+Gstreamer-Decoders: application/kate; application/ogg; application/x-ass; application/x-ogg-avi; application/x-ogm-audio; application/x-ogm-text; application/x-ogm-video; application/x-ssa; application/x-subtitle; application/x-subtitle-dks; application/x-subtitle-lrc; application/x-subtitle-mpl2; application/x-subtitle-qttext; application/x-subtitle-sami; application/x-subtitle-tmplayer; application/x-subtitle-vtt; audio/ogg; audio/x-opus, channel-mapping-family=(int)[ 1, 255 ], stream-count=(int)[ 1, 255 ], coupled-count=(int)[ 0, 255 ]; audio/x-opus, channel-mapping-family=(int)0; audio/x-unaligned-raw, format=(string){ F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }, layout=(string){ interleaved, non-interleaved }; audio/x-vorbis; video/ogg; video/x-theora; video/x-unaligned-raw, format=(string){ AYUV64, ARGB64, GBRA_12LE, GBRA_12BE, Y412_LE, Y412_BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, RGB10A2_LE, BGR10A2_LE, Y410, GBRA, ABGR, VUYA, BGRA, AYUV, ARGB, RGBA, A420, Y444_16LE, Y444_16BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, v210, UYVP, I420_10LE, I420_10BE, P010_10LE, NV12_10LE32, NV12_10LE40, P010_10BE, Y444, GBR, NV24, xBGR, BGRx, xRGB, RGBx, BGR, IYU2, v308, RGB, Y42B, NV61, NV16, VYUY, UYVY, YVYU, YUY2, I420, YV12, NV21, NV12, NV12_64Z32, NV12_4L4, NV12_32L32, Y41B, IYU1, YVU9, YUV9, RGB16, BGR16, RGB15, BGR15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE32, GRAY8 }
+Gstreamer-Elements: adder, appsink, appsrc, audioconvert, audiointerleave, audiomixer, audiorate, audioresample, audiotestsrc, cdparanoiasrc, compositor, decodebin, decodebin3, encodebin, giosink, giosrc, giostreamsink, giostreamsrc, liveadder, multifdsink, multisocketsink, oggaviparse, oggdemux, oggmux, oggparse, ogmaudioparse, ogmtextparse, ogmvideoparse, opusdec, opusenc, overlaycomposition, parsebin, playbin, playbin3, playsink, rawaudioparse, rawvideoparse, socketsrc, ssaparse, streamsynchronizer, subparse, subtitleoverlay, tcpclientsink, tcpclientsrc, tcpserversink, tcpserversrc, theoradec, theoraenc, theoraparse, unalignedaudioparse, unalignedvideoparse, uridecodebin, uridecodebin3, urisourcebin, videoconvert, videorate, videoscale, videotestsrc, volume, vorbisdec, vorbisenc, vorbisparse, vorbistag
+Gstreamer-Encoders: application/ogg; audio/ogg; audio/x-opus; audio/x-vorbis; video/ogg; video/x-theora
+Gstreamer-Uri-Sinks: appsink, file, resource
+Gstreamer-Uri-Sources: appsrc, cdda, file, resource
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-base-apps
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1450
+Depends: libc6 (>= 2.17), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.14.0), libgstreamer1.0-0 (>= 1.18.0), gstreamer1.0-tools
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: utils
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-plugins-base-apps_1.18.4-3_arm64.deb
+Size: 1378572
+SHA256: c3caa3c1dfe8061b155100b42db632ccc9f7caba98dfc6fd613597e9a7334ea9
+SHA1: 0826f8de2d59255baeb5548e4061c47d479e2cb7
+MD5sum: 2ccac27c78224e8106565ac2692606f3
+Description: GStreamer helper programs from the "base" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains helper programs from the "base" set, an essential
+ exemplary set of elements.
+
+Package: gstreamer1.0-plugins-base-apps-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 111
+Depends: gstreamer1.0-plugins-base-apps (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-plugins-base-apps-dbgsym_1.18.4-3_arm64.deb
+Size: 64720
+SHA256: 6333f5c3025452622c8d7d93d231debcef16be39bc01dbffba5ef0f7500bfb27
+SHA1: 75902c2ce9aa3c15209964d7bac7000c8bf8adab
+MD5sum: b73e3f07a36b5593cdbfc03f8945a085
+Description: debug symbols for gstreamer1.0-plugins-base-apps
+Build-Ids: 17ecb1385854c1ce60063157d31f2d6c4149e34d 343509977c33df8a3f522f4b2a96ac02decf40b0 a86a3ef388634b9f3543ef8a5ccac84ee723126d
+
+Package: gstreamer1.0-plugins-base-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 2202
+Depends: gstreamer1.0-plugins-base (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-plugins-base-dbgsym_1.18.4-3_arm64.deb
+Size: 1760328
+SHA256: bfa80a4d331e8d3cafd5627824bbc391cb9972315cc76936b5981b54e4a8162c
+SHA1: e79a9dc0eb19c6a86eb5765531875234e0d13956
+MD5sum: 597c43e7c305152a3dae954a076206a8
+Description: debug symbols for gstreamer1.0-plugins-base
+Build-Ids: 06d7c371a3f94d3a28f3aa95e736623c72ec181a 0a78a5ce5cfa34fa6c712ebb2f29a1d65abc892d 138b13d59daee425d179f0c7912ef089b1b560be 23614546625850333139327dd21cca169233cc1e 302516cef451d4225d68462c57bb434a3e85d791 33c607c78376934df476753218a5eb30a960b69b 3648291d9886470420067d98b3d6d3e204c45e8d 3cc6fa4876402cb47f26d01a7da6381251905773 4225f29d5ae237cf10d05c23e9d3d727bd1b9fa7 45fecd7cb26d4d27afc936db36b292bf2f1b3c29 48d6595c7e1aa455c60dd6e518283be7fdaa0604 675f100988a511491b59b668fe194d3b4443412f 6afa20561c66b2d8ffc6a42b38e4ca63128ce7f0 6eb1acddfd1b54aa732f3f0eda11f6ccdf516008 787e704621441a8f5004392e0851a0a455626447 82d6bd20c7973a2d3f90886a097ee356aa232b50 84eb8c132a21764073941e1ddfd8d9a13556e786 9176383942354d4bc8aa33ca32937dbf9661823a 9730302495755c5872fd83ffe12178088f5c00fd 9faaa7069b47408bc6ff4b4d96e29ff9d5c9675d 9fe2dd2cdeb459bb8e9b255bc6a6c5d2145c0da8 a35520f00175fd604eefae66409891d56d55658e a701e1f9289da72da2d0d83b451991edb8bfe751 b2248f69bdd287dd5fea80f12b4ca2d9ac3be85c b3a112baaa5d229b3678c3375cd60f7dc5b4c85e bc487146b177bb2724b4544b85b4410026f733b3 d6064cc429c9d288727d08417efb8cc151bd0383 f94b98d9c5ba0d9ea8c8a8f2be7dfe8d46ca8f4f
+Gstreamer-Decoders: application/kate; application/ogg; application/x-ass; application/x-ogg-avi; application/x-ogm-audio; application/x-ogm-text; application/x-ogm-video; application/x-ssa; application/x-subtitle; application/x-subtitle-dks; application/x-subtitle-lrc; application/x-subtitle-mpl2; application/x-subtitle-qttext; application/x-subtitle-sami; application/x-subtitle-tmplayer; application/x-subtitle-vtt; audio/ogg; audio/x-opus, channel-mapping-family=(int)[ 1, 255 ], stream-count=(int)[ 1, 255 ], coupled-count=(int)[ 0, 255 ]; audio/x-opus, channel-mapping-family=(int)0; audio/x-unaligned-raw, format=(string){ F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }, layout=(string){ interleaved, non-interleaved }; audio/x-vorbis; video/ogg; video/x-theora; video/x-unaligned-raw, format=(string){ AYUV64, ARGB64, GBRA_12LE, GBRA_12BE, Y412_LE, Y412_BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, RGB10A2_LE, BGR10A2_LE, Y410, GBRA, ABGR, VUYA, BGRA, AYUV, ARGB, RGBA, A420, Y444_16LE, Y444_16BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, v210, UYVP, I420_10LE, I420_10BE, P010_10LE, NV12_10LE32, NV12_10LE40, P010_10BE, Y444, GBR, NV24, xBGR, BGRx, xRGB, RGBx, BGR, IYU2, v308, RGB, Y42B, NV61, NV16, VYUY, UYVY, YVYU, YUY2, I420, YV12, NV21, NV12, NV12_64Z32, NV12_4L4, NV12_32L32, Y41B, IYU1, YVU9, YUV9, RGB16, BGR16, RGB15, BGR15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE32, GRAY8 }
+Gstreamer-Elements: adder, appsink, appsrc, audioconvert, audiointerleave, audiomixer, audiorate, audioresample, audiotestsrc, cdparanoiasrc, compositor, decodebin, decodebin3, encodebin, giosink, giosrc, giostreamsink, giostreamsrc, liveadder, multifdsink, multisocketsink, oggaviparse, oggdemux, oggmux, oggparse, ogmaudioparse, ogmtextparse, ogmvideoparse, opusdec, opusenc, overlaycomposition, parsebin, playbin, playbin3, playsink, rawaudioparse, rawvideoparse, socketsrc, ssaparse, streamsynchronizer, subparse, subtitleoverlay, tcpclientsink, tcpclientsrc, tcpserversink, tcpserversrc, theoradec, theoraenc, theoraparse, unalignedaudioparse, unalignedvideoparse, uridecodebin, uridecodebin3, urisourcebin, videoconvert, videorate, videoscale, videotestsrc, volume, vorbisdec, vorbisenc, vorbisparse, vorbistag
+Gstreamer-Encoders: application/ogg; audio/ogg; audio/x-opus; audio/x-vorbis; video/ogg; video/x-theora
+Gstreamer-Uri-Sinks: appsink, file, resource
+Gstreamer-Uri-Sources: appsrc, cdda, file, resource
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-good
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 7501
+Depends: libaa1 (>= 1.4p5), libavc1394-0 (>= 0.5.3), libbz2-1.0, libc6 (>= 2.29), libcaca0 (>= 0.99.beta17-1), libcairo-gobject2 (>= 1.10.0), libcairo2 (>= 1.10.0), libdv4 (>= 1.0.0), libflac8 (>= 1.3.0), libgcc-s1 (>= 3.0), libgdk-pixbuf-2.0-0 (>= 2.22.0), libglib2.0-0 (>= 2.59.2), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libgudev-1.0-0 (>= 147), libiec61883-0 (>= 1.2.0), libjack-jackd2-0 (>= 1.9.10+20150825) | libjack-0.125, libjpeg62-turbo (>= 1.3.1), libmp3lame0 (>= 3.100), libmpg123-0 (>= 1.13.7), liborc-0.4-0 (>= 1:0.4.25), libpng16-16 (>= 1.6.2-1), libpulse0 (>= 2.0), libraw1394-11 (>= 2.1.2), libshout3 (>= 2.2.2), libsoup2.4-1 (>= 2.48), libspeex1 (>= 1.2~beta3-1), libstdc++6 (>= 5), libtag1v5 (>= 1.9.1-2.2~), libtwolame0 (>= 0.3.10), libv4l-0 (>= 0.5.0), libvpx6 (>= 1.6.0), libwavpack1 (>= 4.60), libx11-6, libxdamage1 (>= 1:1.1), libxext6, libxfixes3, zlib1g (>= 1:1.1.4), gstreamer1.0-plugins-base
+Recommends: gstreamer1.0-x
+Breaks: gstreamer1.0-plugins-bad (<< 1.15.1), gstreamer1.0-plugins-ugly (<< 1.13.1), gstreamer1.0-pulseaudio (<< 1.18.0)
+Replaces: gstreamer1.0-plugins-bad (<< 1.15.1), gstreamer1.0-plugins-ugly (<< 1.13.1), gstreamer1.0-pulseaudio (<< 1.18.0)
+Provides: gstreamer1.0-audiosink, gstreamer1.0-audiosource, gstreamer1.0-videosink, gstreamer1.0-videosource, gstreamer1.0-visualization
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-plugins-good_1.18.4-3_arm64.deb
+Size: 2961908
+SHA256: 013ecdf707695faecb424b38c7587eda8c30d73114f8b12cf25d059a9d6daed1
+SHA1: 26bc7358622206b431b6f113e4900872dccf379c
+MD5sum: c60744908f750bcbe97a8e94fd489224
+Description: GStreamer plugins from the "good" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugins from the "good" set, a set
+ of good-quality plug-ins under the LGPL license.
+Gstreamer-Decoders: application/x-3gp; application/x-apetag; application/x-icy; application/x-id3; application/x-navi-animation; application/x-rtp, media=(string)audio, payload=(int)[ 96, 127 ], encoding-name=(string){ TELEPHONE-EVENT, SBC, OPUS, X-GST-OPUS-DRAFT-SPITTKA-00 }; application/x-rtp, payload=(int)[ 96, 127 ], media=(string){ audio, video }, encoding-name=(string){ X-QT, X-QUICKTIME }; application/x-rtp, media=(string)video, encoding-name=(string)RAW, sampling=(string){ RGB, RGBA, BGR, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1 }; application/x-rtp, media=(string){ video, audio, application }, encoding-name=(string)MPEG4-GENERIC, mode=(string){ generic, CELP-cbr, CELP-vbr, AAC-lbr, AAC-hbr, aac-hbr }; application/x-rtp, media=(string)video, sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCrA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE }, encoding-name=(string)JPEG2000; application/x-rtp, media=(string)video, colorspace=(string){ sRGB, sYUV, GRAY }, encoding-name=(string)JPEG2000; application/x-rtp, media=(string)video, payload=(int)31, encoding-name=(string)H261; application/x-rtp, media=(string)video, payload=(int)[ 96, 127 ], encoding-name=(string)H261; application/x-rtp, media=(string)audio, encoding-name=(string){ AMR, AMR-WB }, octet-align=(string)1; application/x-rtp, media=(string){ video, audio }, encoding-name=(string)DV, encode=(string){ SD-VCR/525-60, SD-VCR/625-50, HD-VCR/1125-60, HD-VCR/1250-50, SDL-VCR/525-60, SDL-VCR/625-50, 306M/525-60, 306M/625-50, 314M-25/525-60, 314M-25/625-50, 314M-50/525-60, 314M-50/625-50 }; application/x-rtp, media=(string)video, encoding-name=(string){ VP9, VP9-DRAFT-IETF-01, VP8, VP8-DRAFT-IETF-01, THEORA, X-SV3V-ES, X-SORENSON-VIDEO, X-SORENSONVIDEO, X-SorensonVideo, MP4V-ES, MP2T, MP2T-ES, MP1S, JPEG, H265, H264, H263, H263-1998, H263-2000, MPV }; application/x-rtp, media=(string)audio, encoding-name=(string){ VORBIS, SPEEX, SIREN, X-QDM, QCELP, MP4A-LATM, L24, L16, L8, MPA-ROBUST, X-MP3-DRAFT-00, X-MP3-DRAFT-01, X-MP3-DRAFT-02, X-MP3-DRAFT-03, X-MP3-DRAFT-04, X-MP3-DRAFT-05, X-MP3-DRAFT-06, MPA, PCMU, PCMA, GSM, G729, G726, G726-16, G726-24, G726-32, G726-40, AAL2-G726-16, AAL2-G726-24, AAL2-G726-32, AAL2-G726-40, G723, G722, ILBC, CELT, BV16, BV32, AC3 }; application/x-rtp, media=(string)audio, payload=(int){ 12, 10, 11, 14, 0, 8, 3, 18, 4, 9 }; application/x-rtp, media=(string)video, payload=(int){ 33, 26, 34, 32 }; application/x-rtp, media=(string)other, encoding-name=(string)MP1S; application/x-rtp, media=(string)application, encoding-name=(string){ SMPTE336M, X-GST }; application/x-subtitle-avi; audio/ac3; audio/mpeg, mpegversion=(int){ 1, 2, 4 }; audio/webm; audio/x-ac3; audio/x-alaw; audio/x-amr-nb-sh; audio/x-amr-wb-sh; audio/x-au; audio/x-dts; audio/x-eac3; audio/x-flac; audio/x-m4a; audio/x-matroska; audio/x-mulaw; audio/x-private1-ac3; audio/x-private1-dts; audio/x-rf64; audio/x-sbc; audio/x-speex; audio/x-wav; audio/x-wavpack; audio/x-wavpack-correction; image/bmp; image/jpeg; image/png; image/svg; image/svg+xml; image/tiff; image/vnd.wap.wbmp; image/x-MS-bmp; image/x-bitmap; image/x-bmp; image/x-cmu-raster; image/x-icon; image/x-pcx; image/x-pixmap; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; image/x-sun-raster; image/x-tga; multipart/x-mixed-replace; video/mj2; video/quicktime; video/webm; video/x-dv, systemstream=(boolean){ false, true }; video/x-fli; video/x-flv; video/x-matroska; video/x-matroska-3d; video/x-msvideo; video/x-vp8; video/x-vp9
+Gstreamer-Elements: 3gppmux, aacparse, aasink, aatv, ac3parse, agingtv, alawdec, alawenc, alpha, alphacolor, amrparse, apedemux, apev2mux, aspectratiocrop, asteriskh263, audioamplify, audiochebband, audiocheblimit, audiodynamic, audioecho, audiofirfilter, audioiirfilter, audioinvert, audiokaraoke, audiopanorama, audiowsincband, audiowsinclimit, auparse, autoaudiosink, autoaudiosrc, autovideosink, autovideosrc, avidemux, avimux, avisubtitle, breakmydata, cacasink, cacatv, cairooverlay, capssetter, cpureport, cutter, dcaparse, deinterlace, deinterleave, dicetv, dtmfsrc, dv1394src, dvdec, dvdemux, dynudpsink, edgetv, equalizer-10bands, equalizer-3bands, equalizer-nbands, flacdec, flacenc, flacparse, flactag, flvdemux, flvmux, flxdec, gamma, gdkpixbufdec, gdkpixbufoverlay, gdkpixbufsink, goom, goom2k1, hdv1394src, icydemux, id3demux, id3v2mux, imagefreeze, imagesequencesrc, interleave, ismlmux, jackaudiosink, jackaudiosrc, jpegdec, jpegenc, lamemp3enc, level, matroskademux, matroskamux, matroskaparse, mj2mux, monoscope, mp4mux, mpegaudioparse, mpg123audiodec, mulawdec, mulawenc, multifilesink, multifilesrc, multipartdemux, multipartmux, multiudpsink, navigationtest, navseek, optv, oss4sink, oss4src, osssink, osssrc, pngdec, pngenc, progressreport, pulsesink, pulsesrc, pushfilesrc, qtdemux, qtmoovrecover, qtmux, quarktv, radioactv, revtv, rganalysis, rglimiter, rgvolume, rippletv, rndbuffersize, rtpL16depay, rtpL16pay, rtpL24depay, rtpL24pay, rtpL8depay, rtpL8pay, rtpac3depay, rtpac3pay, rtpamrdepay, rtpamrpay, rtpbin, rtpbvdepay, rtpbvpay, rtpceltdepay, rtpceltpay, rtpdec, rtpdtmfdepay, rtpdtmfmux, rtpdtmfsrc, rtpdvdepay, rtpdvpay, rtpfunnel, rtpg722depay, rtpg722pay, rtpg723depay, rtpg723pay, rtpg726depay, rtpg726pay, rtpg729depay, rtpg729pay, rtpgsmdepay, rtpgsmpay, rtpgstdepay, rtpgstpay, rtph261depay, rtph261pay, rtph263depay, rtph263pay, rtph263pdepay, rtph263ppay, rtph264depay, rtph264pay, rtph265depay, rtph265pay, rtpilbcdepay, rtpilbcpay, rtpj2kdepay, rtpj2kpay, rtpjitterbuffer, rtpjpegdepay, rtpjpegpay, rtpklvdepay, rtpklvpay, rtpmp1sdepay, rtpmp2tdepay, rtpmp2tpay, rtpmp4adepay, rtpmp4apay, rtpmp4gdepay, rtpmp4gpay, rtpmp4vdepay, rtpmp4vpay, rtpmpadepay, rtpmpapay, rtpmparobustdepay, rtpmpvdepay, rtpmpvpay, rtpmux, rtpopusdepay, rtpopuspay, rtppcmadepay, rtppcmapay, rtppcmudepay, rtppcmupay, rtpptdemux, rtpqcelpdepay, rtpqdm2depay, rtpreddec, rtpredenc, rtprtxqueue, rtprtxreceive, rtprtxsend, rtpsbcdepay, rtpsbcpay, rtpsession, rtpsirendepay, rtpsirenpay, rtpspeexdepay, rtpspeexpay, rtpssrcdemux, rtpstorage, rtpstreamdepay, rtpstreampay, rtpsv3vdepay, rtptheoradepay, rtptheorapay, rtpulpfecdec, rtpulpfecenc, rtpvorbisdepay, rtpvorbispay, rtpvp8depay, rtpvp8pay, rtpvp9depay, rtpvp9pay, rtpvrawdepay, rtpvrawpay, rtpxqtdepay, rtspsrc, sbcparse, scaletempo, shagadelictv, shapewipe, shout2send, smpte, smptealpha, souphttpclientsink, souphttpsrc, spectrum, speexdec, speexenc, splitfilesrc, splitmuxsink, splitmuxsrc, stereo, streaktv, taginject, testsink, twolamemp2enc, udpsink, udpsrc, v4l2radio, v4l2sink, v4l2src, vertigotv, videobalance, videobox, videocrop, videoflip, videomedian, videomixer, vp8dec, vp8enc, vp9dec, vp9enc, warptv, wavenc, wavpackdec, wavpackenc, wavpackparse, wavparse, webmmux, ximagesrc, y4menc
+Gstreamer-Encoders: application/x-rtcp-stream; application/x-rtp; application/x-rtp-stream; application/x-srtcp-stream; application/x-srtp-stream; application/x-yuv4mpeg, y4mversion=(int)2; audio/mpeg, mpegversion=(int)1, layer=(int){ 3, 2 }; audio/webm; audio/x-alaw; audio/x-flac; audio/x-matroska; audio/x-mulaw; audio/x-rf64; audio/x-speex; audio/x-wav; audio/x-wavpack-correction, framed=(boolean)true; image/jpeg, sof-marker=(int){ 0, 1, 2, 4, 9 }; image/png; multipart/x-mixed-replace; video/mj2; video/quicktime; video/webm; video/x-flv; video/x-matroska; video/x-matroska-3d; video/x-msvideo; video/x-vp8, profile=(string){ 0, 1, 2, 3 }; video/x-vp9, profile=(string){ 0, 1, 2, 3 }
+Gstreamer-Uri-Sinks: udp
+Gstreamer-Uri-Sources: dv, hdv, http, https, icy, icyx, imagesequence, multifile, pushfile, radio, rtsp, rtsp-sdp, rtsph, rtsps, rtspsh, rtspst, rtspsu, rtspt, rtspu, splitfile, splitmux, udp, v4l2
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-good-dbgsym
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 6237
+Depends: gstreamer1.0-plugins-good (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-plugins-good-dbgsym_1.18.4-3_arm64.deb
+Size: 5056656
+SHA256: f266a3cb10e8fcef6bbda43cf49df44aaf84240686e1a88caf3582dd4ab5438f
+SHA1: 8c977c54f9587c537452e7a5f5f91b5e1ce2f45c
+MD5sum: cb3efef63b34625c883f8ae695d625a8
+Description: debug symbols for gstreamer1.0-plugins-good
+Build-Ids: 030e0f8623338a49477188d3abd2fef98548f676 037761e80bd4947395ec92f9bd46c2e139f490f7 053a3e48da2d5d2f31b6ff48f4e58c87e1cf0ccb 0e1c27a5a0bb8863936fa666764b4a2286fa5822 1234a37f4ef6502fac858b029beb4b9315615b3e 1264adbc2981b3922e7e7d4d126848383acc01ff 129b20936f60c7bc0f17a6790e5e8f859bd006ff 1529d094f015c0b89f0e4fb0bc77d64cdf6996f4 1ef2fa671ee63115b33b63b839e5d749cced32d2 2668dec9f0d73ddac958eb660619ff3e85aa6636 26cd9bbaa092b107b33472406dc90e80a375028f 297bd5da5c60f7841175a07bc7278068be83e6c7 2c956d7b9b3ac9c7181c772bf1b5d85d8594fce1 329c0bb1aad925208cc29e3372b834ba6a9b1419 3c5abefa7d0b9c7a2812c06e7acc992bec43bc1b 3d81db2918a6043a871e587bee7432a2537fa08d 3faf07c3037b37bd1117881358a0f2ca05a4506a 40859fc8ec299d0598b2ddfda9b6d9582377b6c7 43294dda2db1a91008a46b2c2d270127624f1b68 45df6c98a09b211d71140c94bfc5e0eab61b1f9e 4fca635126fe744e6cfb61995bad5cf3fddf1d66 56b9a5b1e960d8a72ed0d19ebbac6e72934cd9e3 57a57bf3f0b410496f0b69a7af01c9a8f3ccf173 589c6d57de0727eb6dca611426e10fc9b55b373a 5a4f893c606a569c1d00ee585ac63832e2d07aad 5b93e4567e62ef4d552ed070a552c53afe44c9d4 6d2b7c4cee979d710ce09a27bf7176e9173ca316 6dde6fc45507978629826f57ea9194c0a2cdb074 6ec40a6518befee7e593e1233d1498cdbbdf7417 7b284520e2d326f6e44bb44abf29d5ea94a76b2a 7b979fb98fe988079d03c48f3c77d7c69f798829 81efe51a2ff61b1528b221dfb186fca283c25ea5 82c57cba9782c9899201ef4e626b7bf881251c5f 842aaf8b721503e41eb5596d86df9925cb5b153a 8a00c0ac77c6bc9ebf3479f4e7e33a7713e9e717 93be4861c793c64b30125c76ea6ef0a76d9ebdf7 96b505193009a1e579afda85937ddf6d9d743a05 975e4089f5bd1dcb5486f47a6aa9a0d18df459f9 a64b8ab5390e70c03a138bbf48f38349f461ee91 a9e9bd383015d59ed66fd4d9ace6d5f64591c93b aa549e9b9fbf990be7095d679f6c510fa732bd2a aa64a4cfaf535bf1e8aa5e2903e7a7b26e97cb14 ac7a1436415dca03e1c08045bcc20a260efe751b b165f248a5ce3fa60b8d44a7b82ad5585ae0ea1a b1cb987250b16c03bec3383edab2b0ef2547c275 b5115b637392d419c09697adaa8333337c09047d b62d38a0c27f825100fcac3e84614b2471a42fb1 b8f16d7726ddc804391b47099e9b3e1bf9e58e27 badf8fb2112ec60aa3200f343fd59f49f36431b4 bb6255361319e865a3ee27dcb49e125f8ca15f1d c48d570b68d1a1efba988b431dd2e0d1f8e5036d c50499339af745c4b22fa46ce93a856419fd2c83 c77bd360999c44854159219d23d80cac937972d4 c7d4c1c3eadc0d655b035757b219e97bc24fa9e2 c9a2f16465fea9c3e7a85a64ed76563dcbc28ba3 cb45b76db66cba0aae60083211179c1c8ae0bb79 cbab89cf80ac3cbb0fdcc71159c9f7b94311dbd3 ccc7f3e675aef90688d48f1639af761e25f2334c cf3ea30b3ee8d606010266251851dbc9beb21fcf d3fd63295bb7cddd846a12968c57af6fa10d4f8a d755170f62cce85130d638d991a109dd5eba894e dc975a77d38a947c3f8ebd69ca13ad684fe8a57d dd03e90400469d9668e268925273135b5f64ee9b ddde1c453203bce6a7b8dee1f809d46ab7d2172a dfaf19de6183f169fbbca7ba554f9fa067f2bc19 e0f9d3c71888aa01116851b4d4a5a0b4e207ae71 e5f8da3e3ff832e985afd2a868d4108ac3b717b0 eec2a028cfc097bd36cdd29b02dfbb208748c2ec ef1bc2978c35fc879b54f460fe149444bc9cb4e9 f9776469d47f07649a4455b00ca5547cde2a5c45
+Gstreamer-Decoders: application/x-3gp; application/x-apetag; application/x-icy; application/x-id3; application/x-navi-animation; application/x-rtp, media=(string)audio, payload=(int)[ 96, 127 ], encoding-name=(string){ TELEPHONE-EVENT, SBC, OPUS, X-GST-OPUS-DRAFT-SPITTKA-00 }; application/x-rtp, payload=(int)[ 96, 127 ], media=(string){ audio, video }, encoding-name=(string){ X-QT, X-QUICKTIME }; application/x-rtp, media=(string)video, encoding-name=(string)RAW, sampling=(string){ RGB, RGBA, BGR, BGRA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1 }; application/x-rtp, media=(string){ video, audio, application }, encoding-name=(string)MPEG4-GENERIC, mode=(string){ generic, CELP-cbr, CELP-vbr, AAC-lbr, AAC-hbr, aac-hbr }; application/x-rtp, media=(string)video, sampling=(string){ RGB, BGR, RGBA, BGRA, YCbCrA, YCbCr-4:4:4, YCbCr-4:2:2, YCbCr-4:2:0, YCbCr-4:1:1, GRAYSCALE }, encoding-name=(string)JPEG2000; application/x-rtp, media=(string)video, colorspace=(string){ sRGB, sYUV, GRAY }, encoding-name=(string)JPEG2000; application/x-rtp, media=(string)video, payload=(int)31, encoding-name=(string)H261; application/x-rtp, media=(string)video, payload=(int)[ 96, 127 ], encoding-name=(string)H261; application/x-rtp, media=(string)audio, encoding-name=(string){ AMR, AMR-WB }, octet-align=(string)1; application/x-rtp, media=(string){ video, audio }, encoding-name=(string)DV, encode=(string){ SD-VCR/525-60, SD-VCR/625-50, HD-VCR/1125-60, HD-VCR/1250-50, SDL-VCR/525-60, SDL-VCR/625-50, 306M/525-60, 306M/625-50, 314M-25/525-60, 314M-25/625-50, 314M-50/525-60, 314M-50/625-50 }; application/x-rtp, media=(string)video, encoding-name=(string){ VP9, VP9-DRAFT-IETF-01, VP8, VP8-DRAFT-IETF-01, THEORA, X-SV3V-ES, X-SORENSON-VIDEO, X-SORENSONVIDEO, X-SorensonVideo, MP4V-ES, MP2T, MP2T-ES, MP1S, JPEG, H265, H264, H263, H263-1998, H263-2000, MPV }; application/x-rtp, media=(string)audio, encoding-name=(string){ VORBIS, SPEEX, SIREN, X-QDM, QCELP, MP4A-LATM, L24, L16, L8, MPA-ROBUST, X-MP3-DRAFT-00, X-MP3-DRAFT-01, X-MP3-DRAFT-02, X-MP3-DRAFT-03, X-MP3-DRAFT-04, X-MP3-DRAFT-05, X-MP3-DRAFT-06, MPA, PCMU, PCMA, GSM, G729, G726, G726-16, G726-24, G726-32, G726-40, AAL2-G726-16, AAL2-G726-24, AAL2-G726-32, AAL2-G726-40, G723, G722, ILBC, CELT, BV16, BV32, AC3 }; application/x-rtp, media=(string)audio, payload=(int){ 12, 10, 11, 14, 0, 8, 3, 18, 4, 9 }; application/x-rtp, media=(string)video, payload=(int){ 33, 26, 34, 32 }; application/x-rtp, media=(string)other, encoding-name=(string)MP1S; application/x-rtp, media=(string)application, encoding-name=(string){ SMPTE336M, X-GST }; application/x-subtitle-avi; audio/ac3; audio/mpeg, mpegversion=(int){ 1, 2, 4 }; audio/webm; audio/x-ac3; audio/x-alaw; audio/x-amr-nb-sh; audio/x-amr-wb-sh; audio/x-au; audio/x-dts; audio/x-eac3; audio/x-flac; audio/x-m4a; audio/x-matroska; audio/x-mulaw; audio/x-private1-ac3; audio/x-private1-dts; audio/x-rf64; audio/x-sbc; audio/x-speex; audio/x-wav; audio/x-wavpack; audio/x-wavpack-correction; image/bmp; image/jpeg; image/png; image/svg; image/svg+xml; image/tiff; image/vnd.wap.wbmp; image/x-MS-bmp; image/x-bitmap; image/x-bmp; image/x-cmu-raster; image/x-icon; image/x-pcx; image/x-pixmap; image/x-portable-anymap; image/x-portable-bitmap; image/x-portable-graymap; image/x-portable-pixmap; image/x-sun-raster; image/x-tga; multipart/x-mixed-replace; video/mj2; video/quicktime; video/webm; video/x-dv, systemstream=(boolean){ false, true }; video/x-fli; video/x-flv; video/x-matroska; video/x-matroska-3d; video/x-msvideo; video/x-vp8; video/x-vp9
+Gstreamer-Elements: 3gppmux, aacparse, aasink, aatv, ac3parse, agingtv, alawdec, alawenc, alpha, alphacolor, amrparse, apedemux, apev2mux, aspectratiocrop, asteriskh263, audioamplify, audiochebband, audiocheblimit, audiodynamic, audioecho, audiofirfilter, audioiirfilter, audioinvert, audiokaraoke, audiopanorama, audiowsincband, audiowsinclimit, auparse, autoaudiosink, autoaudiosrc, autovideosink, autovideosrc, avidemux, avimux, avisubtitle, breakmydata, cacasink, cacatv, cairooverlay, capssetter, cpureport, cutter, dcaparse, deinterlace, deinterleave, dicetv, dtmfsrc, dv1394src, dvdec, dvdemux, dynudpsink, edgetv, equalizer-10bands, equalizer-3bands, equalizer-nbands, flacdec, flacenc, flacparse, flactag, flvdemux, flvmux, flxdec, gamma, gdkpixbufdec, gdkpixbufoverlay, gdkpixbufsink, goom, goom2k1, hdv1394src, icydemux, id3demux, id3v2mux, imagefreeze, imagesequencesrc, interleave, ismlmux, jackaudiosink, jackaudiosrc, jpegdec, jpegenc, lamemp3enc, level, matroskademux, matroskamux, matroskaparse, mj2mux, monoscope, mp4mux, mpegaudioparse, mpg123audiodec, mulawdec, mulawenc, multifilesink, multifilesrc, multipartdemux, multipartmux, multiudpsink, navigationtest, navseek, optv, oss4sink, oss4src, osssink, osssrc, pngdec, pngenc, progressreport, pulsesink, pulsesrc, pushfilesrc, qtdemux, qtmoovrecover, qtmux, quarktv, radioactv, revtv, rganalysis, rglimiter, rgvolume, rippletv, rndbuffersize, rtpL16depay, rtpL16pay, rtpL24depay, rtpL24pay, rtpL8depay, rtpL8pay, rtpac3depay, rtpac3pay, rtpamrdepay, rtpamrpay, rtpbin, rtpbvdepay, rtpbvpay, rtpceltdepay, rtpceltpay, rtpdec, rtpdtmfdepay, rtpdtmfmux, rtpdtmfsrc, rtpdvdepay, rtpdvpay, rtpfunnel, rtpg722depay, rtpg722pay, rtpg723depay, rtpg723pay, rtpg726depay, rtpg726pay, rtpg729depay, rtpg729pay, rtpgsmdepay, rtpgsmpay, rtpgstdepay, rtpgstpay, rtph261depay, rtph261pay, rtph263depay, rtph263pay, rtph263pdepay, rtph263ppay, rtph264depay, rtph264pay, rtph265depay, rtph265pay, rtpilbcdepay, rtpilbcpay, rtpj2kdepay, rtpj2kpay, rtpjitterbuffer, rtpjpegdepay, rtpjpegpay, rtpklvdepay, rtpklvpay, rtpmp1sdepay, rtpmp2tdepay, rtpmp2tpay, rtpmp4adepay, rtpmp4apay, rtpmp4gdepay, rtpmp4gpay, rtpmp4vdepay, rtpmp4vpay, rtpmpadepay, rtpmpapay, rtpmparobustdepay, rtpmpvdepay, rtpmpvpay, rtpmux, rtpopusdepay, rtpopuspay, rtppcmadepay, rtppcmapay, rtppcmudepay, rtppcmupay, rtpptdemux, rtpqcelpdepay, rtpqdm2depay, rtpreddec, rtpredenc, rtprtxqueue, rtprtxreceive, rtprtxsend, rtpsbcdepay, rtpsbcpay, rtpsession, rtpsirendepay, rtpsirenpay, rtpspeexdepay, rtpspeexpay, rtpssrcdemux, rtpstorage, rtpstreamdepay, rtpstreampay, rtpsv3vdepay, rtptheoradepay, rtptheorapay, rtpulpfecdec, rtpulpfecenc, rtpvorbisdepay, rtpvorbispay, rtpvp8depay, rtpvp8pay, rtpvp9depay, rtpvp9pay, rtpvrawdepay, rtpvrawpay, rtpxqtdepay, rtspsrc, sbcparse, scaletempo, shagadelictv, shapewipe, shout2send, smpte, smptealpha, souphttpclientsink, souphttpsrc, spectrum, speexdec, speexenc, splitfilesrc, splitmuxsink, splitmuxsrc, stereo, streaktv, taginject, testsink, twolamemp2enc, udpsink, udpsrc, v4l2radio, v4l2sink, v4l2src, vertigotv, videobalance, videobox, videocrop, videoflip, videomedian, videomixer, vp8dec, vp8enc, vp9dec, vp9enc, warptv, wavenc, wavpackdec, wavpackenc, wavpackparse, wavparse, webmmux, ximagesrc, y4menc
+Gstreamer-Encoders: application/x-rtcp-stream; application/x-rtp; application/x-rtp-stream; application/x-srtcp-stream; application/x-srtp-stream; application/x-yuv4mpeg, y4mversion=(int)2; audio/mpeg, mpegversion=(int)1, layer=(int){ 3, 2 }; audio/webm; audio/x-alaw; audio/x-flac; audio/x-matroska; audio/x-mulaw; audio/x-rf64; audio/x-speex; audio/x-wav; audio/x-wavpack-correction, framed=(boolean)true; image/jpeg, sof-marker=(int){ 0, 1, 2, 4, 9 }; image/png; multipart/x-mixed-replace; video/mj2; video/quicktime; video/webm; video/x-flv; video/x-matroska; video/x-matroska-3d; video/x-msvideo; video/x-vp8, profile=(string){ 0, 1, 2, 3 }; video/x-vp9, profile=(string){ 0, 1, 2, 3 }
+Gstreamer-Uri-Sinks: udp
+Gstreamer-Uri-Sources: dv, hdv, http, https, icy, icyx, imagesequence, multifile, pushfile, radio, rtsp, rtsp-sdp, rtsph, rtsps, rtspsh, rtspst, rtspsu, rtspt, rtspu, splitfile, splitmux, udp, v4l2
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-ugly
+Source: gst-plugins-ugly1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-ugly1.0@packages.debian.org>
+Installed-Size: 813
+Depends: libc6 (>= 2.17), libcdio19 (>= 2.1.0), libdvdread8 (>= 4.1.3), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libmpeg2-4 (>= 0.5.1), libopencore-amrnb0 (>= 0.1.5), libopencore-amrwb0 (>= 0.1.5), libsidplay1v5, libstdc++6 (>= 5), libx264-160 (>= 2:0.160.3011+gitcde9a93)
+Conflicts: gstreamer1.0-plugins-ugly-amr (<< 1.11.91)
+Breaks: gstreamer1.0-plugins-bad (<< 1.7.2)
+Replaces: gstreamer1.0-plugins-bad (<< 1.7.2), gstreamer1.0-plugins-ugly-amr (<< 1.11.91)
+Provides: gstreamer1.0-plugins-ugly-amr
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-ugly1.0/gstreamer1.0-plugins-ugly_1.18.4-3_arm64.deb
+Size: 327408
+SHA256: 6a62e45696dd85d353ea9e8dfb436c1b7d61cfece3606a03a9ed4040897946df
+SHA1: cf40aa8aeba7bd93b890a5988c61d44b26d77442
+MD5sum: 652ed73535a488b0e40fbe776e37d464
+Description: GStreamer plugins from the "ugly" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains plugins from the "ugly" set, a set of
+ good-quality plug-ins that might pose distribution problems.
+Gstreamer-Decoders: application/x-rtp, media=(string){ application, video, audio }, payload=(int)[ 96, 127 ], encoding-name=(string)X-ASF-PF; audio/AMR; audio/AMR-WB; audio/x-lpcm; audio/x-private-ts-lpcm; audio/x-private1-lpcm; audio/x-private2-lpcm; audio/x-sid; video/mpeg, mpegversion=(int)[ 1, 2 ], systemstream=(boolean)false; video/x-ms-asf
+Gstreamer-Elements: amrnbdec, amrnbenc, amrwbdec, asfdemux, cdiocddasrc, dvdlpcmdec, dvdreadsrc, dvdsubdec, dvdsubparse, mpeg2dec, rtpasfdepay, rtspwms, siddec, x264enc, xingmux
+Gstreamer-Encoders: audio/AMR; audio/mpeg, mpegversion=(int)1, layer=(int)[ 1, 3 ]; video/x-h264, stream-format=(string){ avc, byte-stream }, alignment=(string)au, profile=(string){ high-4:4:4, high-4:2:2, high-10, high, main, baseline, constrained-baseline, high-4:4:4-intra, high-4:2:2-intra, high-10-intra }
+Gstreamer-Uri-Sources: cdda, dvd
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-plugins-ugly-dbgsym
+Source: gst-plugins-ugly1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-ugly1.0@packages.debian.org>
+Installed-Size: 500
+Depends: gstreamer1.0-plugins-ugly (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-ugly-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-ugly-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-ugly1.0/gstreamer1.0-plugins-ugly-dbgsym_1.18.4-3_arm64.deb
+Size: 366552
+SHA256: 6d85b6d6791c43a03750848bf4e71c127fc42768226e87958ad1a8c218bb4cf1
+SHA1: 1a70a3b63faba0ccdd0ca362f1457a7933f3a7cd
+MD5sum: ba54beebb5b8a49813b72997330684f0
+Description: debug symbols for gstreamer1.0-plugins-ugly
+Build-Ids: 0ef483269507a7a18c694f7a4a3dc9f67da868b2 103a26a811d1465050e5b6c56540ce3eb405ee7b 17ef1bdc01d0024f5cb87f681fd8e7eedbba6ec5 5bab194c26ed0e9737e2604bff71849dec633b4b 5edbb06ddcb447d54fa0d13882d59bd6dbf93654 6a1c2f11ff999842168237dd30615c8fd9ebdb53 6fbf09dbe2c4696a7de06b5f77295c55bc2ab206 9558e8f4f6ed7abc666db4ccd758e643887135cb a6da14167c262a70b8a4d1882f377714280b3d40 b33b3a2f19d52d14c8cf6373bf1ad22faa7f3fa0 fd16c47debf0bf0a4d55cddf710f4cb3120b8725
+Gstreamer-Decoders: application/x-rtp, media=(string){ application, video, audio }, payload=(int)[ 96, 127 ], encoding-name=(string)X-ASF-PF; audio/AMR; audio/AMR-WB; audio/x-lpcm; audio/x-private-ts-lpcm; audio/x-private1-lpcm; audio/x-private2-lpcm; audio/x-sid; video/mpeg, mpegversion=(int)[ 1, 2 ], systemstream=(boolean)false; video/x-ms-asf
+Gstreamer-Elements: amrnbdec, amrnbenc, amrwbdec, asfdemux, cdiocddasrc, dvdlpcmdec, dvdreadsrc, dvdsubdec, dvdsubparse, mpeg2dec, rtpasfdepay, rtspwms, siddec, x264enc, xingmux
+Gstreamer-Encoders: audio/AMR; audio/mpeg, mpegversion=(int)1, layer=(int)[ 1, 3 ]; video/x-h264, stream-format=(string){ avc, byte-stream }, alignment=(string)au, profile=(string){ high-4:4:4, high-4:2:2, high-10, high, main, baseline, constrained-baseline, high-4:4:4-intra, high-4:2:2-intra, high-10-intra }
+Gstreamer-Uri-Sources: cdda, dvd
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-pulseaudio
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 1379
+Depends: gstreamer1.0-plugins-good (>= 1.18.0)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: sound
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-pulseaudio_1.18.4-3_arm64.deb
+Size: 1360324
+SHA256: 100a0b92f74e14d50dd0f34f05879829901834301bc605b0524a7804dcb58388
+SHA1: 4ceb37c3db45ebbf7f6249bdef00d511f0428056
+MD5sum: a98a3addeb10737161a663e033292584
+Description: GStreamer plugin for PulseAudio (transitional package)
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package used to contain the GStreamer plugin for PulseAudio, a
+ sound server for POSIX and WIN32 systems.
+ .
+ This is a transitional package.
+
+Package: gstreamer1.0-qt5
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 1545
+Depends: libc6 (>= 2.17), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.44), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libqt5core5a (>= 5.6.0~beta), libqt5gui5 (>= 5.4.0) | libqt5gui5-gles (>= 5.4.0), libqt5qml5 (>= 5.0.2), libqt5quick5 (>= 5.15.1) | libqt5quick5-gles (>= 5.15.1), libqt5x11extras5 (>= 5.6.0), libstdc++6 (>= 4.1.1)
+Breaks: gstreamer1.0-plugins-bad (<< 1.13.1)
+Replaces: gstreamer1.0-plugins-bad (<< 1.13.1)
+Provides: gstreamer1.0-videosink, gstreamer1.0-videosource
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: graphics
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-qt5_1.18.4-3_arm64.deb
+Size: 1402236
+SHA256: c7816c07a33d62e3d2417e4432a391ad50561fd910653b9cca9b9d7b7bd72258
+SHA1: 8a768b58722f0347bba1c9728b57a2981e508eee
+MD5sum: 0024f3018079a173a2058ae121ac543c
+Description: GStreamer plugin for Qt5
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugin for Qt5.
+Gstreamer-Elements: qmlgloverlay, qmlglsink, qmlglsrc
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-qt5-dbgsym
+Source: gst-plugins-good1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-good1.0@packages.debian.org>
+Installed-Size: 1087
+Depends: gstreamer1.0-qt5 (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-good-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-good1.0/gstreamer1.0-qt5-dbgsym_1.18.4-3_arm64.deb
+Size: 1057868
+SHA256: c73a866a034483f8bbb2eb5ae7d5678f7ecbfc06b950a25d9f501e2003cb591d
+SHA1: b9eb5720b24307faf8446d4a1846db4ab6d95157
+MD5sum: c17ad85c7df2a244fe002659b5c0d514
+Description: debug symbols for gstreamer1.0-qt5
+Build-Ids: 22e05afd6a63cbab9db5dc86b69f6b0ef1f89b30
+Gstreamer-Elements: qmlgloverlay, qmlglsink, qmlglsrc
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-wpe
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 1980
+Depends: libc6 (>= 2.17), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.44), libgstreamer-gl1.0-0 (>= 1.18.0), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libstdc++6 (>= 5), libwayland-server0 (>= 1.11.0), libwpe-1.0-1 (>= 1.3.0), libwpebackend-fdo-1.0-1 (>= 1.8.0), libwpewebkit-1.0-3 (>= 2.28.0), libxkbcommon0 (>= 0.5.0), gstreamer1.0-plugins-base, libgstreamer-plugins-bad1.0-0 (= 1.18.4-5)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-wpe_1.18.4-5_arm64.deb
+Size: 1923488
+SHA256: 1c59a1be83bf8cffe07fb79001e06263fb3d190f0860caab80545c31ee8ae14f
+SHA1: 18bfd5ff17e572c1dbd83c297b0438d5ce66897f
+MD5sum: ad1b3b941c639cc34a6ecdd35aef76db
+Description: GStreamer WPEWebKit plugin
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains the WPEWebKit plugin.
+Gstreamer-Elements: wpesrc
+Gstreamer-Uri-Sources: wpe
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-wpe-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 116
+Depends: gstreamer1.0-wpe (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/gstreamer1.0-wpe-dbgsym_1.18.4-5_arm64.deb
+Size: 94496
+SHA256: 27c3254c098ed538459f9f26d1f783568377be53f5d3fb8ed36c5e04dece539d
+SHA1: 0d29b12ebc2764e0992abad5388ff5c196084f71
+MD5sum: 987d719cf3345ee13d879a2ad45a96da
+Description: debug symbols for gstreamer1.0-wpe
+Build-Ids: 47d9b7487aea9e6848b8249a488fb7b19b7947af
+Gstreamer-Elements: wpesrc
+Gstreamer-Uri-Sources: wpe
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-x
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1580
+Depends: libc6 (>= 2.17), libcairo2 (>= 1.2.4), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libpango-1.0-0 (>= 1.22.0), libpangocairo-1.0-0 (>= 1.22), libx11-6, libxext6, libxv1
+Provides: gstreamer1.0-videosink
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-x_1.18.4-3_arm64.deb
+Size: 1415780
+SHA256: fbfe548dca628d12af8297a0de6635b998cbb73e1e8f6a6a65518ab5afcec0f8
+SHA1: fc347c17464d882efe947549a4f6a9b118a95f65
+MD5sum: a67db28482387f80c8e8d7c1dc46c0af
+Description: GStreamer plugins for X11 and Pango
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GStreamer plugins for X11 video output, both
+ for standard Xlib support and for the Xv extension, as well as the
+ plugin for Pango-based text rendering and overlay.
+Gstreamer-Elements: clockoverlay, textoverlay, textrender, timeoverlay, ximagesink, xvimagesink
+Gstreamer-Version: 1.18
+
+Package: gstreamer1.0-x-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 260
+Depends: gstreamer1.0-x (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/gstreamer1.0-x-dbgsym_1.18.4-3_arm64.deb
+Size: 195944
+SHA256: dc10ffbaa9e80bfe44baa7c33ac79c09b8ac7eb535f87da9f1cffa828dc01d87
+SHA1: f6c588cd3ecafbd655599f9ea36193084a32329a
+MD5sum: 1df187dd3a453dc467bd2859bc243de6
+Description: debug symbols for gstreamer1.0-x
+Build-Ids: 48e5420aa6416913836235b5304c676332a1d251 bb1f01b8137e482458cdbdda7b162f90e7e5f725 cd3cbe7e360d0f81d6ca9039e3b69af43319ddfb
+Gstreamer-Elements: clockoverlay, textoverlay, textrender, timeoverlay, ximagesink, xvimagesink
+Gstreamer-Version: 1.18
+
+Package: libgstreamer-gl1.0-0
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 1864
+Depends: libc6 (>= 2.17), libdrm2 (>= 2.4.17), libgl1, libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libgudev-1.0-0 (>= 165), libwayland-client0 (>= 1.11.0), libwayland-cursor0 (>= 1.11), libx11-6, libx11-xcb1 (>= 2:1.7.2), libxcb1, rockchip-mali
+Recommends: gstreamer1.0-gl
+Breaks: libgstreamer-plugins-bad1.0-0 (<< 1.13.1)
+Replaces: libgstreamer-plugins-bad1.0-0 (<< 1.13.1)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/libgstreamer-gl1.0-0_1.18.4-3_arm64.deb
+Size: 1501132
+SHA256: b6d678ea268d1b65810cf78786f1a00e8b3cc359d8a2fada8a80d7de2c2278ab
+SHA1: 2861307adbc6f7fa1f194c9a6e7ab90870e12aca
+MD5sum: 754fdb21fe6caeca12dfcf409ca2875d
+Description: GStreamer GL libraries
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains the GL library.
+
+Package: libgstreamer-gl1.0-0-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 569
+Depends: libgstreamer-gl1.0-0 (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/libgstreamer-gl1.0-0-dbgsym_1.18.4-3_arm64.deb
+Size: 484452
+SHA256: f1371567002b88f9f71a25107ad888ac86a0482fbd905d43ff7472f862ad2c75
+SHA1: a62def8ce34a72eeb14bb1c4accd22de25aef8bb
+MD5sum: d9750b1427b21d21364a1f175a611b7a
+Description: debug symbols for libgstreamer-gl1.0-0
+Build-Ids: 07ad820e3b94a23af60b92ad9e3631877abc5cb7
+
+Package: libgstreamer-opencv1.0-0
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 1953
+Depends: libc6 (>= 2.17), libgcc-s1 (>= 3.0), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0), libopencv-core4.5 (>= 4.5.1+dfsg), libstdc++6 (>= 4.1.1)
+Conflicts: libgstreamer-plugins-bad1.0-0 (<< 1.13.1)
+Replaces: libgstreamer-plugins-bad1.0-0 (<< 1.13.1)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-bad1.0/libgstreamer-opencv1.0-0_1.18.4-5_arm64.deb
+Size: 1914640
+SHA256: 95650cd29fd724bcd29bfc590ef72a20c7273f9ac3355e31b7af71d8235784b6
+SHA1: 40718222adbc7399ac25a1b50da76cb2d613f4c7
+MD5sum: d1d830c37f51f904b5a508b01b71f5a4
+Description: GStreamer OpenCV libraries
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains shared GStreamer libraries for OpenCV.
+
+Package: libgstreamer-opencv1.0-0-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 90
+Depends: libgstreamer-opencv1.0-0 (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/libgstreamer-opencv1.0-0-dbgsym_1.18.4-5_arm64.deb
+Size: 76764
+SHA256: c2444440b49519045ffa7d4a1f9fc0488955ae54bee313a6c9953b091eec8f10
+SHA1: 0e7e6b276bd423d94f7236b5aeaf59d572d4fe9d
+MD5sum: b4e69ca8bc2d6d2358bb55a65e977f61
+Description: debug symbols for libgstreamer-opencv1.0-0
+Build-Ids: 698b05479ffd2d23e86f7079f1b38e2f4240cd73
+
+Package: libgstreamer-plugins-bad1.0-0
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 3203
+Depends: libc6 (>= 2.29), libglib2.0-0 (>= 2.44), libgstreamer-plugins-base1.0-0 (>= 1.18.0), libgstreamer1.0-0 (>= 1.18.0)
+Conflicts: pitivi (<< 0.9999)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-bad1.0/libgstreamer-plugins-bad1.0-0_1.18.4-5_arm64.deb
+Size: 2246956
+SHA256: 75f3d9eb894fb457c2998691c08e6891f1eb9af51bc109e9cb59716af908d9ce
+SHA1: 1459ac4f2a53898027eafbe4e8d901308b5e3569
+MD5sum: 44d135016eb44900181f586c072a9d9e
+Description: GStreamer libraries from the "bad" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains shared GStreamer libraries from the "bad" set. The API
+ is not guaranteed to be stable.
+
+Package: libgstreamer-plugins-bad1.0-0-dbgsym
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 1419
+Depends: libgstreamer-plugins-bad1.0-0 (= 1.18.4-5)
+Breaks: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-bad-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-bad1.0/libgstreamer-plugins-bad1.0-0-dbgsym_1.18.4-5_arm64.deb
+Size: 1189048
+SHA256: ac02104503a34458efe86b893ee6c86776ac7594a04a7f93dc79b7ada35e4970
+SHA1: 988518a441b1d9fbe9452881f99ecbc78eb62dd8
+MD5sum: ef0af4e3f49ab4106498950ef036fbdd
+Description: debug symbols for libgstreamer-plugins-bad1.0-0
+Build-Ids: 03ab388dc5d8c2f986ed6f5b720bdb1dc36152fb 19662db3f43441047cbf6e67006cdc25dacd4ba8 2520b935aefa0a8f550e08e6b8038e7f2dc919b6 4754f5a2cd854cbce3e979e9fe6088f77561c582 547c8f2b648856107bfda4fa61dc6847827a2f5d 62b2bde6c45a75c31d7443aecac8d5b5bc940428 6c24f4e7dc3ec8c1da75ad482a2888d56084c450 88370fd6a50ebfcdac72ad99f499145f73f76da0 9fd3b8d54c0c94ded915e37219d724aa68f596c4 aa82002cd06e2a868ac4f0a7530a6ebb28864467 ca885736fe90afca5616537ebf032bf03058228b ce15c0df32e414073e7909344c2f2b3f787af696 d01344f3a522cce4be5833c20e906f09a774b66c e89bd983d726d6d40276034b9d43a23d1a1195bd f39f84c3437068ddc3ba957d5e8d26f541c5d782
+
+Package: libgstreamer-plugins-bad1.0-dev
+Source: gst-plugins-bad1.0
+Version: 1.18.4-5
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-bad1.0@packages.debian.org>
+Installed-Size: 3495
+Depends: libgstreamer-plugins-bad1.0-0 (= 1.18.4-5), libgstreamer-opencv1.0-0 (= 1.18.4-5), libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, gir1.2-gst-plugins-bad-1.0 (= 1.18.4-5), libopencv-dev (>= 2.3.0)
+Conflicts: pitivi (<< 0.9999)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libdevel
+Filename: pool/main/g/gst-plugins-bad1.0/libgstreamer-plugins-bad1.0-dev_1.18.4-5_arm64.deb
+Size: 2060204
+SHA256: 1c7bd023683370837477e64472da582473a2c32206994f18302c64ae0b174892
+SHA1: 2226ca4da258e44deb8cdf8eaa310887cf140bb2
+MD5sum: dd53617c3e93b6bb3243e2abb52e345c
+Description: GStreamer development files for libraries from the "bad" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ GStreamer Bad Plug-ins is a set of plug-ins that aren't up to par compared
+ to the rest. They might be close to being good quality, but they're missing
+ something - be it a good code review, some documentation, a set of tests, a
+ real live maintainer, or some actual wide use.
+ .
+ This package contains development files for GStreamer libraries from the
+ "bad" set. The API is not guaranteed to be stable.
+
+Package: libgstreamer-plugins-base1.0-0
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 4354
+Depends: libc6 (>= 2.29), libglib2.0-0 (>= 2.59.2), libgstreamer1.0-0 (>= 1.18.0), liborc-0.4-0 (>= 1:0.4.25), rockchip-rga, zlib1g (>= 1:1.1.4), iso-codes
+Recommends: gstreamer1.0-plugins-base
+Suggests: libvisual-0.4-plugins
+Conflicts: libgstreamer-plugins-bad1.0-0 (<< 1.15.1)
+Breaks: gstreamer1.0-plugins-bad (<< 1.15.1), libgstreamer-plugins-bad1.0-0 (<< 1.15.1), totem-gstreamer (<= 2.17.92-0ubuntu1)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libs
+Filename: pool/main/g/gst-plugins-base1.0/libgstreamer-plugins-base1.0-0_1.18.4-3_arm64.deb
+Size: 2077376
+SHA256: c1a1652474987034b4e654264782c93f6ff625c959df8b1f93d9431374a6b7d4
+SHA1: 469f5fc53f6e24b2cbaa3a9b3cb221c0b0bd0739
+MD5sum: 3087bb0785d111a4918e13e3d3b5aa1c
+Description: GStreamer libraries from the "base" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains libraries from the "base" set, an essential
+ exemplary set of elements.
+
+Package: libgstreamer-plugins-base1.0-0-dbgsym
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 2429
+Depends: libgstreamer-plugins-base1.0-0 (= 1.18.4-3)
+Breaks: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Replaces: gstreamer1.0-plugins-base-dbg (<< 1.17.1-1~)
+Multi-Arch: same
+Priority: optional
+Section: debug
+Filename: pool/main/g/gst-plugins-base1.0/libgstreamer-plugins-base1.0-0-dbgsym_1.18.4-3_arm64.deb
+Size: 2070592
+SHA256: 4b2229d65acaf31c69f797903f1f4235860e8cac2f786101d6dc3e518f1869b4
+SHA1: b004ae778b1a10c2ad11acb75db94af29c260b24
+MD5sum: 09257028e9b472602bf9061089b79c2c
+Description: debug symbols for libgstreamer-plugins-base1.0-0
+Build-Ids: 319a0dd9b12676e7df544c36bc25cd4f21d4794c 5292621efc923586a19ad3a5770b493a64ca3e84 5324a1df3c909e1d0e5c96092bbb68b03d66a387 56b84b8df4847d031b4e1efca28d41d40f08c4c2 83258a00253cde440e469b63e073dff5bc4fd34e 9448a20e0fd7af526f16cf13b3ae5c0e1d402255 ac670aa477964d7206870dc7b81cddef79f22f59 bcf544a4b908598c30603d7d2edf154dac711641 c1d0ad9c59c4d92f29fb11ffb6ef43edc93affa6 c7daa3e1c7875fab7568223c20d8a8d6a987fe9c e8b8b877c9ff6d1a3ef76d6acc31b58b3c3a9163
+
+Package: libgstreamer-plugins-base1.0-dev
+Source: gst-plugins-base1.0
+Version: 1.18.4-3
+Architecture: arm64
+Maintainer: Maintainers of GStreamer packages <gst-plugins-base1.0@packages.debian.org>
+Installed-Size: 6787
+Depends: libgstreamer-plugins-base1.0-0 (= 1.18.4-3), libgstreamer-gl1.0-0 (= 1.18.4-3), libc6-dev | libc-dev, pkg-config, libgstreamer1.0-dev (>= 1.16.2), libglib2.0-dev, liborc-0.4-dev (>= 1:0.4.24), libgl-dev, libegl-dev, libgles-dev, libx11-xcb-dev, libwayland-dev (>= 1.11), gir1.2-gst-plugins-base-1.0 (= 1.18.4-3)
+Conflicts: libgstreamer-plugins-bad1.0-dev (<< 1.15.1)
+Breaks: libgstreamer-plugins-bad1.0-dev (<< 1.15.1)
+Multi-Arch: same
+Homepage: https://gstreamer.freedesktop.org
+Priority: optional
+Section: libdevel
+Filename: pool/main/g/gst-plugins-base1.0/libgstreamer-plugins-base1.0-dev_1.18.4-3_arm64.deb
+Size: 1762440
+SHA256: 553f45dccccfad94f5cc84bf990ac49e6c998c2fc63f577fca93cc0ad2ad46ad
+SHA1: 8ca07b5b4494639a7d1272290fb64b54dc3de4d5
+MD5sum: c08ae70d3c3b636b7471144e77889c32
+Description: GStreamer development files for libraries from the "base" set
+ GStreamer is a streaming media framework, based on graphs of filters
+ which operate on media data.  Applications using this library can do
+ anything from real-time sound processing to playing videos, and just
+ about anything else media-related.  Its plugin-based architecture means
+ that new data types or processing capabilities can be added simply by
+ installing new plug-ins.
+ .
+ This package contains development files for GStreamer libraries from
+ the "base" set, an essential exemplary set of elements.
+

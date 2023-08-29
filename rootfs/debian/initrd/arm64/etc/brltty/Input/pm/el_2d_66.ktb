@@ -1,0 +1,4 @@
+title Papenmeier BrailleX EL 2D-66
+assign statusKeys 13
+include bar.kti
+include switches.kti

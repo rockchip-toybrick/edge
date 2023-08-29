@@ -1,0 +1,10 @@
+default
+xkb_keycodes "jolla" {
+
+ 
+ 
+ 
+
+ <I264> = 264; 
+
+};

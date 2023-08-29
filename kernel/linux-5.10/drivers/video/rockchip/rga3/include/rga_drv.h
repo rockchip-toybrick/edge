@@ -16,6 +16,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/err.h>
 #include <linux/fb.h>
+#include <linux/fdtable.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -48,7 +49,6 @@
 
 #include <linux/iommu.h>
 #include <linux/iova.h>
-#include <linux/dma-iommu.h>
 #include <linux/pagemap.h>
 
 #ifdef CONFIG_DMABUF_CACHE
@@ -87,7 +87,7 @@
 
 #define DRIVER_MAJOR_VERISON		1
 #define DRIVER_MINOR_VERSION		2
-#define DRIVER_REVISION_VERSION		23
+#define DRIVER_REVISION_VERSION		27
 #define DRIVER_PATCH_VERSION
 
 #define DRIVER_VERSION (STR(DRIVER_MAJOR_VERISON) "." STR(DRIVER_MINOR_VERSION) \
@@ -319,18 +319,10 @@ struct rga_timer {
 	u32 busy_time_record;
 };
 
-struct rga_grf_info {
-	uint32_t offset;
-	uint32_t open_val;
-	uint32_t close_val;
-	struct regmap *grf;
-};
-
 struct rga_scheduler_t {
 	struct device *dev;
 	void __iomem *rga_base;
 	struct rga_iommu_info *iommu_info;
-	struct rga_grf_info grf_info;
 
 	struct clk *clks[RGA_MAX_BUS_CLK];
 	int num_clks;

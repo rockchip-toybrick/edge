@@ -94,7 +94,7 @@
 		#clock-cells = <0>;
 	};
 
-	psci {
+	psci: psci {
 		compatible = "arm,psci-1.0";
 		method = "smc";
 	};
@@ -286,13 +286,6 @@
 		clocks = <&cru SCLK_CRYPTO>, <&cru SCLK_CRYPTO_APK>;
 		clock-frequency = <200000000>, <300000000>;
 		status = "disabled";
-	};
-
-	secure_otp: secure_otp@ff110000 {
-		compatible = "rockchip,px30-secure-otp";
-		reg = <0x0 0xff110000 0x0 0x4000>;
-		secure_conf = <0xff11C008>;
-		mask_addr = <0xff2d0000>;
 	};
 
 	gic: interrupt-controller@ff131000 {

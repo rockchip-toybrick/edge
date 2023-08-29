@@ -305,7 +305,7 @@ static int scmi_regulator_probe(struct scmi_device *sdev)
 	if (!handle)
 		return -ENODEV;
 
-	voltage_ops = handle->devm_get_protocol(sdev,
+	voltage_ops = handle->devm_protocol_get(sdev,
 						SCMI_PROTOCOL_VOLTAGE, &ph);
 	if (IS_ERR(voltage_ops))
 		return PTR_ERR(voltage_ops);
@@ -350,7 +350,7 @@ static int scmi_regulator_probe(struct scmi_device *sdev)
 		if (ret == -ENOMEM)
 			return ret;
 	}
-
+	of_node_put(np);
 	/*
 	 * Register a regulator for each valid regulator-DT-entry that we
 	 * can successfully reach via SCMI and has a valid associated voltage

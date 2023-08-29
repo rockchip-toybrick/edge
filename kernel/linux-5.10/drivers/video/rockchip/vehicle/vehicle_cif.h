@@ -15,6 +15,7 @@
 enum vehicle_rkcif_chip_id {
 	CHIP_RK3568_VEHICLE_CIF = 0x0,
 	CHIP_RK3588_VEHICLE_CIF,
+	CHIP_RK3562_VEHICLE_CIF,
 };
 
 enum rkcif_csi_host_idx {
@@ -91,6 +92,15 @@ struct vehicle_csi_channel_info {
 	unsigned int	crop_st_y;
 };
 
+struct vehicle_csi2_err_state_work {
+	struct workqueue_struct *err_print_wq;
+	struct work_struct work;
+	char err_str[CSI_ERRSTR_LEN];
+	u32 err_val;
+	u32 err_num;
+	unsigned long err_stat;
+};
+
 struct vehicle_cif {
 	struct		device *dev;
 	struct		device_node *phy_node;
@@ -136,6 +146,7 @@ struct vehicle_cif {
 	bool		stopping;
 	struct mutex	stream_lock;
 	enum rkcif_state	state;
+	struct vehicle_csi2_err_state_work err_state;
 };
 
 int vehicle_cif_init_mclk(struct vehicle_cif *cif);

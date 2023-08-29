@@ -26,6 +26,11 @@
 #define FW_RATIO_MIN		1
 #define MAXBURST_PER_FIFO	8
 
+#define DEFAULT_FS		48000
+#define TIMEOUT_US		1000
+#define WAIT_TIME_MS_MAX	10000
+#define QUIRK_ALWAYS_ON		BIT(0)
+
 enum fpw_mode {
 	FPW_ONE_BCLK_WIDTH,
 	FPW_ONE_SLOT_WIDTH,
@@ -42,17 +47,30 @@ struct rk_sai_dev {
 	struct snd_dmaengine_dai_dma_data capture_dma_data;
 	struct snd_dmaengine_dai_dma_data playback_dma_data;
 	struct snd_pcm_substream *substreams[SNDRV_PCM_STREAM_LAST + 1];
+	unsigned int wait_time[SNDRV_PCM_STREAM_LAST + 1];
 	unsigned int tx_lanes;
 	unsigned int rx_lanes;
+	unsigned int quirks;
 	enum fpw_mode fpw;
 	int  fw_ratio;
 	bool has_capture;
 	bool has_playback;
 	bool is_master_mode;
 	bool is_tdm;
+	bool is_clk_auto;
 };
 
-static int sai_runtime_suspend(struct device *dev)
+static const struct sai_of_quirks {
+	char *quirk;
+	int id;
+} of_quirks[] = {
+	{
+		.quirk = "rockchip,always-on",
+		.id = QUIRK_ALWAYS_ON,
+	},
+};
+
+static int rockchip_sai_runtime_suspend(struct device *dev)
 {
 	struct rk_sai_dev *sai = dev_get_drvdata(dev);
 	unsigned int val;
@@ -66,20 +84,40 @@ static int sai_runtime_suspend(struct device *dev)
 				   SAI_XFER_FSS_DIS);
 
 	ret = regmap_read_poll_timeout_atomic(sai->regmap, SAI_XFER, val,
-					      (val & SAI_XFER_FS_IDLE), 10, 100);
+					      (val & SAI_XFER_FS_IDLE), 10, TIMEOUT_US);
 	if (ret < 0)
 		dev_warn(sai->dev, "Failed to idle FS\n");
 
 	regcache_cache_only(sai->regmap, true);
+	/*
+	 * After FS idle, should wait at least 2 BCLK cycle to make sure
+	 * the CLK gate operation done, and then disable mclk.
+	 *
+	 * Otherwise, the BCLK is still ungated. once the mclk is enabled,
+	 * there maybe a risk that a few BCLK cycle leak. especially for
+	 * low speed situation, such as 8k samplerate.
+	 *
+	 * The best way is to use delay per samplerate, but, the max time
+	 * is quite a tiny value, so, let's make it simple to use the max
+	 * time.
+	 *
+	 * The max BCLK cycle time is: 31us @ 8K-8Bit (64K BCLK)
+	 */
+	udelay(40);
 	clk_disable_unprepare(sai->mclk);
+	clk_disable_unprepare(sai->hclk);
 
 	return 0;
 }
 
-static int sai_runtime_resume(struct device *dev)
+static int rockchip_sai_runtime_resume(struct device *dev)
 {
 	struct rk_sai_dev *sai = dev_get_drvdata(dev);
 	int ret;
+
+	ret = clk_prepare_enable(sai->hclk);
+	if (ret)
+		goto err_hclk;
 
 	ret = clk_prepare_enable(sai->mclk);
 	if (ret)
@@ -91,7 +129,7 @@ static int sai_runtime_resume(struct device *dev)
 	if (ret)
 		goto err_regmap;
 
-	if (sai->is_master_mode)
+	if (sai->quirks & QUIRK_ALWAYS_ON && sai->is_master_mode)
 		regmap_update_bits(sai->regmap, SAI_XFER,
 				   SAI_XFER_CLK_MASK |
 				   SAI_XFER_FSS_MASK,
@@ -103,6 +141,8 @@ static int sai_runtime_resume(struct device *dev)
 err_regmap:
 	clk_disable_unprepare(sai->mclk);
 err_mclk:
+	clk_disable_unprepare(sai->hclk);
+err_hclk:
 	return ret;
 }
 
@@ -182,7 +222,7 @@ static int rockchip_sai_clear(struct rk_sai_dev *sai, unsigned int clr)
 
 	regmap_update_bits(sai->regmap, SAI_CLR, clr, clr);
 	ret = regmap_read_poll_timeout_atomic(sai->regmap, SAI_CLR, val,
-					      !(val & clr), 10, 100);
+					      !(val & clr), 10, TIMEOUT_US);
 	if (ret < 0) {
 		dev_warn(sai->dev, "Failed to clear %u\n", clr);
 		goto reset;
@@ -228,7 +268,7 @@ static void rockchip_sai_xfer_stop(struct rk_sai_dev *sai, int stream)
 
 	regmap_update_bits(sai->regmap, SAI_XFER, msk, val);
 	ret = regmap_read_poll_timeout_atomic(sai->regmap, SAI_XFER, val,
-					      (val & idle), 10, 100);
+					      (val & idle), 10, TIMEOUT_US);
 	if (ret < 0)
 		dev_warn(sai->dev, "Failed to idle stream %d\n", stream);
 
@@ -412,6 +452,7 @@ static int rockchip_sai_hw_params(struct snd_pcm_substream *substream,
 		val = SAI_XCR_VDW(24);
 		break;
 	case SNDRV_PCM_FORMAT_S32_LE:
+	case SNDRV_PCM_FORMAT_IEC958_SUBFRAME_LE:
 		val = SAI_XCR_VDW(32);
 		break;
 	default:
@@ -452,6 +493,8 @@ static int rockchip_sai_hw_params(struct snd_pcm_substream *substream,
 
 	if (sai->is_master_mode) {
 		bclk_rate = sai->fw_ratio * slot_width * ch_per_lane * params_rate(params);
+		if (sai->is_clk_auto)
+			clk_set_rate(sai->mclk, bclk_rate);
 		mclk_rate = clk_get_rate(sai->mclk);
 		if (mclk_rate < bclk_rate) {
 			dev_err(sai->dev, "Mismatch mclk: %u, expected %u at least\n",
@@ -463,6 +506,33 @@ static int rockchip_sai_hw_params(struct snd_pcm_substream *substream,
 
 		regmap_update_bits(sai->regmap, SAI_CKR, SAI_CKR_MDIV_MASK,
 				   SAI_CKR_MDIV(div_bclk));
+	}
+
+	return 0;
+}
+
+static int rockchip_sai_prepare(struct snd_pcm_substream *substream,
+				struct snd_soc_dai *dai)
+{
+	struct rk_sai_dev *sai = snd_soc_dai_get_drvdata(dai);
+
+	if (sai->is_master_mode) {
+		/*
+		 * Should wait for one BCLK ready after DIV and then ungate
+		 * output clk to achieve the clean clk.
+		 *
+		 * The best way is to use delay per samplerate, but, the max time
+		 * is quite a tiny value, so, let's make it simple to use the max
+		 * time.
+		 *
+		 * The max BCLK cycle time is: 15.6us @ 8K-8Bit (64K BCLK)
+		 */
+		udelay(20);
+		regmap_update_bits(sai->regmap, SAI_XFER,
+				   SAI_XFER_CLK_MASK |
+				   SAI_XFER_FSS_MASK,
+				   SAI_XFER_CLK_EN |
+				   SAI_XFER_FSS_EN);
 	}
 
 	return 0;
@@ -499,7 +569,7 @@ static int rockchip_sai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
 	struct rk_sai_dev *sai = snd_soc_dai_get_drvdata(dai);
 	int ret;
 
-	if (!freq)
+	if (!freq || sai->is_clk_auto)
 		return 0;
 
 	ret = clk_set_rate(sai->mclk, freq);
@@ -524,11 +594,15 @@ static int rockchip_sai_startup(struct snd_pcm_substream *substream,
 				    struct snd_soc_dai *dai)
 {
 	struct rk_sai_dev *sai = snd_soc_dai_get_drvdata(dai);
+	int stream = substream->stream;
 
-	if (sai->substreams[substream->stream])
+	if (sai->substreams[stream])
 		return -EBUSY;
 
-	sai->substreams[substream->stream] = substream;
+	if (sai->wait_time[stream])
+		substream->wait_time = msecs_to_jiffies(sai->wait_time[stream]);
+
+	sai->substreams[stream] = substream;
 
 	return 0;
 }
@@ -565,6 +639,7 @@ static const struct snd_soc_dai_ops rockchip_sai_dai_ops = {
 	.hw_params = rockchip_sai_hw_params,
 	.set_sysclk = rockchip_sai_set_sysclk,
 	.set_fmt = rockchip_sai_set_fmt,
+	.prepare = rockchip_sai_prepare,
 	.trigger = rockchip_sai_trigger,
 	.set_tdm_slot = rockchip_sai_set_tdm_slot,
 };
@@ -725,7 +800,8 @@ static int rockchip_sai_init_dai(struct rk_sai_dev *sai, struct resource *res,
 		dai->playback.formats = SNDRV_PCM_FMTBIT_S8 |
 					SNDRV_PCM_FMTBIT_S16_LE |
 					SNDRV_PCM_FMTBIT_S24_LE |
-					SNDRV_PCM_FMTBIT_S32_LE;
+					SNDRV_PCM_FMTBIT_S32_LE |
+					SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_LE;
 
 		sai->playback_dma_data.addr = res->start + SAI_TXDR;
 		sai->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
@@ -740,7 +816,8 @@ static int rockchip_sai_init_dai(struct rk_sai_dev *sai, struct resource *res,
 		dai->capture.formats = SNDRV_PCM_FMTBIT_S8 |
 				       SNDRV_PCM_FMTBIT_S16_LE |
 				       SNDRV_PCM_FMTBIT_S24_LE |
-				       SNDRV_PCM_FMTBIT_S32_LE;
+				       SNDRV_PCM_FMTBIT_S32_LE |
+				       SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_LE;
 
 		sai->capture_dma_data.addr = res->start + SAI_RXDR;
 		sai->capture_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
@@ -773,8 +850,8 @@ static const char * const fbm_text[] = { "MSB", "LSB" };
 static const char * const vdj_text[] = { "Right J", "Left J" };
 
 static const char * const sbw_text[] = {
-	" 0", " 0", " 0", " 0", " 0", " 0", " 0", " 8",
-	" 9", "10", "11", "12", "13", "14", "15", "16",
+	 "0",  "0",  "0",  "0",  "0",  "0",  "0",  "8",
+	 "9", "10", "11", "12", "13", "14", "15", "16",
 	"17", "18", "19", "20", "21", "22", "23", "24",
 	"25", "26", "27", "28", "29", "30", "31", "32", };
 
@@ -782,7 +859,7 @@ static const char * const mono_text[] = { "Disable", "Enable" };
 
 static DECLARE_TLV_DB_SCALE(rmss_tlv, 0, 128, 0);
 
-static const char * const mss_text[] = { "Master", "Slave" };
+static const char * const mss_text[] = { "Slave", "Master" };
 
 static const char * const ckp_text[] = { "Normal", "Inverted" };
 
@@ -829,7 +906,8 @@ static SOC_ENUM_SINGLE_DECL(rmono_switch, SAI_MONO_CR, 1, mono_text);
 static SOC_ENUM_SINGLE_DECL(tmono_switch, SAI_MONO_CR, 0, mono_text);
 
 /* CKR */
-static SOC_ENUM_SINGLE_DECL(mss_switch, SAI_CKR, 2, mss_text);
+static const struct soc_enum mss_switch =
+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(mss_text), mss_text);
 static SOC_ENUM_SINGLE_DECL(sp_switch,  SAI_CKR, 1, ckp_text);
 static SOC_ENUM_SINGLE_DECL(fp_switch,  SAI_CKR, 0, ckp_text);
 
@@ -960,6 +1038,154 @@ static int rockchip_sai_rx_lanes_put(struct snd_kcontrol *kcontrol,
 	return 1;
 }
 
+static int rockchip_sai_mss_get(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	ucontrol->value.enumerated.item[0] = sai->is_master_mode;
+
+	return 0;
+}
+
+static int rockchip_sai_mss_put(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+	bool mss;
+
+	/* MUST: do not update mode while stream is running */
+	if (snd_soc_component_active(component))
+		return -EPERM;
+
+	mss = !!ucontrol->value.enumerated.item[0];
+	if (mss == sai->is_master_mode)
+		return 0;
+
+	sai->is_master_mode = mss;
+
+	pm_runtime_get_sync(sai->dev);
+	if (sai->is_master_mode) {
+		/* Switch from Slave to Master */
+		regmap_update_bits(sai->regmap, SAI_CKR,
+				   SAI_CKR_MSS_MASK,
+				   SAI_CKR_MSS_MASTER);
+		regmap_update_bits(sai->regmap, SAI_XFER,
+				   SAI_XFER_CLK_MASK |
+				   SAI_XFER_FSS_MASK,
+				   SAI_XFER_CLK_EN |
+				   SAI_XFER_FSS_EN);
+	} else {
+		/* Switch from Master to Slave */
+		regmap_update_bits(sai->regmap, SAI_CKR,
+				   SAI_CKR_MSS_MASK,
+				   SAI_CKR_MSS_SLAVE);
+		regmap_update_bits(sai->regmap, SAI_XFER,
+				   SAI_XFER_CLK_MASK |
+				   SAI_XFER_FSS_MASK,
+				   SAI_XFER_CLK_DIS |
+				   SAI_XFER_FSS_DIS);
+	}
+	pm_runtime_put(sai->dev);
+
+	return 1;
+}
+
+static int rockchip_sai_clk_auto_get(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	ucontrol->value.integer.value[0] = sai->is_clk_auto;
+
+	return 0;
+}
+
+static int rockchip_sai_clk_auto_put(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+	bool clk_auto = ucontrol->value.integer.value[0];
+
+	if (clk_auto == sai->is_clk_auto)
+		return 0;
+
+	sai->is_clk_auto = clk_auto;
+
+	return 1;
+}
+
+static int rockchip_sai_wait_time_info(struct snd_kcontrol *kcontrol,
+				       struct snd_ctl_elem_info *uinfo)
+{
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+	uinfo->count = 1;
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = WAIT_TIME_MS_MAX;
+	uinfo->value.integer.step = 1;
+
+	return 0;
+}
+
+static int rockchip_sai_rd_wait_time_get(struct snd_kcontrol *kcontrol,
+					 struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	ucontrol->value.integer.value[0] = sai->wait_time[SNDRV_PCM_STREAM_CAPTURE];
+
+	return 0;
+}
+
+static int rockchip_sai_rd_wait_time_put(struct snd_kcontrol *kcontrol,
+					 struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	if (ucontrol->value.integer.value[0] > WAIT_TIME_MS_MAX)
+		return -EINVAL;
+
+	sai->wait_time[SNDRV_PCM_STREAM_CAPTURE] = ucontrol->value.integer.value[0];
+
+	return 1;
+}
+
+static int rockchip_sai_wr_wait_time_get(struct snd_kcontrol *kcontrol,
+					 struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	ucontrol->value.integer.value[0] = sai->wait_time[SNDRV_PCM_STREAM_PLAYBACK];
+
+	return 0;
+}
+
+static int rockchip_sai_wr_wait_time_put(struct snd_kcontrol *kcontrol,
+					 struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
+	struct rk_sai_dev *sai = snd_soc_component_get_drvdata(component);
+
+	if (ucontrol->value.integer.value[0] > WAIT_TIME_MS_MAX)
+		return -EINVAL;
+
+	sai->wait_time[SNDRV_PCM_STREAM_PLAYBACK] = ucontrol->value.integer.value[0];
+
+	return 1;
+}
+
+#define SAI_PCM_WAIT_TIME(xname, xhandler_get, xhandler_put)	\
+{	.iface = SNDRV_CTL_ELEM_IFACE_PCM, .name = xname,	\
+	.info = rockchip_sai_wait_time_info,			\
+	.get = xhandler_get, .put = xhandler_put }
+
 static DECLARE_TLV_DB_SCALE(fs_shift_tlv, 0, 8192, 0);
 
 static const struct snd_kcontrol_new rockchip_sai_controls[] = {
@@ -991,7 +1217,8 @@ static const struct snd_kcontrol_new rockchip_sai_controls[] = {
 	SOC_ENUM("Receive Mono Switch", rmono_switch),
 	SOC_ENUM("Transmit Mono Switch", tmono_switch),
 
-	SOC_ENUM("Master / Slave Mode Select", mss_switch),
+	SOC_ENUM_EXT("Master / Slave Mode Select", mss_switch,
+		     rockchip_sai_mss_get, rockchip_sai_mss_put),
 	SOC_ENUM("Sclk Polarity", sp_switch),
 	SOC_ENUM("Frame Sync Polarity", fp_switch),
 
@@ -1018,6 +1245,17 @@ static const struct snd_kcontrol_new rockchip_sai_controls[] = {
 		       0, 8192, 0, fs_shift_tlv),
 	SOC_SINGLE_TLV("Receive Frame Shift Select", SAI_RX_SHIFT,
 		       0, 8192, 0, fs_shift_tlv),
+
+	SOC_SINGLE_BOOL_EXT("Clk Auto Switch", 0,
+			    rockchip_sai_clk_auto_get,
+			    rockchip_sai_clk_auto_put),
+
+	SAI_PCM_WAIT_TIME("PCM Read Wait Time MS",
+			  rockchip_sai_rd_wait_time_get,
+			  rockchip_sai_rd_wait_time_put),
+	SAI_PCM_WAIT_TIME("PCM Write Wait Time MS",
+			  rockchip_sai_wr_wait_time_get,
+			  rockchip_sai_wr_wait_time_put),
 };
 
 static const struct snd_soc_component_driver rockchip_sai_component = {
@@ -1054,6 +1292,50 @@ static irqreturn_t rockchip_sai_isr(int irq, void *devid)
 	return IRQ_HANDLED;
 }
 
+static int rockchip_sai_keep_clk_always_on(struct rk_sai_dev *sai)
+{
+	unsigned int mclk_rate, bclk_rate, div_bclk;
+
+	sai->is_master_mode = true;
+
+	/* init I2S fmt default */
+	rockchip_sai_fmt_create(sai, SND_SOC_DAIFMT_I2S);
+
+	regmap_update_bits(sai->regmap, SAI_FSCR,
+			   SAI_FSCR_FW_MASK |
+			   SAI_FSCR_FPW_MASK,
+			   SAI_FSCR_FW(64) |
+			   SAI_FSCR_FPW(32));
+
+	mclk_rate = clk_get_rate(sai->mclk);
+	bclk_rate = DEFAULT_FS * 64;
+	div_bclk = DIV_ROUND_CLOSEST(mclk_rate, bclk_rate);
+
+	regmap_update_bits(sai->regmap, SAI_CKR, SAI_CKR_MDIV_MASK,
+			   SAI_CKR_MDIV(div_bclk));
+
+	pm_runtime_forbid(sai->dev);
+
+	dev_info(sai->dev, "CLK-ALWAYS-ON: mclk: %d, bclk: %d, fsync: %d\n",
+		 mclk_rate, bclk_rate, DEFAULT_FS);
+
+	return 0;
+}
+
+static int rockchip_sai_parse_quirks(struct rk_sai_dev *sai)
+{
+	int ret = 0, i = 0;
+
+	for (i = 0; i < ARRAY_SIZE(of_quirks); i++)
+		if (device_property_read_bool(sai->dev, of_quirks[i].quirk))
+			sai->quirks |= of_quirks[i].id;
+
+	if (sai->quirks & QUIRK_ALWAYS_ON)
+		ret = rockchip_sai_keep_clk_always_on(sai);
+
+	return ret;
+}
+
 static int rockchip_sai_probe(struct platform_device *pdev)
 {
 	struct device_node *node = pdev->dev.of_node;
@@ -1069,6 +1351,8 @@ static int rockchip_sai_probe(struct platform_device *pdev)
 
 	sai->dev = &pdev->dev;
 	sai->fw_ratio = 1;
+	/* match to register default */
+	sai->is_master_mode = true;
 	dev_set_drvdata(&pdev->dev, sai);
 
 	sai->rst_h = devm_reset_control_get_optional_exclusive(&pdev->dev, "h");
@@ -1110,13 +1394,13 @@ static int rockchip_sai_probe(struct platform_device *pdev)
 		return PTR_ERR(sai->hclk);
 	}
 
-	ret = clk_prepare_enable(sai->hclk);
+	ret = rockchip_sai_parse_quirks(sai);
 	if (ret)
 		return ret;
 
 	pm_runtime_enable(&pdev->dev);
 	if (!pm_runtime_enabled(&pdev->dev)) {
-		ret = sai_runtime_resume(&pdev->dev);
+		ret = rockchip_sai_runtime_resume(&pdev->dev);
 		if (ret)
 			goto err_runtime_disable;
 	}
@@ -1131,6 +1415,11 @@ static int rockchip_sai_probe(struct platform_device *pdev)
 	if (ret)
 		goto err_runtime_suspend;
 
+	if (device_property_read_bool(&pdev->dev, "rockchip,no-dmaengine")) {
+		dev_info(&pdev->dev, "Used for Multi-DAI\n");
+		return 0;
+	}
+
 	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
 	if (ret)
 		goto err_runtime_suspend;
@@ -1139,29 +1428,25 @@ static int rockchip_sai_probe(struct platform_device *pdev)
 
 err_runtime_suspend:
 	if (!pm_runtime_status_suspended(&pdev->dev))
-		sai_runtime_suspend(&pdev->dev);
+		rockchip_sai_runtime_suspend(&pdev->dev);
 err_runtime_disable:
 	pm_runtime_disable(&pdev->dev);
-	clk_disable_unprepare(sai->hclk);
 
 	return ret;
 }
 
 static int rockchip_sai_remove(struct platform_device *pdev)
 {
-	struct rk_sai_dev *sai = dev_get_drvdata(&pdev->dev);
-
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))
-		sai_runtime_suspend(&pdev->dev);
-
-	clk_disable_unprepare(sai->hclk);
+		rockchip_sai_runtime_suspend(&pdev->dev);
 
 	return 0;
 }
 
 static const struct dev_pm_ops rockchip_sai_pm_ops = {
-	SET_RUNTIME_PM_OPS(sai_runtime_suspend, sai_runtime_resume, NULL)
+	SET_RUNTIME_PM_OPS(rockchip_sai_runtime_suspend, rockchip_sai_runtime_resume, NULL)
+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend, pm_runtime_force_resume)
 };
 
 static struct platform_driver rockchip_sai_driver = {

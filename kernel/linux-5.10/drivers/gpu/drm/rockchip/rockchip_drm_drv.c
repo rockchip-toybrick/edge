@@ -37,6 +37,7 @@
 #include "rockchip_drm_logo.h"
 
 #include "../drm_crtc_internal.h"
+#include "../drivers/clk/rockchip/clk.h"
 
 #define DRIVER_NAME	"rockchip"
 #define DRIVER_DESC	"RockChip Soc DRM"
@@ -124,6 +125,7 @@ void drm_mode_convert_to_split_mode(struct drm_display_mode *mode)
 	hbp = mode->htotal - mode->hsync_end;
 
 	mode->clock *= 2;
+	mode->crtc_clock *= 2;
 	mode->hdisplay = hactive * 2;
 	mode->hsync_start = mode->hdisplay + hfp * 2;
 	mode->hsync_end = mode->hsync_start + hsync * 2;
@@ -142,6 +144,7 @@ void drm_mode_convert_to_origin_mode(struct drm_display_mode *mode)
 	hbp = mode->htotal - mode->hsync_end;
 
 	mode->clock /= 2;
+	mode->crtc_clock /= 2;
 	mode->hdisplay = hactive / 2;
 	mode->hsync_start = mode->hdisplay + hfp / 2;
 	mode->hsync_end = mode->hsync_start + hsync / 2;
@@ -222,7 +225,7 @@ uint32_t rockchip_drm_of_find_possible_crtcs(struct drm_device *dev,
 		remote_port = of_graph_get_remote_port(ep);
 		if (!remote_port) {
 			of_node_put(ep);
-			return 0;
+			continue;
 		}
 
 		possible_crtcs |= drm_of_crtc_port_mask(dev, remote_port);
@@ -397,6 +400,40 @@ int rockchip_drm_add_modes_noedid(struct drm_connector *connector)
 	return num_modes;
 }
 EXPORT_SYMBOL(rockchip_drm_add_modes_noedid);
+
+static const struct rockchip_drm_width_dclk {
+	int width;
+	u32 dclk_khz;
+} rockchip_drm_dclk[] = {
+	{1920, 148500},
+	{2048, 200000},
+	{2560, 280000},
+	{3840, 594000},
+	{4096, 594000},
+	{7680, 2376000},
+};
+
+u32 rockchip_drm_get_dclk_by_width(int width)
+{
+	int i = 0;
+	u32 dclk_khz;
+
+	for (i = 0; i < ARRAY_SIZE(rockchip_drm_dclk); i++) {
+		if (width == rockchip_drm_dclk[i].width) {
+			dclk_khz = rockchip_drm_dclk[i].dclk_khz;
+			break;
+		}
+	}
+
+	if (i == ARRAY_SIZE(rockchip_drm_dclk)) {
+		DRM_ERROR("Can't not find %d width solution and use 148500 khz as max dclk\n", width);
+
+		dclk_khz = 148500;
+	}
+
+	return dclk_khz;
+}
+EXPORT_SYMBOL(rockchip_drm_get_dclk_by_width);
 
 static int
 cea_db_tag(const u8 *db)
@@ -953,6 +990,50 @@ int rockchip_drm_parse_next_hdr(struct next_hdr_sink_data *sink_data,
 }
 EXPORT_SYMBOL(rockchip_drm_parse_next_hdr);
 
+#define COLORIMETRY_DATA_BLOCK		0x5
+#define USE_EXTENDED_TAG		0x07
+
+static bool cea_db_is_hdmi_colorimetry_data_block(const u8 *db)
+{
+	if (cea_db_tag(db) != USE_EXTENDED_TAG)
+		return false;
+
+	if (db[1] != COLORIMETRY_DATA_BLOCK)
+		return false;
+
+	return true;
+}
+
+int
+rockchip_drm_parse_colorimetry_data_block(u8 *colorimetry, const struct edid *edid)
+{
+	const u8 *edid_ext;
+	int i, start, end;
+
+	if (!colorimetry || !edid)
+		return -EINVAL;
+
+	*colorimetry = 0;
+
+	edid_ext = find_cea_extension(edid);
+	if (!edid_ext)
+		return -EINVAL;
+
+	if (cea_db_offsets(edid_ext, &start, &end))
+		return -EINVAL;
+
+	for_each_cea_db(edid_ext, i, start, end) {
+		const u8 *db = &edid_ext[i];
+
+		if (cea_db_is_hdmi_colorimetry_data_block(db))
+			/* As per CEA 861-G spec */
+			*colorimetry = ((db[3] & (0x1 << 7)) << 1) | db[2];
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(rockchip_drm_parse_colorimetry_data_block);
+
 /*
  * Attach a (component) device to the shared drm dma mapping from master drm
  * device.  This is used by the VOPs to map GEM buffers to a common DMA
@@ -1210,6 +1291,12 @@ static void rockchip_drm_debugfs_init(struct drm_minor *minor)
 }
 #endif
 
+static const struct drm_prop_enum_list split_area[] = {
+	{ ROCKCHIP_DRM_SPLIT_UNSET, "UNSET" },
+	{ ROCKCHIP_DRM_SPLIT_LEFT_SIDE, "LEFT" },
+	{ ROCKCHIP_DRM_SPLIT_RIGHT_SIDE, "RIGHT" },
+};
+
 static int rockchip_drm_create_properties(struct drm_device *dev)
 {
 	struct drm_property *prop;
@@ -1245,6 +1332,11 @@ static int rockchip_drm_create_properties(struct drm_device *dev)
 		return -ENOMEM;
 	private->connector_id_prop = prop;
 
+	prop = drm_property_create_enum(dev, DRM_MODE_PROP_ENUM, "SPLIT_AREA",
+					split_area,
+					ARRAY_SIZE(split_area));
+	private->split_area_prop = prop;
+
 	prop = drm_property_create_object(dev,
 					  DRM_MODE_PROP_ATOMIC | DRM_MODE_PROP_IMMUTABLE,
 					  "SOC_ID", DRM_MODE_OBJECT_CRTC);
@@ -1258,6 +1350,9 @@ static int rockchip_drm_create_properties(struct drm_device *dev)
 	private->aclk_prop = drm_property_create_range(dev, 0, "ACLK", 0, UINT_MAX);
 	private->bg_prop = drm_property_create_range(dev, 0, "BACKGROUND", 0, UINT_MAX);
 	private->line_flag_prop = drm_property_create_range(dev, 0, "LINE_FLAG1", 0, UINT_MAX);
+	private->cubic_lut_prop = drm_property_create(dev, DRM_MODE_PROP_BLOB, "CUBIC_LUT", 0);
+	private->cubic_lut_size_prop = drm_property_create_range(dev, DRM_MODE_PROP_IMMUTABLE,
+								 "CUBIC_LUT_SIZE", 0, UINT_MAX);
 
 	return drm_mode_create_tv_properties(dev, 0, NULL);
 }
@@ -1465,6 +1560,8 @@ static int rockchip_drm_bind(struct device *dev)
 	if (ret)
 		goto err_kms_helper_poll_fini;
 
+	rockchip_clk_unprotect();
+
 	return 0;
 err_kms_helper_poll_fini:
 	rockchip_gem_pool_destroy(drm_dev);
@@ -1632,26 +1729,6 @@ static int rockchip_drm_gem_dmabuf_end_cpu_access(struct dma_buf *dma_buf,
 	return rockchip_gem_prime_end_cpu_access(obj, dir);
 }
 
-static int rockchip_drm_gem_begin_cpu_access_partial(
-	struct dma_buf *dma_buf,
-	enum dma_data_direction dir,
-	unsigned int offset, unsigned int len)
-{
-	struct drm_gem_object *obj = dma_buf->priv;
-
-	return rockchip_gem_prime_begin_cpu_access_partial(obj, dir, offset, len);
-}
-
-static int rockchip_drm_gem_end_cpu_access_partial(
-	struct dma_buf *dma_buf,
-	enum dma_data_direction dir,
-	unsigned int offset, unsigned int len)
-{
-	struct drm_gem_object *obj = dma_buf->priv;
-
-	return rockchip_gem_prime_end_cpu_access_partial(obj, dir, offset, len);
-}
-
 static const struct dma_buf_ops rockchip_drm_gem_prime_dmabuf_ops = {
 	.cache_sgt_mapping = true,
 	.attach = drm_gem_map_attach,
@@ -1665,8 +1742,6 @@ static const struct dma_buf_ops rockchip_drm_gem_prime_dmabuf_ops = {
 	.get_uuid = drm_gem_dmabuf_get_uuid,
 	.begin_cpu_access = rockchip_drm_gem_dmabuf_begin_cpu_access,
 	.end_cpu_access = rockchip_drm_gem_dmabuf_end_cpu_access,
-	.begin_cpu_access_partial = rockchip_drm_gem_begin_cpu_access_partial,
-	.end_cpu_access_partial = rockchip_drm_gem_end_cpu_access_partial,
 };
 
 static struct drm_gem_object *rockchip_drm_gem_prime_import_dev(struct drm_device *dev,

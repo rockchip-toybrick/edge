@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/ {
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio_key_sets>;
+
+		key1 {
+			debounce-interval = <100>;
+			gpios = <&gpio0 RK_PD3 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 1";
+			linux,code = <KEY_1>;
+		};
+		key2 {
+			debounce-interval = <100>;
+			gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 2";
+			linux,code = <KEY_2>;
+		};
+		key3 {
+			debounce-interval = <100>;
+			gpios = <&gpio0 RK_PD4 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 3";
+			linux,code = <KEY_3>;
+		};
+	};
+
+	leds: leds {
+        compatible = "gpio-leds";
+        led1: led1 {
+            gpios = <&gpio4 RK_PB5 GPIO_ACTIVE_HIGH>;
+        };
+
+		led2: led2 {
+            gpios = <&gpio4 RK_PB3 GPIO_ACTIVE_HIGH>;
+        };
+		led3: led3 {
+            gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+        };
+    };
+};
+
+&i2c5 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c5m2_xfer>;
+
+	sc888x-charger@6b {
+		compatible = "sc,sc8886";
+		reg = <0x6b>;
+		sc,sc888x-intr-gpio = <&gpio4 9 0>;
+		sc,charge-current = <1000000>;
+		sc,max-input-voltage = <20000000>;
+		sc,min-input-voltage = <4200000>;/* VINDPM*/
+		sc,max-input-current = <6000000>;
+		sc,max-charge-voltage = <8400000>;
+		sc,input-current = <500000>;
+		sc,input-current-sdp = <500000>;
+		sc,input-current-dcp = <2000000>;
+		sc,input-current-cdp = <2000000>;
+		sc,minimum-sys-voltage = <7400000>;
+		sc,otg-voltage = <5000000>;
+		sc,otg-current = <500000>;
+	};
+};
+
+&i2c6 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c6m3_xfer>;
+};
+
+&pinctrl {
+	buttons {
+		gpio_key_sets: gpio-key-sets {
+			rockchip,pins =
+				<0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up>,
+				<4 RK_PA2 RK_FUNC_GPIO &pcfg_pull_up>,
+				<0 RK_PD4 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+	sc8886_int_pin {
+		sc8886_int_default: sc8886-int-default {
+			rockchip,pins =
+				<4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_up_drv_level_1>;
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0m2_cs0 &spi0m2_pins>;
+	max-freq = <50000000>;
+	spi_test@0 {
+		compatible = "rockchip,spidev";
+		reg = <0>;
+		spi-max-frequency = <5000000>;
+	};
+};

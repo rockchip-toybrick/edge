@@ -1,0 +1,8 @@
+dot 1 =fg-red
+dot 4 =fg-green
+dot 2 =fg-blue
+dot 5 =fg-bright
+dot 3 =bg-red
+dot 6 =bg-green
+dot 7 =bg-blue
+dot 8 =blink

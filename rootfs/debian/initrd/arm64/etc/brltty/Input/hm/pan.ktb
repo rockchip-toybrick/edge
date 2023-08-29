@@ -1,0 +1,5 @@
+title HIMS Braille Sense (with two scroll keys)
+include common.kti
+include braille.kti
+include f14.kti
+include pan.kti

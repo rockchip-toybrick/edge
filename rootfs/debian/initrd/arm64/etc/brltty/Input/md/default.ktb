@@ -1,0 +1,5 @@
+title MDV (unrecognized model - all keys defined)
+include common.kti
+include keyboard.kti
+include fkeys.kti
+include status.kti

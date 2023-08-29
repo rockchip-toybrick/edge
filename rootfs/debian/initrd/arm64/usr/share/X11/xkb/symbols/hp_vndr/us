@@ -1,0 +1,103 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+xkb_symbols "hil" {
+ include "us(basic)"
+
+ 
+ key <TLDE> { [ grave, asciitilde ]};
+ key <RTSH> { [ Shift_R ]};
+ key <LALT> { [ Meta_L ]};
+ key <RALT> { [ Meta_R ]};
+ 
+
+ 
+ key <BRK> { [ Break ]};
+ key <STOP> { [ Cancel ]};
+ key <FK01> { [ F1 ] };
+ key <FK02> { [ F2 ] };
+ key <FK03> { [ F3 ] };
+ key <FK04> { [ F4 ] };
+ key <MENU> { [ Menu ] };
+ key <SYST> { [ hpSystem ]};
+ key <FK05> { [ F5 ] };
+ key <FK06> { [ F6 ] };
+ key <FK07> { [ F7 ] };
+ key <FK08> { [ F8 ] };
+ key <CLRL> { [ hpClearLine ]};
+ key <CLR> { [ Clear ]};
+ key <FK09> { [ F9 ] };
+ key <FK10> { [ F10 ] };
+ key <FK11> { [ F11 ] };
+ key <FK12> { [ F12 ] };
+ 
+
+ 
+ key <PRSC> { [ Execute, Print ]};
+ key <INSL> { [ hpInsertLine ]};
+ key <DELL> { [ hpDeleteLine ]};
+ key <INSC> { [ hpInsertChar ]};
+ key <DELC> { [ hpDeleteChar ]};
+ key <HOME> { [ Home ] };
+ key <PGUP> { [ Prior ] };
+ key <PGDN> { [ Next ] };
+ key <SELE> { [ Select ] };
+ key <LEFT> { [ Left ] };
+ key <DOWN> { [ Down ] };
+ key <UP> { [ Up ] };
+ key <RGHT> { [ Right ]};
+ 
+
+ 
+ key <KPMU> { [ KP_Multiply ]};
+ key <KPDV> { [ KP_Divide ]};
+ key <KPAD> { [ KP_Add ]};
+ key <KPSU> { [ KP_Subtract ]};
+
+ key <KP7> { [ KP_7 ] };
+ key <KP8> { [ KP_8 ] };
+ key <KP9> { [ KP_9 ] };
+ key <KPEN> { [ KP_Enter ]}; 
+
+ key <KP4> { [ KP_4 ] };
+ key <KP5> { [ KP_5 ] };
+ key <KP6> { [ KP_6 ] };
+ key <KPSP> { [ KP_Separator ]};
+
+ key <KP1> { [ KP_1 ] };
+ key <KP2> { [ KP_2 ] };
+ key <KP3> { [ KP_3 ] };
+ key <KPTB> { [ KP_Tab ]}; 
+
+ key <KP0> { [ KP_0 ] };
+ key <KPDL> { [ KP_Decimal ] };
+ 
+
+ modifier_map Shift { Shift_R };
+ modifier_map Mod1 { Meta_L, Meta_R };
+ modifier_map Mod2 { Alt_L };
+ modifier_map Mod3 { Mode_switch };
+};

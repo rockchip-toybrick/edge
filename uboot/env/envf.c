@@ -25,7 +25,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define ENVF_MAX		64
 
 static ulong env_size, env_offset, env_offset_redund;
+
+#if CONFIG_IS_ENABLED(ENV_PARTITION)
 static const char *part_type[] = { "mtdparts", "blkdevparts", };
+#endif
 
 /*
  * In case of env and env-backup partitions are too large that exceeds the limit
@@ -41,16 +44,6 @@ static const char *envf_list[ENVF_MAX];
 #endif
 
 #ifdef CONFIG_DM_MMC
-static int pmbr_part_valid(struct partition *part)
-{
-	if (part->sys_ind == EFI_PMBR_OSTYPE_EFI_GPT &&
-		get_unaligned_le32(&part->start_sect) == 1UL) {
-		return 1;
-	}
-
-	return 0;
-}
-
 static int is_pmbr_valid(legacy_mbr * mbr)
 {
 	int i = 0;
@@ -59,10 +52,10 @@ static int is_pmbr_valid(legacy_mbr * mbr)
 		return 0;
 
 	for (i = 0; i < 4; i++) {
-		if (pmbr_part_valid(&mbr->partition_record[i])) {
+		if (mbr->partition_record[i].sys_ind == 0xc)
 			return 1;
-		}
 	}
+
 	return 0;
 }
 
@@ -73,39 +66,12 @@ static int can_find_pmbr(struct blk_desc *dev_desc)
 	/* Read legacy MBR from block 0 and validate it */
 	if ((blk_dread(dev_desc, 0, 1, (ulong *)legacymbr) != 1)
 		|| (is_pmbr_valid(legacymbr) != 1)) {
-		return -1;
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 #endif
-
-static const char *env_get_string(env_t *env, u32 size, const char *str)
-{
-	const char *dp;
-	u32 env_size;
-
-	dp = (const char *)env->data;
-	env_size = size - ENV_HEADER_SIZE;
-	do {
-		/* skip leading white space */
-		while (*dp == ' ' || *dp == '\t')
-			++dp;
-
-		debug("ENTRY: %s\n", dp);
-		if (strstr(dp, str)) {
-			debug("FIND: %s\n", dp);
-			return dp;
-		}
-
-		/* point to next ENTRY */
-		dp += strlen(dp) + 1;
-	} while (((ulong)dp < (ulong)env->data + env_size) && *dp);
-
-	debug("NOT-FIND: %s\n", str);
-
-	return NULL;
-}
 
 static void envf_init_location(struct blk_desc *desc)
 {
@@ -175,7 +141,7 @@ fail:
 	return ret;
 }
 
-static env_t *envf_read(struct blk_desc *desc)
+static __maybe_unused env_t *envf_read(struct blk_desc *desc)
 {
 	env_t *env = NULL;
 	int ret;
@@ -198,6 +164,34 @@ static env_t *envf_read(struct blk_desc *desc)
 		ret = env_read(desc, env_offset_redund, env_size, &env);
 
 	return env;
+}
+
+#if CONFIG_IS_ENABLED(ENV_PARTITION)
+static const char *env_get_string(env_t *env, u32 size, const char *str)
+{
+	const char *dp;
+	u32 env_size;
+
+	dp = (const char *)env->data;
+	env_size = size - ENV_HEADER_SIZE;
+	do {
+		/* skip leading white space */
+		while (*dp == ' ' || *dp == '\t')
+			++dp;
+
+		debug("ENTRY: %s\n", dp);
+		if (strstr(dp, str)) {
+			debug("FIND: %s\n", dp);
+			return dp;
+		}
+
+		/* point to next ENTRY */
+		dp += strlen(dp) + 1;
+	} while (((ulong)dp < (ulong)env->data + env_size) && *dp);
+
+	debug("NOT-FIND: %s\n", str);
+
+	return NULL;
 }
 
 char *envf_get_part_table(struct blk_desc *desc)
@@ -227,6 +221,7 @@ char *envf_get_part_table(struct blk_desc *desc)
 out:
 	return (char *)list;
 }
+#endif
 
 #ifndef CONFIG_SPL_BUILD
 static int envf_init_vars(void)
@@ -257,33 +252,6 @@ static int envf_init_vars(void)
 	return envf_num;
 }
 
-static int envf_add_bootargs(void)
-{
-	char *part_list;
-	char *bootargs;
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(part_type); i++) {
-		part_list = env_get(part_type[i]);
-		if (part_list)
-			break;
-	}
-	if (!part_list)
-		return -EINVAL;
-
-	bootargs = calloc(1, strlen(part_list) + strlen(part_type[i]) + 2);
-	if (!bootargs)
-		return -ENOMEM;
-
-	strcat(bootargs, part_type[i]);
-	strcat(bootargs, "=");
-	strcat(bootargs, part_list);
-	env_update("bootargs", bootargs);
-	free(bootargs);
-
-	return 0;
-}
-
 static int envf_load(void)
 {
 	struct blk_desc *desc;
@@ -306,8 +274,6 @@ static int envf_load(void)
 			return -EINTR;
 		}
 	}
-
-	envf_add_bootargs();
 
 	return 0;
 }

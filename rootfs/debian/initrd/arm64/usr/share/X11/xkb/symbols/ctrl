@@ -1,0 +1,123 @@
+
+partial modifier_keys
+xkb_symbols "nocaps" {
+ replace key <CAPS> { [ Control_L, Control_L ] };
+ modifier_map Control { <CAPS>, <LCTL> };
+};
+
+
+xkb_symbols "lctrl_meta" {
+ replace key <LCTL> { [ Meta_L ] };
+ modifier_map Mod4 { <LCTL> };
+};
+
+
+partial modifier_keys
+xkb_symbols "swapcaps" {
+ replace key <CAPS> { [ Control_L ] };
+ replace key <LCTL> { [ Caps_Lock ] };
+ modifier_map Control { <CAPS> };
+ modifier_map Lock { <LCTL> };
+};
+
+
+
+partial modifier_keys
+xkb_symbols "swapcaps_hyper" {
+ replace key <CAPS> { [ Control_L ] };
+ replace key <LCTL> { [ Hyper_L ] };
+ modifier_map Control { <CAPS> };
+ modifier_map Mod3 { <LCTL> };
+};
+
+
+partial modifier_keys
+xkb_symbols "swapcaps_and_switch_layout" {
+ replace key <CAPS> { [ Control_L ] };
+ replace key <LCTL> { [ ISO_Next_Group ] };
+ modifier_map Control { <CAPS> };
+ modifier_map Lock { <LCTL> };
+};
+
+
+
+
+partial modifier_keys
+xkb_symbols "ac_ctrl" {
+ replace key <AC00> { [ Control_L ] };
+ replace key <AA00> { [ Caps_Lock ] };
+ modifier_map Control { <AC00> };
+ modifier_map Lock { <AA00> };
+};
+
+
+
+
+partial modifier_keys
+xkb_symbols "aa_ctrl" {
+ replace key <AA00> { [ Control_L ] };
+ replace key <AC00> { [ Caps_Lock ] };
+ modifier_map Control { <AA00> };
+ modifier_map Lock { <AC00> };
+};
+
+
+partial modifier_keys
+xkb_symbols "rctrl_ralt" {
+ key <RCTL> { symbols[Group1]= [ Alt_R ] };
+ modifier_map Mod1{ <RCTL> };
+};
+
+
+partial modifier_keys
+xkb_symbols "menu_rctrl" {
+ replace key <MENU> { [ Control_R, Control_R ] };
+ modifier_map Control { Control_L, <MENU> };
+};
+
+
+partial modifier_keys
+xkb_symbols "ralt_rctrl" {
+ replace key <RALT> { type[Group1] = "TWO_LEVEL",
+ symbols[Group1] = [ Control_R, Control_R ] };
+ modifier_map Control { <RALT> };
+};
+
+
+partial modifier_keys
+xkb_symbols "swap_lalt_lctl" {
+ replace key <LALT> { [ Control_L, Control_L ] };
+ replace key <LCTL> { [ Alt_L, Meta_L ] };
+ modifier_map Mod1 { <LCTL> };
+ modifier_map Control { <LALT> };
+};
+
+
+partial modifier_keys
+xkb_symbols "swap_lwin_lctl" {
+ replace key <LWIN> { [ Control_L ] };
+ replace key <LCTL> { [ Super_L ] };
+ modifier_map Mod4 { <LCTL> };
+ modifier_map Control { <LWIN> };
+};
+
+
+partial modifier_keys
+xkb_symbols "swap_rwin_rctl" {
+ replace key <RWIN> { [ Control_R ] };
+ replace key <RCTL> { [ Super_R ] };
+ modifier_map Mod4 { <RCTL> };
+ modifier_map Control { <RWIN> };
+};
+
+
+
+partial modifier_keys
+xkb_symbols "swap_lalt_lctl_lwin" {
+ replace key <LALT> { [ Control_L, Control_L ] };
+ replace key <LWIN> { [ Alt_L, Meta_L ] };
+ replace key <LCTL> { [ Super_L ] };
+ modifier_map Mod1 { <LWIN> };
+ modifier_map Mod4 { <LCTL> };
+ modifier_map Control { <LALT> };
+};

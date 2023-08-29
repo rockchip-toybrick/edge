@@ -4,7 +4,12 @@ set -e
 TARGET_SOC="rk356x"
 
 # for aarch64
-GCC_COMPILER=aarch64-linux-gnu
+if [ -z "$GCC_COMPILER" ]
+then
+    GCC_COMPILER=aarch64-linux-gnu
+else
+    echo "use export GCC_COMPILER=$GCC_COMPILER"
+fi
 
 ROOT_PWD=$( cd "$( dirname $0 )" && cd -P "$( dirname "$SOURCE" )" && pwd )
 

@@ -149,7 +149,7 @@ static int scmi_clocks_probe(struct scmi_device *sdev)
 	if (!handle)
 		return -ENODEV;
 
-	clk_ops = handle->devm_get_protocol(sdev, SCMI_PROTOCOL_CLOCK, &ph);
+	clk_ops = handle->devm_protocol_get(sdev, SCMI_PROTOCOL_CLOCK, &ph);
 	if (IS_ERR(clk_ops))
 		return PTR_ERR(clk_ops);
 

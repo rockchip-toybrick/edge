@@ -38,6 +38,7 @@ static void __rockchip_drm_fb_destroy(struct drm_framebuffer *fb)
 #ifndef MODULE
 		rockchip_free_loader_memory(fb->dev);
 #endif
+		drm_gem_object_release(rockchip_logo_fb->fb.obj[0]);
 		kfree(rockchip_logo_fb);
 	} else {
 		for (i = 0; i < 4; i++) {
@@ -141,6 +142,7 @@ rockchip_drm_logo_fb_alloc(struct drm_device *dev, const struct drm_mode_fb_cmd2
 	fb->flags |= ROCKCHIP_DRM_MODE_LOGO_FB;
 	rockchip_logo_fb->logo = logo;
 	rockchip_logo_fb->fb.obj[0] = &rockchip_logo_fb->rk_obj.base;
+	drm_gem_object_init(dev, rockchip_logo_fb->fb.obj[0], PAGE_ALIGN(logo->size));
 	rockchip_logo_fb->rk_obj.dma_addr = logo->dma_addr;
 	rockchip_logo_fb->rk_obj.kvaddr = logo->kvaddr;
 	logo->count++;
@@ -161,6 +163,7 @@ static int rockchip_drm_bandwidth_atomic_check(struct drm_device *dev,
 	vop_bw_info->line_bw_mbyte = 0;
 	vop_bw_info->frame_bw_mbyte = 0;
 	vop_bw_info->plane_num = 0;
+	vop_bw_info->plane_num_4k = 0;
 
 	for_each_old_crtc_in_state(state, crtc, old_crtc_state, i) {
 		funcs = priv->crtc_funcs[drm_crtc_index(crtc)];

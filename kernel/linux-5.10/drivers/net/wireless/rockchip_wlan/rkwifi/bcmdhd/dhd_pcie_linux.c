@@ -1519,6 +1519,7 @@ int dhdpcie_pci_suspend_resume(dhd_bus_t *bus, bool state)
 	return rc;
 }
 
+#if 0
 static int dhdpcie_device_scan(struct device *dev, void *data)
 {
 	struct pci_dev *pcidev;
@@ -1543,7 +1544,6 @@ static int dhdpcie_device_scan(struct device *dev, void *data)
 int
 dhdpcie_bus_register(void)
 {
-#if 0
 	int error = 0;
 
 	if (!(error = pci_register_driver(&dhdpcie_driver))) {
@@ -1564,10 +1564,14 @@ dhdpcie_bus_register(void)
 	}
 
 	return error;
-#else
-	return pci_register_driver(&dhdpcie_driver);
-#endif
 }
+#else
+int
+dhdpcie_bus_register(void)
+{
+	return pci_register_driver(&dhdpcie_driver);
+}
+#endif
 
 void
 dhdpcie_bus_unregister(void)

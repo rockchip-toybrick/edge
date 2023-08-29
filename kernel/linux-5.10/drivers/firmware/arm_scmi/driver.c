@@ -11,7 +11,7 @@
  * various power domain DVFS including the core/cluster, certain system
  * clocks configuration, thermal sensors and many others.
  *
- * Copyright (C) 2018-2020 ARM Ltd.
+ * Copyright (C) 2018-2021 ARM Ltd.
  */
 
 #include <linux/bitmap.h>
@@ -21,6 +21,7 @@
 #include <linux/io.h>
 #include <linux/kernel.h>
 #include <linux/ktime.h>
+#include <linux/hashtable.h>
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/of_address.h>
@@ -34,8 +35,6 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/scmi.h>
-#undef CREATE_TRACE_POINTS
-#include <trace/hooks/scmi.h>
 
 enum scmi_error_codes {
 	SCMI_SUCCESS = 0,	/* Success */
@@ -69,16 +68,23 @@ struct scmi_requested_dev {
 /**
  * struct scmi_xfers_info - Structure to manage transfer information
  *
- * @xfer_block: Preallocated Message array
  * @xfer_alloc_table: Bitmap table for allocated messages.
  *	Index of this bitmap table is also used for message
  *	sequence identifier.
  * @xfer_lock: Protection for message allocation
+ * @max_msg: Maximum number of messages that can be pending
+ * @free_xfers: A free list for available to use xfers. It is initialized with
+ *		a number of xfers equal to the maximum allowed in-flight
+ *		messages.
+ * @pending_xfers: An hashtable, indexed by msg_hdr.seq, used to keep all the
+ *		   currently in-flight messages.
  */
 struct scmi_xfers_info {
-	struct scmi_xfer *xfer_block;
 	unsigned long *xfer_alloc_table;
 	spinlock_t xfer_lock;
+	int max_msg;
+	struct hlist_head free_xfers;
+	DECLARE_HASHTABLE(pending_xfers, SCMI_PENDING_XFERS_HT_ORDER_SZ);
 };
 
 /**
@@ -174,20 +180,7 @@ static inline int scmi_to_linux_errno(int errno)
 	return -EIO;
 }
 
-/**
- * scmi_dump_header_dbg() - Helper to dump a message header.
- *
- * @dev: Device pointer corresponding to the SCMI entity
- * @hdr: pointer to header.
- */
-static inline void scmi_dump_header_dbg(struct device *dev,
-					struct scmi_msg_hdr *hdr)
-{
-	dev_dbg(dev, "Message ID: %x Sequence ID: %x Protocol: %x\n",
-		hdr->id, hdr->seq, hdr->protocol_id);
-}
-
-void scmi_set_notification_instance_data(const struct scmi_handle *handle,
+void scmi_notification_instance_data_set(const struct scmi_handle *handle,
 					 void *priv)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
@@ -197,7 +190,7 @@ void scmi_set_notification_instance_data(const struct scmi_handle *handle,
 	smp_wmb();
 }
 
-void *scmi_get_notification_instance_data(const struct scmi_handle *handle)
+void *scmi_notification_instance_data_get(const struct scmi_handle *handle)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
 
@@ -207,45 +200,188 @@ void *scmi_get_notification_instance_data(const struct scmi_handle *handle)
 }
 
 /**
+ * scmi_xfer_token_set  - Reserve and set new token for the xfer at hand
+ *
+ * @minfo: Pointer to Tx/Rx Message management info based on channel type
+ * @xfer: The xfer to act upon
+ *
+ * Pick the next unused monotonically increasing token and set it into
+ * xfer->hdr.seq: picking a monotonically increasing value avoids immediate
+ * reuse of freshly completed or timed-out xfers, thus mitigating the risk
+ * of incorrect association of a late and expired xfer with a live in-flight
+ * transaction, both happening to re-use the same token identifier.
+ *
+ * Since platform is NOT required to answer our request in-order we should
+ * account for a few rare but possible scenarios:
+ *
+ *  - exactly 'next_token' may be NOT available so pick xfer_id >= next_token
+ *    using find_next_zero_bit() starting from candidate next_token bit
+ *
+ *  - all tokens ahead upto (MSG_TOKEN_ID_MASK - 1) are used in-flight but we
+ *    are plenty of free tokens at start, so try a second pass using
+ *    find_next_zero_bit() and starting from 0.
+ *
+ *  X = used in-flight
+ *
+ * Normal
+ * ------
+ *
+ *		|- xfer_id picked
+ *   -----------+----------------------------------------------------------
+ *   | | |X|X|X| | | | | | ... ... ... ... ... ... ... ... ... ... ...|X|X|
+ *   ----------------------------------------------------------------------
+ *		^
+ *		|- next_token
+ *
+ * Out-of-order pending at start
+ * -----------------------------
+ *
+ *	  |- xfer_id picked, last_token fixed
+ *   -----+----------------------------------------------------------------
+ *   |X|X| | | | |X|X| ... ... ... ... ... ... ... ... ... ... ... ...|X| |
+ *   ----------------------------------------------------------------------
+ *    ^
+ *    |- next_token
+ *
+ *
+ * Out-of-order pending at end
+ * ---------------------------
+ *
+ *	  |- xfer_id picked, last_token fixed
+ *   -----+----------------------------------------------------------------
+ *   |X|X| | | | |X|X| ... ... ... ... ... ... ... ... ... ... |X|X|X||X|X|
+ *   ----------------------------------------------------------------------
+ *								^
+ *								|- next_token
+ *
+ * Context: Assumes to be called with @xfer_lock already acquired.
+ *
+ * Return: 0 on Success or error
+ */
+static int scmi_xfer_token_set(struct scmi_xfers_info *minfo,
+			       struct scmi_xfer *xfer)
+{
+	unsigned long xfer_id, next_token;
+
+	/*
+	 * Pick a candidate monotonic token in range [0, MSG_TOKEN_MAX - 1]
+	 * using the pre-allocated transfer_id as a base.
+	 * Note that the global transfer_id is shared across all message types
+	 * so there could be holes in the allocated set of monotonic sequence
+	 * numbers, but that is going to limit the effectiveness of the
+	 * mitigation only in very rare limit conditions.
+	 */
+	next_token = (xfer->transfer_id & (MSG_TOKEN_MAX - 1));
+
+	/* Pick the next available xfer_id >= next_token */
+	xfer_id = find_next_zero_bit(minfo->xfer_alloc_table,
+				     MSG_TOKEN_MAX, next_token);
+	if (xfer_id == MSG_TOKEN_MAX) {
+		/*
+		 * After heavily out-of-order responses, there are no free
+		 * tokens ahead, but only at start of xfer_alloc_table so
+		 * try again from the beginning.
+		 */
+		xfer_id = find_next_zero_bit(minfo->xfer_alloc_table,
+					     MSG_TOKEN_MAX, 0);
+		/*
+		 * Something is wrong if we got here since there can be a
+		 * maximum number of (MSG_TOKEN_MAX - 1) in-flight messages
+		 * but we have not found any free token [0, MSG_TOKEN_MAX - 1].
+		 */
+		if (WARN_ON_ONCE(xfer_id == MSG_TOKEN_MAX))
+			return -ENOMEM;
+	}
+
+	/* Update +/- last_token accordingly if we skipped some hole */
+	if (xfer_id != next_token)
+		atomic_add((int)(xfer_id - next_token), &transfer_last_id);
+
+	/* Set in-flight */
+	set_bit(xfer_id, minfo->xfer_alloc_table);
+	xfer->hdr.seq = (u16)xfer_id;
+
+	return 0;
+}
+
+/**
+ * scmi_xfer_token_clear  - Release the token
+ *
+ * @minfo: Pointer to Tx/Rx Message management info based on channel type
+ * @xfer: The xfer to act upon
+ */
+static inline void scmi_xfer_token_clear(struct scmi_xfers_info *minfo,
+					 struct scmi_xfer *xfer)
+{
+	clear_bit(xfer->hdr.seq, minfo->xfer_alloc_table);
+}
+
+/**
  * scmi_xfer_get() - Allocate one message
  *
  * @handle: Pointer to SCMI entity handle
  * @minfo: Pointer to Tx/Rx Message management info based on channel type
+ * @set_pending: If true a monotonic token is picked and the xfer is added to
+ *		 the pending hash table.
  *
  * Helper function which is used by various message functions that are
  * exposed to clients of this driver for allocating a message traffic event.
  *
- * This function can sleep depending on pending requests already in the system
- * for the SCMI entity. Further, this also holds a spinlock to maintain
- * integrity of internal data structures.
+ * Picks an xfer from the free list @free_xfers (if any available) and, if
+ * required, sets a monotonically increasing token and stores the inflight xfer
+ * into the @pending_xfers hashtable for later retrieval.
+ *
+ * The successfully initialized xfer is refcounted.
+ *
+ * Context: Holds @xfer_lock while manipulating @xfer_alloc_table and
+ *	    @free_xfers.
  *
  * Return: 0 if all went fine, else corresponding error.
  */
 static struct scmi_xfer *scmi_xfer_get(const struct scmi_handle *handle,
-				       struct scmi_xfers_info *minfo)
+				       struct scmi_xfers_info *minfo,
+				       bool set_pending)
 {
-	u16 xfer_id;
+	int ret;
+	unsigned long flags;
 	struct scmi_xfer *xfer;
-	unsigned long flags, bit_pos;
-	struct scmi_info *info = handle_to_scmi_info(handle);
 
-	/* Keep the locked section as small as possible */
 	spin_lock_irqsave(&minfo->xfer_lock, flags);
-	bit_pos = find_first_zero_bit(minfo->xfer_alloc_table,
-				      info->desc->max_msg);
-	if (bit_pos == info->desc->max_msg) {
+	if (hlist_empty(&minfo->free_xfers)) {
 		spin_unlock_irqrestore(&minfo->xfer_lock, flags);
 		return ERR_PTR(-ENOMEM);
 	}
-	set_bit(bit_pos, minfo->xfer_alloc_table);
-	spin_unlock_irqrestore(&minfo->xfer_lock, flags);
 
-	xfer_id = bit_pos;
+	/* grab an xfer from the free_list */
+	xfer = hlist_entry(minfo->free_xfers.first, struct scmi_xfer, node);
+	hlist_del_init(&xfer->node);
 
-	xfer = &minfo->xfer_block[xfer_id];
-	xfer->hdr.seq = xfer_id;
-	reinit_completion(&xfer->done);
+	/*
+	 * Allocate transfer_id early so that can be used also as base for
+	 * monotonic sequence number generation if needed.
+	 */
 	xfer->transfer_id = atomic_inc_return(&transfer_last_id);
+
+	if (set_pending) {
+		/* Pick and set monotonic token */
+		ret = scmi_xfer_token_set(minfo, xfer);
+		if (!ret) {
+			hash_add(minfo->pending_xfers, &xfer->node,
+				 xfer->hdr.seq);
+			xfer->pending = true;
+		} else {
+			dev_err(handle->dev,
+				"Failed to get monotonic token %d\n", ret);
+			hlist_add_head(&xfer->node, &minfo->free_xfers);
+			xfer = ERR_PTR(ret);
+		}
+	}
+
+	if (!IS_ERR(xfer)) {
+		refcount_set(&xfer->users, 1);
+		atomic_set(&xfer->busy, SCMI_XFER_FREE);
+	}
+	spin_unlock_irqrestore(&minfo->xfer_lock, flags);
 
 	return xfer;
 }
@@ -256,6 +392,9 @@ static struct scmi_xfer *scmi_xfer_get(const struct scmi_handle *handle,
  * @minfo: Pointer to Tx/Rx Message management info based on channel type
  * @xfer: message that was reserved by scmi_xfer_get
  *
+ * After refcount check, possibly release an xfer, clearing the token slot,
+ * removing xfer from @pending_xfers and putting it back into free_xfers.
+ *
  * This holds a spinlock to maintain integrity of internal data structures.
  */
 static void
@@ -263,17 +402,215 @@ __scmi_xfer_put(struct scmi_xfers_info *minfo, struct scmi_xfer *xfer)
 {
 	unsigned long flags;
 
-	/*
-	 * Keep the locked section as small as possible
-	 * NOTE: we might escape with smp_mb and no lock here..
-	 * but just be conservative and symmetric.
-	 */
 	spin_lock_irqsave(&minfo->xfer_lock, flags);
-	clear_bit(xfer->hdr.seq, minfo->xfer_alloc_table);
+	if (refcount_dec_and_test(&xfer->users)) {
+		if (xfer->pending) {
+			scmi_xfer_token_clear(minfo, xfer);
+			hash_del(&xfer->node);
+			xfer->pending = false;
+		}
+		hlist_add_head(&xfer->node, &minfo->free_xfers);
+	}
 	spin_unlock_irqrestore(&minfo->xfer_lock, flags);
 }
 
-static void scmi_handle_notification(struct scmi_chan_info *cinfo, u32 msg_hdr)
+/**
+ * scmi_xfer_lookup_unlocked  -  Helper to lookup an xfer_id
+ *
+ * @minfo: Pointer to Tx/Rx Message management info based on channel type
+ * @xfer_id: Token ID to lookup in @pending_xfers
+ *
+ * Refcounting is untouched.
+ *
+ * Context: Assumes to be called with @xfer_lock already acquired.
+ *
+ * Return: A valid xfer on Success or error otherwise
+ */
+static struct scmi_xfer *
+scmi_xfer_lookup_unlocked(struct scmi_xfers_info *minfo, u16 xfer_id)
+{
+	struct scmi_xfer *xfer = NULL;
+
+	if (test_bit(xfer_id, minfo->xfer_alloc_table))
+		xfer = XFER_FIND(minfo->pending_xfers, xfer_id);
+
+	return xfer ?: ERR_PTR(-EINVAL);
+}
+
+/**
+ * scmi_msg_response_validate  - Validate message type against state of related
+ * xfer
+ *
+ * @cinfo: A reference to the channel descriptor.
+ * @msg_type: Message type to check
+ * @xfer: A reference to the xfer to validate against @msg_type
+ *
+ * This function checks if @msg_type is congruent with the current state of
+ * a pending @xfer; if an asynchronous delayed response is received before the
+ * related synchronous response (Out-of-Order Delayed Response) the missing
+ * synchronous response is assumed to be OK and completed, carrying on with the
+ * Delayed Response: this is done to address the case in which the underlying
+ * SCMI transport can deliver such out-of-order responses.
+ *
+ * Context: Assumes to be called with xfer->lock already acquired.
+ *
+ * Return: 0 on Success, error otherwise
+ */
+static inline int scmi_msg_response_validate(struct scmi_chan_info *cinfo,
+					     u8 msg_type,
+					     struct scmi_xfer *xfer)
+{
+	/*
+	 * Even if a response was indeed expected on this slot at this point,
+	 * a buggy platform could wrongly reply feeding us an unexpected
+	 * delayed response we're not prepared to handle: bail-out safely
+	 * blaming firmware.
+	 */
+	if (msg_type == MSG_TYPE_DELAYED_RESP && !xfer->async_done) {
+		dev_err(cinfo->dev,
+			"Delayed Response for %d not expected! Buggy F/W ?\n",
+			xfer->hdr.seq);
+		return -EINVAL;
+	}
+
+	switch (xfer->state) {
+	case SCMI_XFER_SENT_OK:
+		if (msg_type == MSG_TYPE_DELAYED_RESP) {
+			/*
+			 * Delayed Response expected but delivered earlier.
+			 * Assume message RESPONSE was OK and skip state.
+			 */
+			xfer->hdr.status = SCMI_SUCCESS;
+			xfer->state = SCMI_XFER_RESP_OK;
+			complete(&xfer->done);
+			dev_warn(cinfo->dev,
+				 "Received valid OoO Delayed Response for %d\n",
+				 xfer->hdr.seq);
+		}
+		break;
+	case SCMI_XFER_RESP_OK:
+		if (msg_type != MSG_TYPE_DELAYED_RESP)
+			return -EINVAL;
+		break;
+	case SCMI_XFER_DRESP_OK:
+		/* No further message expected once in SCMI_XFER_DRESP_OK */
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+/**
+ * scmi_xfer_state_update  - Update xfer state
+ *
+ * @xfer: A reference to the xfer to update
+ * @msg_type: Type of message being processed.
+ *
+ * Note that this message is assumed to have been already successfully validated
+ * by @scmi_msg_response_validate(), so here we just update the state.
+ *
+ * Context: Assumes to be called on an xfer exclusively acquired using the
+ *	    busy flag.
+ */
+static inline void scmi_xfer_state_update(struct scmi_xfer *xfer, u8 msg_type)
+{
+	xfer->hdr.type = msg_type;
+
+	/* Unknown command types were already discarded earlier */
+	if (xfer->hdr.type == MSG_TYPE_COMMAND)
+		xfer->state = SCMI_XFER_RESP_OK;
+	else
+		xfer->state = SCMI_XFER_DRESP_OK;
+}
+
+static bool scmi_xfer_acquired(struct scmi_xfer *xfer)
+{
+	int ret;
+
+	ret = atomic_cmpxchg(&xfer->busy, SCMI_XFER_FREE, SCMI_XFER_BUSY);
+
+	return ret == SCMI_XFER_FREE;
+}
+
+/**
+ * scmi_xfer_command_acquire  -  Helper to lookup and acquire a command xfer
+ *
+ * @cinfo: A reference to the channel descriptor.
+ * @msg_hdr: A message header to use as lookup key
+ *
+ * When a valid xfer is found for the sequence number embedded in the provided
+ * msg_hdr, reference counting is properly updated and exclusive access to this
+ * xfer is granted till released with @scmi_xfer_command_release.
+ *
+ * Return: A valid @xfer on Success or error otherwise.
+ */
+static inline struct scmi_xfer *
+scmi_xfer_command_acquire(struct scmi_chan_info *cinfo, u32 msg_hdr)
+{
+	int ret;
+	unsigned long flags;
+	struct scmi_xfer *xfer;
+	struct scmi_info *info = handle_to_scmi_info(cinfo->handle);
+	struct scmi_xfers_info *minfo = &info->tx_minfo;
+	u8 msg_type = MSG_XTRACT_TYPE(msg_hdr);
+	u16 xfer_id = MSG_XTRACT_TOKEN(msg_hdr);
+
+	/* Are we even expecting this? */
+	spin_lock_irqsave(&minfo->xfer_lock, flags);
+	xfer = scmi_xfer_lookup_unlocked(minfo, xfer_id);
+	if (IS_ERR(xfer)) {
+		dev_err(cinfo->dev,
+			"Message for %d type %d is not expected!\n",
+			xfer_id, msg_type);
+		spin_unlock_irqrestore(&minfo->xfer_lock, flags);
+		return xfer;
+	}
+	refcount_inc(&xfer->users);
+	spin_unlock_irqrestore(&minfo->xfer_lock, flags);
+
+	spin_lock_irqsave(&xfer->lock, flags);
+	ret = scmi_msg_response_validate(cinfo, msg_type, xfer);
+	/*
+	 * If a pending xfer was found which was also in a congruent state with
+	 * the received message, acquire exclusive access to it setting the busy
+	 * flag.
+	 * Spins only on the rare limit condition of concurrent reception of
+	 * RESP and DRESP for the same xfer.
+	 */
+	if (!ret) {
+		spin_until_cond(scmi_xfer_acquired(xfer));
+		scmi_xfer_state_update(xfer, msg_type);
+	}
+	spin_unlock_irqrestore(&xfer->lock, flags);
+
+	if (ret) {
+		dev_err(cinfo->dev,
+			"Invalid message type:%d for %d - HDR:0x%X  state:%d\n",
+			msg_type, xfer_id, msg_hdr, xfer->state);
+		/* On error the refcount incremented above has to be dropped */
+		__scmi_xfer_put(minfo, xfer);
+		xfer = ERR_PTR(-EINVAL);
+	}
+
+	return xfer;
+}
+
+static inline void scmi_xfer_command_release(struct scmi_info *info,
+					     struct scmi_xfer *xfer)
+{
+	atomic_set(&xfer->busy, SCMI_XFER_FREE);
+	__scmi_xfer_put(&info->tx_minfo, xfer);
+}
+
+static inline void scmi_clear_channel(struct scmi_info *info,
+				      struct scmi_chan_info *cinfo)
+{
+	if (info->desc->ops->clear_channel)
+		info->desc->ops->clear_channel(cinfo);
+}
+
+static void scmi_handle_notification(struct scmi_chan_info *cinfo,
+				     u32 msg_hdr, void *priv)
 {
 	struct scmi_xfer *xfer;
 	struct device *dev = cinfo->dev;
@@ -282,16 +619,17 @@ static void scmi_handle_notification(struct scmi_chan_info *cinfo, u32 msg_hdr)
 	ktime_t ts;
 
 	ts = ktime_get_boottime();
-	xfer = scmi_xfer_get(cinfo->handle, minfo);
+	xfer = scmi_xfer_get(cinfo->handle, minfo, false);
 	if (IS_ERR(xfer)) {
 		dev_err(dev, "failed to get free message slot (%ld)\n",
 			PTR_ERR(xfer));
-		info->desc->ops->clear_channel(cinfo);
+		scmi_clear_channel(info, cinfo);
 		return;
 	}
 
 	unpack_scmi_header(msg_hdr, &xfer->hdr);
-	scmi_dump_header_dbg(dev, &xfer->hdr);
+	if (priv)
+		xfer->priv = priv;
 	info->desc->ops->fetch_notification(cinfo, info->desc->max_msg_size,
 					    xfer);
 	scmi_notify(cinfo->handle, xfer->hdr.protocol_id,
@@ -303,59 +641,41 @@ static void scmi_handle_notification(struct scmi_chan_info *cinfo, u32 msg_hdr)
 
 	__scmi_xfer_put(minfo, xfer);
 
-	info->desc->ops->clear_channel(cinfo);
+	scmi_clear_channel(info, cinfo);
 }
 
 static void scmi_handle_response(struct scmi_chan_info *cinfo,
-				 u16 xfer_id, u8 msg_type)
+				 u32 msg_hdr, void *priv)
 {
 	struct scmi_xfer *xfer;
-	struct device *dev = cinfo->dev;
 	struct scmi_info *info = handle_to_scmi_info(cinfo->handle);
-	struct scmi_xfers_info *minfo = &info->tx_minfo;
 
-	/* Are we even expecting this? */
-	if (!test_bit(xfer_id, minfo->xfer_alloc_table)) {
-		dev_err(dev, "message for %d is not expected!\n", xfer_id);
-		info->desc->ops->clear_channel(cinfo);
-		return;
-	}
-
-	xfer = &minfo->xfer_block[xfer_id];
-	/*
-	 * Even if a response was indeed expected on this slot at this point,
-	 * a buggy platform could wrongly reply feeding us an unexpected
-	 * delayed response we're not prepared to handle: bail-out safely
-	 * blaming firmware.
-	 */
-	if (unlikely(msg_type == MSG_TYPE_DELAYED_RESP && !xfer->async_done)) {
-		dev_err(dev,
-			"Delayed Response for %d not expected! Buggy F/W ?\n",
-			xfer_id);
-		info->desc->ops->clear_channel(cinfo);
-		/* It was unexpected, so nobody will clear the xfer if not us */
-		__scmi_xfer_put(minfo, xfer);
+	xfer = scmi_xfer_command_acquire(cinfo, msg_hdr);
+	if (IS_ERR(xfer)) {
+		scmi_clear_channel(info, cinfo);
 		return;
 	}
 
 	/* rx.len could be shrunk in the sync do_xfer, so reset to maxsz */
-	if (msg_type == MSG_TYPE_DELAYED_RESP)
+	if (xfer->hdr.type == MSG_TYPE_DELAYED_RESP)
 		xfer->rx.len = info->desc->max_msg_size;
 
-	scmi_dump_header_dbg(dev, &xfer->hdr);
-
+	if (priv)
+		xfer->priv = priv;
 	info->desc->ops->fetch_response(cinfo, xfer);
 
 	trace_scmi_rx_done(xfer->transfer_id, xfer->hdr.id,
 			   xfer->hdr.protocol_id, xfer->hdr.seq,
-			   msg_type);
+			   xfer->hdr.type);
 
-	if (msg_type == MSG_TYPE_DELAYED_RESP) {
-		info->desc->ops->clear_channel(cinfo);
+	if (xfer->hdr.type == MSG_TYPE_DELAYED_RESP) {
+		scmi_clear_channel(info, cinfo);
 		complete(xfer->async_done);
 	} else {
 		complete(&xfer->done);
 	}
+
+	scmi_xfer_command_release(info, xfer);
 }
 
 /**
@@ -363,6 +683,7 @@ static void scmi_handle_response(struct scmi_chan_info *cinfo,
  *
  * @cinfo: SCMI channel info
  * @msg_hdr: Message header
+ * @priv: Transport specific private data.
  *
  * Processes one received message to appropriate transfer information and
  * signals completion of the transfer.
@@ -370,18 +691,17 @@ static void scmi_handle_response(struct scmi_chan_info *cinfo,
  * NOTE: This function will be invoked in IRQ context, hence should be
  * as optimal as possible.
  */
-void scmi_rx_callback(struct scmi_chan_info *cinfo, u32 msg_hdr)
+void scmi_rx_callback(struct scmi_chan_info *cinfo, u32 msg_hdr, void *priv)
 {
-	u16 xfer_id = MSG_XTRACT_TOKEN(msg_hdr);
 	u8 msg_type = MSG_XTRACT_TYPE(msg_hdr);
 
 	switch (msg_type) {
 	case MSG_TYPE_NOTIFICATION:
-		scmi_handle_notification(cinfo, msg_hdr);
+		scmi_handle_notification(cinfo, msg_hdr, priv);
 		break;
 	case MSG_TYPE_COMMAND:
 	case MSG_TYPE_DELAYED_RESP:
-		scmi_handle_response(cinfo, xfer_id, msg_type);
+		scmi_handle_response(cinfo, msg_hdr, priv);
 		break;
 	default:
 		WARN_ONCE(1, "received unknown msg_type:%d\n", msg_type);
@@ -393,7 +713,7 @@ void scmi_rx_callback(struct scmi_chan_info *cinfo, u32 msg_hdr)
  * xfer_put() - Release a transmit message
  *
  * @ph: Pointer to SCMI protocol handle
- * @xfer: message that was reserved by scmi_xfer_get
+ * @xfer: message that was reserved by xfer_get_init
  */
 static void xfer_put(const struct scmi_protocol_handle *ph,
 		     struct scmi_xfer *xfer)
@@ -411,7 +731,12 @@ static bool scmi_xfer_done_no_timeout(struct scmi_chan_info *cinfo,
 {
 	struct scmi_info *info = handle_to_scmi_info(cinfo->handle);
 
+	/*
+	 * Poll also on xfer->done so that polling can be forcibly terminated
+	 * in case of out-of-order receptions of delayed responses
+	 */
 	return info->desc->ops->poll_done(cinfo, xfer) ||
+	       try_wait_for_completion(&xfer->done) ||
 	       ktime_after(ktime_get(), stop);
 }
 
@@ -435,12 +760,19 @@ static int do_xfer(const struct scmi_protocol_handle *ph,
 	struct device *dev = info->dev;
 	struct scmi_chan_info *cinfo;
 
+	if (xfer->hdr.poll_completion && !info->desc->ops->poll_done) {
+		dev_warn_once(dev,
+			      "Polling mode is not supported by transport.\n");
+		return -EINVAL;
+	}
+
 	/*
-	 * Re-instate protocol id here from protocol handle so that cannot be
+	 * Initialise protocol id now from protocol handle to avoid it being
 	 * overridden by mistake (or malice) by the protocol code mangling with
-	 * the scmi_xfer structure.
+	 * the scmi_xfer structure prior to this.
 	 */
 	xfer->hdr.protocol_id = pi->proto->id;
+	reinit_completion(&xfer->done);
 
 	cinfo = idr_find(&info->tx_idr, xfer->hdr.protocol_id);
 	if (unlikely(!cinfo))
@@ -449,6 +781,16 @@ static int do_xfer(const struct scmi_protocol_handle *ph,
 	trace_scmi_xfer_begin(xfer->transfer_id, xfer->hdr.id,
 			      xfer->hdr.protocol_id, xfer->hdr.seq,
 			      xfer->hdr.poll_completion);
+
+	xfer->state = SCMI_XFER_SENT_OK;
+	/*
+	 * Even though spinlocking is not needed here since no race is possible
+	 * on xfer->state due to the monotonically increasing tokens allocation,
+	 * we must anyway ensure xfer->state initialization is not re-ordered
+	 * after the .send_message() to be sure that on the RX path an early
+	 * ISR calling scmi_rx_callback() cannot see an old stale xfer->state.
+	 */
+	smp_mb();
 
 	ret = info->desc->ops->send_message(cinfo, xfer);
 	if (ret < 0) {
@@ -460,15 +802,25 @@ static int do_xfer(const struct scmi_protocol_handle *ph,
 		ktime_t stop = ktime_add_ns(ktime_get(), SCMI_MAX_POLL_TO_NS);
 
 		spin_until_cond(scmi_xfer_done_no_timeout(cinfo, xfer, stop));
+		if (ktime_before(ktime_get(), stop)) {
+			unsigned long flags;
 
-		if (ktime_before(ktime_get(), stop))
-			info->desc->ops->fetch_response(cinfo, xfer);
-		else
+			/*
+			 * Do not fetch_response if an out-of-order delayed
+			 * response is being processed.
+			 */
+			spin_lock_irqsave(&xfer->lock, flags);
+			if (xfer->state == SCMI_XFER_SENT_OK) {
+				info->desc->ops->fetch_response(cinfo, xfer);
+				xfer->state = SCMI_XFER_RESP_OK;
+			}
+			spin_unlock_irqrestore(&xfer->lock, flags);
+		} else {
 			ret = -ETIMEDOUT;
+		}
 	} else {
 		/* And we wait for the response. */
 		timeout = msecs_to_jiffies(info->desc->max_rx_timeout_ms);
-		trace_android_vh_scmi_timeout_sync(&timeout);
 		if (!wait_for_completion_timeout(&xfer->done, timeout)) {
 			dev_err(dev, "timed out in resp(caller: %pS)\n",
 				(void *)_RET_IP_);
@@ -513,10 +865,7 @@ static int do_xfer_with_response(const struct scmi_protocol_handle *ph,
 				 struct scmi_xfer *xfer)
 {
 	int ret, timeout = msecs_to_jiffies(SCMI_MAX_RESPONSE_TIMEOUT);
-	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
 	DECLARE_COMPLETION_ONSTACK(async_response);
-
-	xfer->hdr.protocol_id = pi->proto->id;
 
 	xfer->async_done = &async_response;
 
@@ -563,7 +912,7 @@ static int xfer_get_init(const struct scmi_protocol_handle *ph,
 	    tx_size > info->desc->max_msg_size)
 		return -ERANGE;
 
-	xfer = scmi_xfer_get(pi->handle, minfo);
+	xfer = scmi_xfer_get(pi->handle, minfo, true);
 	if (IS_ERR(xfer)) {
 		ret = PTR_ERR(xfer);
 		dev_err(dev, "failed to get free message slot(%d)\n", ret);
@@ -572,8 +921,8 @@ static int xfer_get_init(const struct scmi_protocol_handle *ph,
 
 	xfer->tx.len = tx_size;
 	xfer->rx.len = rx_size ? : info->desc->max_msg_size;
+	xfer->hdr.type = MSG_TYPE_COMMAND;
 	xfer->hdr.id = msg_id;
-	xfer->hdr.protocol_id = pi->proto->id;
 	xfer->hdr.poll_completion = false;
 
 	*p = xfer;
@@ -653,7 +1002,7 @@ static const struct scmi_xfer_ops xfer_ops = {
 };
 
 /**
- * scmi_get_revision_area  - Retrieve version memory area.
+ * scmi_revision_area_get  - Retrieve version memory area.
  *
  * @ph: A reference to the protocol handle.
  *
@@ -664,11 +1013,92 @@ static const struct scmi_xfer_ops xfer_ops = {
  *	   instance underlying this protocol handle.
  */
 struct scmi_revision_info *
-scmi_get_revision_area(const struct scmi_protocol_handle *ph)
+scmi_revision_area_get(const struct scmi_protocol_handle *ph)
 {
 	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
 
 	return pi->handle->version;
+}
+
+/**
+ * scmi_alloc_init_protocol_instance  - Allocate and initialize a protocol
+ * instance descriptor.
+ * @info: The reference to the related SCMI instance.
+ * @proto: The protocol descriptor.
+ *
+ * Allocate a new protocol instance descriptor, using the provided @proto
+ * description, against the specified SCMI instance @info, and initialize it;
+ * all resources management is handled via a dedicated per-protocol devres
+ * group.
+ *
+ * Context: Assumes to be called with @protocols_mtx already acquired.
+ * Return: A reference to a freshly allocated and initialized protocol instance
+ *	   or ERR_PTR on failure. On failure the @proto reference is at first
+ *	   put using @scmi_protocol_put() before releasing all the devres group.
+ */
+static struct scmi_protocol_instance *
+scmi_alloc_init_protocol_instance(struct scmi_info *info,
+				  const struct scmi_protocol *proto)
+{
+	int ret = -ENOMEM;
+	void *gid;
+	struct scmi_protocol_instance *pi;
+	const struct scmi_handle *handle = &info->handle;
+
+	/* Protocol specific devres group */
+	gid = devres_open_group(handle->dev, NULL, GFP_KERNEL);
+	if (!gid) {
+		scmi_protocol_put(proto->id);
+		goto out;
+	}
+
+	pi = devm_kzalloc(handle->dev, sizeof(*pi), GFP_KERNEL);
+	if (!pi)
+		goto clean;
+
+	pi->gid = gid;
+	pi->proto = proto;
+	pi->handle = handle;
+	pi->ph.dev = handle->dev;
+	pi->ph.xops = &xfer_ops;
+	pi->ph.set_priv = scmi_set_protocol_priv;
+	pi->ph.get_priv = scmi_get_protocol_priv;
+	refcount_set(&pi->users, 1);
+	/* proto->init is assured NON NULL by scmi_protocol_register */
+	ret = pi->proto->instance_init(&pi->ph);
+	if (ret)
+		goto clean;
+
+	ret = idr_alloc(&info->protocols, pi, proto->id, proto->id + 1,
+			GFP_KERNEL);
+	if (ret != proto->id)
+		goto clean;
+
+	/*
+	 * Warn but ignore events registration errors since we do not want
+	 * to skip whole protocols if their notifications are messed up.
+	 */
+	if (pi->proto->events) {
+		ret = scmi_register_protocol_events(handle, pi->proto->id,
+						    &pi->ph,
+						    pi->proto->events);
+		if (ret)
+			dev_warn(handle->dev,
+				 "Protocol:%X - Events Registration Failed - err:%d\n",
+				 pi->proto->id, ret);
+	}
+
+	devres_close_group(handle->dev, pi->gid);
+	dev_dbg(handle->dev, "Initialized protocol: 0x%X\n", pi->proto->id);
+
+	return pi;
+
+clean:
+	/* Take care to put the protocol module's owner before releasing all */
+	scmi_protocol_put(proto->id);
+	devres_release_group(handle->dev, gid);
+out:
+	return ERR_PTR(ret);
 }
 
 /**
@@ -680,13 +1110,13 @@ scmi_get_revision_area(const struct scmi_protocol_handle *ph)
  * instance, allocate and initialize all the needed structures while handling
  * resource allocation with a dedicated per-protocol devres subgroup.
  *
- * Return: A reference to an initialized protocol instance or error on failure.
+ * Return: A reference to an initialized protocol instance or error on failure:
+ *	   in particular returns -EPROBE_DEFER when the desired protocol could
+ *	   NOT be found.
  */
 static struct scmi_protocol_instance * __must_check
 scmi_get_protocol_instance(const struct scmi_handle *handle, u8 protocol_id)
 {
-	int ret = -ENOMEM;
-	void *gid;
 	struct scmi_protocol_instance *pi;
 	struct scmi_info *info = handle_to_scmi_info(handle);
 
@@ -698,63 +1128,20 @@ scmi_get_protocol_instance(const struct scmi_handle *handle, u8 protocol_id)
 	} else {
 		const struct scmi_protocol *proto;
 
-		/* Fail if protocol not registered on bus */
-		proto = scmi_get_protocol(protocol_id);
-		if (!proto) {
-			ret = -EPROBE_DEFER;
-			goto out;
-		}
-
-		/* Protocol specific devres group */
-		gid = devres_open_group(handle->dev, NULL, GFP_KERNEL);
-		if (!gid)
-			goto out;
-
-		pi = devm_kzalloc(handle->dev, sizeof(*pi), GFP_KERNEL);
-		if (!pi)
-			goto clean;
-
-		pi->gid = gid;
-		pi->proto = proto;
-		pi->handle = handle;
-		pi->ph.dev = handle->dev;
-		pi->ph.xops = &xfer_ops;
-		pi->ph.set_priv = scmi_set_protocol_priv;
-		pi->ph.get_priv = scmi_get_protocol_priv;
-		refcount_set(&pi->users, 1);
-		/* proto->init is assured NON NULL by scmi_protocol_register */
-		ret = pi->proto->init_instance(&pi->ph);
-		if (ret)
-			goto clean;
-
-		ret = idr_alloc(&info->protocols, pi,
-				protocol_id, protocol_id + 1, GFP_KERNEL);
-		if (ret != protocol_id)
-			goto clean;
-
-		if (pi->proto->events)
-			scmi_register_protocol_events(handle, pi->proto->id,
-						      &pi->ph,
-						      pi->proto->events);
-
-		devres_close_group(handle->dev, pi->gid);
-		dev_dbg(handle->dev, "Initialized protocol: 0x%X\n",
-			protocol_id);
+		/* Fails if protocol not registered on bus */
+		proto = scmi_protocol_get(protocol_id);
+		if (proto)
+			pi = scmi_alloc_init_protocol_instance(info, proto);
+		else
+			pi = ERR_PTR(-EPROBE_DEFER);
 	}
 	mutex_unlock(&info->protocols_mtx);
 
 	return pi;
-
-clean:
-	scmi_put_protocol(protocol_id);
-	devres_release_group(handle->dev, gid);
-out:
-	mutex_unlock(&info->protocols_mtx);
-	return ERR_PTR(ret);
 }
 
 /**
- * scmi_acquire_protocol  - Protocol acquire
+ * scmi_protocol_acquire  - Protocol acquire
  * @handle: A reference to the SCMI platform instance.
  * @protocol_id: The protocol being requested.
  *
@@ -763,20 +1150,20 @@ out:
  *
  * Return: 0 if protocol was acquired successfully.
  */
-int scmi_acquire_protocol(const struct scmi_handle *handle, u8 protocol_id)
+int scmi_protocol_acquire(const struct scmi_handle *handle, u8 protocol_id)
 {
 	return PTR_ERR_OR_ZERO(scmi_get_protocol_instance(handle, protocol_id));
 }
 
 /**
- * scmi_release_protocol  - Protocol de-initialization helper.
+ * scmi_protocol_release  - Protocol de-initialization helper.
  * @handle: A reference to the SCMI platform instance.
  * @protocol_id: The protocol being requested.
  *
  * Remove one user for the specified protocol and triggers de-initialization
  * and resources de-allocation once the last user has gone.
  */
-void scmi_release_protocol(const struct scmi_handle *handle, u8 protocol_id)
+void scmi_protocol_release(const struct scmi_handle *handle, u8 protocol_id)
 {
 	struct scmi_info *info = handle_to_scmi_info(handle);
 	struct scmi_protocol_instance *pi;
@@ -792,12 +1179,12 @@ void scmi_release_protocol(const struct scmi_handle *handle, u8 protocol_id)
 		if (pi->proto->events)
 			scmi_deregister_protocol_events(handle, protocol_id);
 
-		if (pi->proto->deinit_instance)
-			pi->proto->deinit_instance(&pi->ph);
+		if (pi->proto->instance_deinit)
+			pi->proto->instance_deinit(&pi->ph);
 
 		idr_remove(&info->protocols, protocol_id);
 
-		scmi_put_protocol(protocol_id);
+		scmi_protocol_put(protocol_id);
 
 		devres_release_group(handle->dev, gid);
 		dev_dbg(handle->dev, "De-Initialized protocol: 0x%X\n",
@@ -841,35 +1228,11 @@ static void scmi_devm_release_protocol(struct device *dev, void *res)
 {
 	struct scmi_protocol_devres *dres = res;
 
-	scmi_release_protocol(dres->handle, dres->protocol_id);
-}
-
-static struct scmi_protocol_instance __must_check *
-__scmi_devres_get_protocol_instance(struct scmi_device *sdev, u8 protocol_id)
-{
-	struct scmi_protocol_devres *dres;
-	struct scmi_protocol_instance *pi;
-
-	dres = devres_alloc(scmi_devm_release_protocol,
-			    sizeof(*dres), GFP_KERNEL);
-	if (!dres)
-		return ERR_PTR(-ENOMEM);
-
-	pi = scmi_get_protocol_instance(sdev->handle, protocol_id);
-	if (IS_ERR(pi)) {
-		devres_free(dres);
-		return pi;
-	}
-
-	dres->handle = sdev->handle;
-	dres->protocol_id = protocol_id;
-	devres_add(&sdev->dev, dres);
-
-	return pi;
+	scmi_protocol_release(dres->handle, dres->protocol_id);
 }
 
 /**
- * scmi_devm_get_protocol  - Devres managed get protocol operations and handle
+ * scmi_devm_protocol_get  - Devres managed get protocol operations and handle
  * @sdev: A reference to an scmi_device whose embedded struct device is to
  *	  be used for devres accounting.
  * @protocol_id: The protocol being requested.
@@ -887,49 +1250,34 @@ __scmi_devres_get_protocol_instance(struct scmi_device *sdev, u8 protocol_id)
  *	   Must be checked for errors by caller.
  */
 static const void __must_check *
-scmi_devm_get_protocol(struct scmi_device *sdev, u8 protocol_id,
+scmi_devm_protocol_get(struct scmi_device *sdev, u8 protocol_id,
 		       struct scmi_protocol_handle **ph)
 {
 	struct scmi_protocol_instance *pi;
+	struct scmi_protocol_devres *dres;
+	struct scmi_handle *handle = sdev->handle;
 
 	if (!ph)
 		return ERR_PTR(-EINVAL);
 
-	pi = __scmi_devres_get_protocol_instance(sdev, protocol_id);
-	if (IS_ERR(pi))
+	dres = devres_alloc(scmi_devm_release_protocol,
+			    sizeof(*dres), GFP_KERNEL);
+	if (!dres)
+		return ERR_PTR(-ENOMEM);
+
+	pi = scmi_get_protocol_instance(handle, protocol_id);
+	if (IS_ERR(pi)) {
+		devres_free(dres);
 		return pi;
+	}
+
+	dres->handle = handle;
+	dres->protocol_id = protocol_id;
+	devres_add(&sdev->dev, dres);
 
 	*ph = &pi->ph;
 
 	return pi->proto->ops;
-}
-
-/**
- * scmi_devm_acquire_protocol  - Devres managed helper to get hold of a protocol
- * @sdev: A reference to an scmi_device whose embedded struct device is to
- *	  be used for devres accounting.
- * @protocol_id: The protocol being requested.
- *
- * Get hold of a protocol accounting for its usage, possibly triggering its
- * initialization but without getting access to its protocol specific operations
- * and handle.
- *
- * Being a devres based managed method, protocol hold will be automatically
- * released, and possibly de-initialized on last user, once the SCMI driver
- * owning the scmi_device is unbound from it.
- *
- * Return: 0 on SUCCESS
- */
-static int __must_check scmi_devm_acquire_protocol(struct scmi_device *sdev,
-						   u8 protocol_id)
-{
-	struct scmi_protocol_instance *pi;
-
-	pi = __scmi_devres_get_protocol_instance(sdev, protocol_id);
-	if (IS_ERR(pi))
-		return PTR_ERR(pi);
-
-	return 0;
 }
 
 static int scmi_devm_protocol_match(struct device *dev, void *res, void *data)
@@ -943,15 +1291,15 @@ static int scmi_devm_protocol_match(struct device *dev, void *res, void *data)
 }
 
 /**
- * scmi_devm_put_protocol  - Devres managed put protocol operations and handle
+ * scmi_devm_protocol_put  - Devres managed put protocol operations and handle
  * @sdev: A reference to an scmi_device whose embedded struct device is to
  *	  be used for devres accounting.
  * @protocol_id: The protocol being requested.
  *
  * Explicitly release a protocol hold previously obtained calling the above
- * @scmi_devm_get_protocol_ops.
+ * @scmi_devm_protocol_get.
  */
-static void scmi_devm_put_protocol(struct scmi_device *sdev, u8 protocol_id)
+static void scmi_devm_protocol_put(struct scmi_device *sdev, u8 protocol_id)
 {
 	int ret;
 
@@ -961,7 +1309,7 @@ static void scmi_devm_put_protocol(struct scmi_device *sdev, u8 protocol_id)
 }
 
 static inline
-struct scmi_handle *scmi_handle_get_from_info(struct scmi_info *info)
+struct scmi_handle *scmi_handle_get_from_info_unlocked(struct scmi_info *info)
 {
 	info->users++;
 	return &info->handle;
@@ -988,7 +1336,7 @@ struct scmi_handle *scmi_handle_get(struct device *dev)
 	list_for_each(p, &scmi_list) {
 		info = list_entry(p, struct scmi_info, node);
 		if (dev->parent == info->dev) {
-			handle = scmi_handle_get_from_info(info);
+			handle = scmi_handle_get_from_info_unlocked(info);
 			break;
 		}
 	}
@@ -1034,25 +1382,32 @@ static int __scmi_xfer_info_init(struct scmi_info *sinfo,
 	const struct scmi_desc *desc = sinfo->desc;
 
 	/* Pre-allocated messages, no more than what hdr.seq can support */
-	if (WARN_ON(!desc->max_msg || desc->max_msg > MSG_TOKEN_MAX)) {
+	if (WARN_ON(!info->max_msg || info->max_msg > MSG_TOKEN_MAX)) {
 		dev_err(dev,
 			"Invalid maximum messages %d, not in range [1 - %lu]\n",
-			desc->max_msg, MSG_TOKEN_MAX);
+			info->max_msg, MSG_TOKEN_MAX);
 		return -EINVAL;
 	}
 
-	info->xfer_block = devm_kcalloc(dev, desc->max_msg,
-					sizeof(*info->xfer_block), GFP_KERNEL);
-	if (!info->xfer_block)
-		return -ENOMEM;
+	hash_init(info->pending_xfers);
 
-	info->xfer_alloc_table = devm_kcalloc(dev, BITS_TO_LONGS(desc->max_msg),
+	/* Allocate a bitmask sized to hold MSG_TOKEN_MAX tokens */
+	info->xfer_alloc_table = devm_kcalloc(dev, BITS_TO_LONGS(MSG_TOKEN_MAX),
 					      sizeof(long), GFP_KERNEL);
 	if (!info->xfer_alloc_table)
 		return -ENOMEM;
 
-	/* Pre-initialize the buffer pointer to pre-allocated buffers */
-	for (i = 0, xfer = info->xfer_block; i < desc->max_msg; i++, xfer++) {
+	/*
+	 * Preallocate a number of xfers equal to max inflight messages,
+	 * pre-initialize the buffer pointer to pre-allocated buffers and
+	 * attach all of them to the free list
+	 */
+	INIT_HLIST_HEAD(&info->free_xfers);
+	for (i = 0; i < info->max_msg; i++) {
+		xfer = devm_kzalloc(dev, sizeof(*xfer), GFP_KERNEL);
+		if (!xfer)
+			return -ENOMEM;
+
 		xfer->rx.buf = devm_kcalloc(dev, sizeof(u8), desc->max_msg_size,
 					    GFP_KERNEL);
 		if (!xfer->rx.buf)
@@ -1060,6 +1415,10 @@ static int __scmi_xfer_info_init(struct scmi_info *sinfo,
 
 		xfer->tx.buf = xfer->rx.buf;
 		init_completion(&xfer->done);
+		spin_lock_init(&xfer->lock);
+
+		/* Add initialized xfer to the free list */
+		hlist_add_head(&xfer->node, &info->free_xfers);
 	}
 
 	spin_lock_init(&info->xfer_lock);
@@ -1067,10 +1426,40 @@ static int __scmi_xfer_info_init(struct scmi_info *sinfo,
 	return 0;
 }
 
+static int scmi_channels_max_msg_configure(struct scmi_info *sinfo)
+{
+	const struct scmi_desc *desc = sinfo->desc;
+
+	if (!desc->ops->get_max_msg) {
+		sinfo->tx_minfo.max_msg = desc->max_msg;
+		sinfo->rx_minfo.max_msg = desc->max_msg;
+	} else {
+		struct scmi_chan_info *base_cinfo;
+
+		base_cinfo = idr_find(&sinfo->tx_idr, SCMI_PROTOCOL_BASE);
+		if (!base_cinfo)
+			return -EINVAL;
+		sinfo->tx_minfo.max_msg = desc->ops->get_max_msg(base_cinfo);
+
+		/* RX channel is optional so can be skipped */
+		base_cinfo = idr_find(&sinfo->rx_idr, SCMI_PROTOCOL_BASE);
+		if (base_cinfo)
+			sinfo->rx_minfo.max_msg =
+				desc->ops->get_max_msg(base_cinfo);
+	}
+
+	return 0;
+}
+
 static int scmi_xfer_info_init(struct scmi_info *sinfo)
 {
-	int ret = __scmi_xfer_info_init(sinfo, &sinfo->tx_minfo);
+	int ret;
 
+	ret = scmi_channels_max_msg_configure(sinfo);
+	if (ret)
+		return ret;
+
+	ret = __scmi_xfer_info_init(sinfo, &sinfo->tx_minfo);
 	if (!ret && idr_find(&sinfo->rx_idr, SCMI_PROTOCOL_BASE))
 		ret = __scmi_xfer_info_init(sinfo, &sinfo->rx_minfo);
 
@@ -1126,8 +1515,12 @@ scmi_txrx_setup(struct scmi_info *info, struct device *dev, int prot_id)
 {
 	int ret = scmi_chan_setup(info, dev, prot_id, true);
 
-	if (!ret) /* Rx is optional, hence no error check */
-		scmi_chan_setup(info, dev, prot_id, false);
+	if (!ret) {
+		/* Rx is optional, report only memory errors */
+		ret = scmi_chan_setup(info, dev, prot_id, false);
+		if (ret && ret != -ENOMEM)
+			ret = 0;
+	}
 
 	return ret;
 }
@@ -1147,6 +1540,8 @@ scmi_txrx_setup(struct scmi_info *info, struct device *dev, int prot_id)
  * @proto_id and @name: if device was still not existent it is created as a
  * child of the specified SCMI instance @info and its transport properly
  * initialized as usual.
+ *
+ * Return: A properly initialized scmi device, NULL otherwise.
  */
 static inline struct scmi_device *
 scmi_get_protocol_device(struct device_node *np, struct scmi_info *info,
@@ -1155,7 +1550,7 @@ scmi_get_protocol_device(struct device_node *np, struct scmi_info *info,
 	struct scmi_device *sdev;
 
 	/* Already created for this parent SCMI instance ? */
-	sdev = scmi_find_child_dev(info->dev, prot_id, name);
+	sdev = scmi_child_dev_find(info->dev, prot_id, name);
 	if (sdev)
 		return sdev;
 
@@ -1220,7 +1615,7 @@ static void scmi_create_protocol_devices(struct device_node *np,
 }
 
 /**
- * scmi_request_protocol_device  - Helper to request a device
+ * scmi_protocol_device_request  - Helper to request a device
  *
  * @id_table: A protocol/name pair descriptor for the device to be created.
  *
@@ -1242,7 +1637,7 @@ static void scmi_create_protocol_devices(struct device_node *np,
  *
  * Return: 0 on Success
  */
-int scmi_request_protocol_device(const struct scmi_device_id *id_table)
+int scmi_protocol_device_request(const struct scmi_device_id *id_table)
 {
 	int ret = 0;
 	unsigned int id = 0;
@@ -1337,7 +1732,8 @@ int scmi_request_protocol_device(const struct scmi_device_id *id_table)
 							id_table->name);
 			/* Set handle if not already set: device existed */
 			if (sdev && !sdev->handle)
-				sdev->handle = scmi_handle_get_from_info(info);
+				sdev->handle =
+					scmi_handle_get_from_info_unlocked(info);
 		} else {
 			dev_err(info->dev,
 				"Failed. SCMI protocol %d not active.\n",
@@ -1353,7 +1749,7 @@ out:
 }
 
 /**
- * scmi_unrequest_protocol_device  - Helper to unrequest a device
+ * scmi_protocol_device_unrequest  - Helper to unrequest a device
  *
  * @id_table: A protocol/name pair descriptor for the device to be unrequested.
  *
@@ -1366,7 +1762,7 @@ out:
  * that cannot be safely destroyed till the whole SCMI stack is removed.
  * (unless adding further burden of refcounting.)
  */
-void scmi_unrequest_protocol_device(const struct scmi_device_id *id_table)
+void scmi_protocol_device_unrequest(const struct scmi_device_id *id_table)
 {
 	struct list_head *phead;
 
@@ -1441,9 +1837,14 @@ static int scmi_probe(struct platform_device *pdev)
 	handle = &info->handle;
 	handle->dev = info->dev;
 	handle->version = &info->version;
-	handle->devm_acquire_protocol = scmi_devm_acquire_protocol;
-	handle->devm_get_protocol = scmi_devm_get_protocol;
-	handle->devm_put_protocol = scmi_devm_put_protocol;
+	handle->devm_protocol_get = scmi_devm_protocol_get;
+	handle->devm_protocol_put = scmi_devm_protocol_put;
+
+	if (desc->ops->link_supplier) {
+		ret = desc->ops->link_supplier(dev);
+		if (ret)
+			return ret;
+	}
 
 	ret = scmi_txrx_setup(info, dev, SCMI_PROTOCOL_BASE);
 	if (ret)
@@ -1461,7 +1862,7 @@ static int scmi_probe(struct platform_device *pdev)
 	 * It's mandatory and won't be ever released/deinit until the
 	 * SCMI stack is shutdown/unloaded as a whole.
 	 */
-	ret = scmi_acquire_protocol(handle, SCMI_PROTOCOL_BASE);
+	ret = scmi_protocol_acquire(handle, SCMI_PROTOCOL_BASE);
 	if (ret) {
 		dev_err(dev, "unable to communicate with SCMI\n");
 		goto notification_exit;
@@ -1592,6 +1993,7 @@ static struct attribute *versions_attrs[] = {
 };
 ATTRIBUTE_GROUPS(versions);
 
+
 /* Each compatible listed below must have descriptor associated with it */
 static const struct of_device_id scmi_of_match[] = {
 #ifdef CONFIG_MAILBOX
@@ -1599,6 +2001,11 @@ static const struct of_device_id scmi_of_match[] = {
 #endif
 #ifdef CONFIG_HAVE_ARM_SMCCC_DISCOVERY
 	{ .compatible = "arm,scmi-smc", .data = &scmi_smc_desc},
+#endif
+#ifdef CONFIG_ARM_SCMI_TRANSPORT_VIRTIO
+#ifdef CONFIG_VIRTIO
+	{ .compatible = "arm,scmi-virtio", .data = &scmi_virtio_desc},
+#endif
 #endif
 	{ /* Sentinel */ },
 };
@@ -1608,6 +2015,7 @@ MODULE_DEVICE_TABLE(of, scmi_of_match);
 static struct platform_driver scmi_driver = {
 	.driver = {
 		   .name = "arm-scmi",
+		   .suppress_bind_attrs = true,
 		   .of_match_table = scmi_of_match,
 		   .dev_groups = versions_groups,
 		   },
@@ -1615,9 +2023,68 @@ static struct platform_driver scmi_driver = {
 	.remove = scmi_remove,
 };
 
+/**
+ * __scmi_transports_setup  - Common helper to call transport-specific
+ * .init/.exit code if provided.
+ *
+ * @init: A flag to distinguish between init and exit.
+ *
+ * Note that, if provided, we invoke .init/.exit functions for all the
+ * transports currently compiled in.
+ *
+ * Return: 0 on Success.
+ */
+static inline int __scmi_transports_setup(bool init)
+{
+	int ret = 0;
+	const struct of_device_id *trans;
+
+	for (trans = scmi_of_match; trans->data; trans++) {
+		const struct scmi_desc *tdesc = trans->data;
+
+		if ((init && !tdesc->transport_init) ||
+		    (!init && !tdesc->transport_exit))
+			continue;
+
+		if (init)
+			ret = tdesc->transport_init();
+		else
+			tdesc->transport_exit();
+
+		if (ret) {
+			pr_err("SCMI transport %s FAILED initialization!\n",
+			       trans->compatible);
+			break;
+		}
+	}
+
+	return ret;
+}
+
+static int __init scmi_transports_init(void)
+{
+	return __scmi_transports_setup(true);
+}
+
+static void __exit scmi_transports_exit(void)
+{
+	__scmi_transports_setup(false);
+}
+
 static int __init scmi_driver_init(void)
 {
+	int ret;
+
+	/* Bail out if no SCMI transport was configured */
+	if (WARN_ON(!IS_ENABLED(CONFIG_ARM_SCMI_HAVE_TRANSPORT)))
+		return -EINVAL;
+
 	scmi_bus_init();
+
+	/* Initialize any compiled-in transport which provided an init/exit */
+	ret = scmi_transports_init();
+	if (ret)
+		return ret;
 
 	scmi_base_register();
 
@@ -1647,11 +2114,13 @@ static void __exit scmi_driver_exit(void)
 
 	scmi_bus_exit();
 
+	scmi_transports_exit();
+
 	platform_driver_unregister(&scmi_driver);
 }
 module_exit(scmi_driver_exit);
 
-MODULE_ALIAS("platform:arm-scmi");
+MODULE_ALIAS("platform: arm-scmi");
 MODULE_AUTHOR("Sudeep Holla <sudeep.holla@arm.com>");
 MODULE_DESCRIPTION("ARM SCMI protocol driver");
 MODULE_LICENSE("GPL v2");

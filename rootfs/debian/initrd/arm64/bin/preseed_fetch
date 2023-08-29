@@ -1,0 +1,38 @@
+#!/bin/sh -e
+
+. /lib/preseed/preseed.sh
+
+while true; do
+	case "$1" in
+	    -C)
+		LOOKUP_CHECKSUM=1
+		;;
+	    -*)
+		# eat options starting with a -, so we can pass them on
+		OPTS="$OPTS $1"
+		;;
+	    *)
+		break
+		;;
+	esac
+	shift
+done
+
+src="$1" ; shift
+dst="$1" ; shift
+
+if [ "$LOOKUP_CHECKSUM" = 1 ] ; then
+	# this is yet to be written, so leave room for dropping it into place during preseeding
+	if [ -x /bin/preseed_lookup_checksum ] ; then
+		# "$@" should be empty, but we might as well pass it in, so that we can pass it back out if need be
+		set -- $(/bin/preseed_lookup_checksum "$src" "$@")
+	else
+		log "error fetching \"$src\": -C specified, but there is no /bin/preseed_lookup_checksum executable"
+		error retrieve_error "$src"
+	fi
+fi
+
+last=/var/run/preseed.last_location
+url=$(make_absolute_url "$src" "$(test -r $last && cat $last)")
+
+fetch-url $OPTS "$url" "$dst" "$@"

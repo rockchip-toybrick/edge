@@ -1,0 +1,56 @@
+default xkb_compatibility "xtest" {
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ virtual_modifiers NumLock,AltGr;
+
+ interpret.repeat= False;
+ setMods.clearLocks= True;
+ latchMods.clearLocks= True;
+ latchMods.latchToLock= False;
+
+ interpret Shift_Lock+AnyOf(Shift+Lock) {
+ action= SetMods(modifiers=Shift);
+ };
+
+ interpret Num_Lock+Any {
+ virtualModifier= NumLock;
+ action= SetMods(modifiers=NumLock);
+ };
+
+ interpret Mode_switch {
+ useModMapMods= level1;
+ virtualModifier= AltGr;
+ action= SetGroup(group=2);
+ };
+
+ interpret Any + Any {
+ action= SetMods(modifiers=modMapMods);
+ };
+
+ group 2 = AltGr;
+ group 3 = AltGr;
+ group 4 = AltGr;
+
+ indicator.allowExplicit= False;
+ indicator "Caps Lock" {
+ modifiers= Lock;
+ };
+ indicator "Num Lock" {
+ modifiers= NumLock;
+ };
+ indicator "Shift Lock" {
+ whichModState= Locked;
+ modifiers= Shift;
+ };
+ indicator.allowExplicit= True;
+};

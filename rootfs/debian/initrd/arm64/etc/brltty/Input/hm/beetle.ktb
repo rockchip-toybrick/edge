@@ -1,0 +1,5 @@
+title HIMS Smart Beetle
+include common.kti
+include braille.kti
+include f14.kti
+include pan.kti

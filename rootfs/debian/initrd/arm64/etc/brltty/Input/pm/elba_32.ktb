@@ -1,0 +1,5 @@
+title Papenmeier BrailleX Elba 32
+assign keyEmulation
+assign statusKeys 0
+include bar.kti
+include switches.kti

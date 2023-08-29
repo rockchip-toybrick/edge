@@ -56,7 +56,7 @@
 		pinctrl-0 = <&mipim0_camera3_clk>;
 		power-domains = <&power RK3588_PD_VI>;
 		avdd-supply = <&vcc_mipicsi0>;
-		pwdn-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
@@ -183,7 +183,7 @@
 		pinctrl-0 = <&mipim0_camera1_clk>;
 		power-domains = <&power RK3588_PD_VI>;
 		avdd-supply = <&vcc_mipidcphy0>;
-		pwdn-gpios = <&gpio1 RK_PB5 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PB5 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio2 RK_PC4 GPIO_ACTIVE_LOW>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "front";

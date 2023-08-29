@@ -1,0 +1,141 @@
+
+
+
+
+partial default modifier_keys
+xkb_symbols "extended" {
+
+ key <KPEQ> { [ KP_Equal ] }; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
+
+partial modifier_keys
+xkb_symbols "laptop" {
+
+ include "macintosh_vndr/apple(extended)"
+
+ 
+ 
+ 
+ 
+ override key <NMLK> { [ Clear ] };
+ 
+ override key <BKSP> { [ BackSpace, Delete ] };
+ 
+ 
+ 
+ 
+ replace key <KPEN> { [ ISO_Level3_Shift ] };
+ modifier_map Mod5 { ISO_Level3_Shift }; 
+ 
+
+};
+
+partial modifier_keys
+xkb_symbols "laptop_bad_switch" {
+ 
+ include "macintosh_vndr/apple(laptop)"
+};
+
+
+partial function_keys
+xkb_symbols "alukbd" {
+ 
+ include "pc"
+
+ 
+ key <FK13> { [ F13 ] };
+ key <FK14> { [ F14 ] };
+ key <FK15> { [ F15 ] };
+ key <FK16> { [ F16 ] };
+ key <FK17> { [ F17 ] };
+ key <FK18> { [ F18 ] };
+ key <FK19> { [ F19 ] };
+
+ 
+ replace key <NMLK> { [ Clear ] };
+ 
+ replace key <CAPS> { [ Caps_Lock ] };
+
+ 
+ 
+ 
+ key <FK01> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86KbdBrightnessDown, NoSymbol, XF86_Switch_VT_1 ]
+ };
+ key <FK02> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86KbdBrightnessUp, NoSymbol, XF86_Switch_VT_2 ]
+ };
+ key <FK03> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, NoSymbol, NoSymbol, XF86_Switch_VT_3 ]
+ };
+ key <FK04> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, NoSymbol, NoSymbol, XF86_Switch_VT_4 ]
+ };
+ key <FK05> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, NoSymbol, NoSymbol, XF86_Switch_VT_5 ]
+ };
+ key <FK06> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, NoSymbol, NoSymbol, XF86_Switch_VT_6 ]
+ };
+ key <FK07> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioPrev, NoSymbol, XF86_Switch_VT_7 ]
+ };
+ key <FK08> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioPlay, NoSymbol, XF86_Switch_VT_8 ]
+ };
+ key <FK09> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioNext, NoSymbol, XF86_Switch_VT_9 ]
+ };
+ key <FK10> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioMute, NoSymbol, XF86_Switch_VT_10 ]
+ };
+ key <FK11> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioLowerVolume, NoSymbol, XF86_Switch_VT_11 ]
+ };
+ key <FK12> {
+ type= "FOUR_LEVEL_X",
+ symbols[Group1]= [ NoSymbol, XF86AudioRaiseVolume, NoSymbol, XF86_Switch_VT_12 ]
+ };
+};
+
+
+partial function_keys keypad_keys
+xkb_symbols "alupckeys" {
+ key <FK13> {
+ type= "PC_ALT_LEVEL2",
+ symbols[Group1]= [ Print, Sys_Req ]
+ };
+ key <FK14> { [ Scroll_Lock ] };
+ key <FK15> {
+ type= "PC_CONTROL_LEVEL2",
+ symbols[Group1]= [ Pause, Break ]
+ };
+ override key <NMLK> { [ Num_Lock, Pointer_EnableKeys ] };
+};

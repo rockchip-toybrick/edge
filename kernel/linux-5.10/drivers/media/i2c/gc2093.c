@@ -606,8 +606,7 @@ static int gc2093_set_ctrl(struct v4l2_ctrl *ctrl)
 				       (vts >> 8) & 0x3f);
 		ret |= gc2093_write_reg(gc2093, GC2093_REG_VTS_L,
 					vts & 0xff);
-		if (gc2093->cur_vts != gc2093->cur_mode->vts_def)
-			gc2093_modify_fps_info(gc2093);
+		gc2093_modify_fps_info(gc2093);
 		dev_dbg(gc2093->dev, " set blank value 0x%x\n", ctrl->val);
 		break;
 	case V4L2_CID_HFLIP:
@@ -744,14 +743,14 @@ static int __gc2093_power_on(struct gc2093 *gc2093)
 	}
 
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_set_value_cansleep(gc2093->reset_gpio, 1);
+		gpiod_direction_output(gc2093->reset_gpio, 1);
 
 	usleep_range(1000, 2000);
 
 	if (!IS_ERR(gc2093->pwdn_gpio))
-		gpiod_set_value_cansleep(gc2093->pwdn_gpio, 1);
+		gpiod_direction_output(gc2093->pwdn_gpio, 1);
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_set_value_cansleep(gc2093->reset_gpio, 0);
+		gpiod_direction_output(gc2093->reset_gpio, 0);
 
 	usleep_range(10000, 20000);
 
@@ -775,12 +774,11 @@ static void __gc2093_power_off(struct gc2093 *gc2093)
 	}
 
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_set_value_cansleep(gc2093->reset_gpio, 1);
+		gpiod_direction_output(gc2093->reset_gpio, 1);
 	if (!IS_ERR(gc2093->pwdn_gpio))
-		gpiod_set_value_cansleep(gc2093->pwdn_gpio, 0);
+		gpiod_direction_output(gc2093->pwdn_gpio, 0);
 
 	regulator_bulk_disable(GC2093_NUM_SUPPLIES, gc2093->supplies);
-	clk_disable_unprepare(gc2093->xvclk);
 }
 
 static int gc2093_check_sensor_id(struct gc2093 *gc2093)
@@ -1152,9 +1150,7 @@ static int gc2093_g_frame_interval(struct v4l2_subdev *sd,
 	struct gc2093 *gc2093 = to_gc2093(sd);
 	const struct gc2093_mode *mode = gc2093->cur_mode;
 
-	mutex_lock(&gc2093->lock);
 	fi->interval = mode->max_fps;
-	mutex_unlock(&gc2093->lock);
 
 	return 0;
 }
@@ -1379,7 +1375,7 @@ static const struct v4l2_subdev_ops gc2093_subdev_ops = {
 	.pad    = &gc2093_pad_ops,
 };
 
-static int gc2093_runtime_resume(struct device *dev)
+static int __maybe_unused gc2093_runtime_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1389,7 +1385,7 @@ static int gc2093_runtime_resume(struct device *dev)
 	return 0;
 }
 
-static int gc2093_runtime_suspend(struct device *dev)
+static int __maybe_unused gc2093_runtime_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);

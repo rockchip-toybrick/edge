@@ -1,0 +1,54 @@
+ifGlyph \x80 alias \u20AC \x80 
+ifGlyph \x82 alias \u201A \x82 
+ifGlyph \x83 alias \u0192 \x83 
+ifGlyph \x84 alias \u201E \x84 
+ifGlyph \x85 alias \u2026 \x85 
+ifGlyph \x86 alias \u2020 \x86 
+ifGlyph \x87 alias \u2021 \x87 
+ifGlyph \x88 alias \u02C6 \x88 
+ifGlyph \x89 alias \u2030 \x89 
+ifGlyph \x8A alias \u0160 \x8A 
+ifGlyph \x8B alias \u2039 \x8B 
+ifGlyph \x8C alias \u0152 \x8C 
+ifGlyph \x8E alias \u017D \x8E 
+ifGlyph \x91 alias \u2018 \x91 
+ifGlyph \x92 alias \u2019 \x92 
+ifGlyph \x93 alias \u201C \x93 
+ifGlyph \x94 alias \u201D \x94 
+ifGlyph \x95 alias \u2022 \x95 
+ifGlyph \x96 alias \u2013 \x96 
+ifGlyph \x97 alias \u2014 \x97 
+ifGlyph \x98 alias \u02DC \x98 
+ifGlyph \x99 alias \u2122 \x99 
+ifGlyph \x9A alias \u0161 \x9A 
+ifGlyph \x9B alias \u203A \x9B 
+ifGlyph \x9C alias \u0153 \x9C 
+ifGlyph \x9E alias \u017E \x9E 
+ifGlyph \x9F alias \u0178 \x9F 
+alias \x80 \u20AC 
+alias \x82 \u201A 
+alias \x83 \u0192 
+alias \x84 \u201E 
+alias \x85 \u2026 
+alias \x86 \u2020 
+alias \x87 \u2021 
+alias \x88 \u02C6 
+alias \x89 \u2030 
+alias \x8A \u0160 
+alias \x8B \u2039 
+alias \x8C \u0152 
+alias \x8E \u017D 
+alias \x91 \u2018 
+alias \x92 \u2019 
+alias \x93 \u201C 
+alias \x94 \u201D 
+alias \x95 \u2022 
+alias \x96 \u2013 
+alias \x97 \u2014 
+alias \x98 \u02DC 
+alias \x99 \u2122 
+alias \x9A \u0161 
+alias \x9B \u203A 
+alias \x9C \u0153 
+alias \x9E \u017E 
+alias \x9F \u0178 

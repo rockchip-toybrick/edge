@@ -1,0 +1,4 @@
+include alias.tti
+include boxes.tti
+include blocks.tti
+include win-1252.tti

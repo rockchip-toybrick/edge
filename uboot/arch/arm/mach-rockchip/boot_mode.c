@@ -206,6 +206,10 @@ int rockchip_get_boot_mode(void)
 			printf("boot mode: watchdog\n");
 			boot_mode[PL] = BOOT_MODE_WATCHDOG;
 			break;
+		case BOOT_QUIESCENT:
+			printf("boot mode: quiescent\n");
+			boot_mode[PL] = BOOT_MODE_QUIESCENT;
+			break;
 		default:
 			printf("boot mode: None\n");
 			boot_mode[PL] = BOOT_MODE_UNDEFINE;
@@ -232,7 +236,11 @@ int setup_boot_mode(void)
 	char env_preboot[256] = {0};
 
 #ifdef CONFIG_TOYBRICK_VERIFY
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+	toybrick_ksn_check_SnMac();
+#else
 	toybrick_check_SnMacAc();
+#endif
 #endif
 
 	switch (rockchip_get_boot_mode()) {
@@ -260,8 +268,8 @@ int setup_boot_mode(void)
 #endif
 	case BOOT_MODE_LOADER:
 		printf("enter Rockusb!\n");
-		env_set("preboot", "setenv preboot; rockusb 0 ${devtype} ${devnum}; rbrom");
-		run_command("rockusb 0 ${devtype} ${devnum}", 0);
+		env_set("preboot", "setenv preboot; download");
+		run_command("download", 0);
 		break;
 	case BOOT_MODE_CHARGING:
 		printf("enter charging!\n");

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+# This file is modified at run-time by hw-detect.sh to execute
+# commands at the end of the installation process.

@@ -355,7 +355,13 @@ static void rga_job_insert_todo_list(struct rga_job *job)
 
 static struct rga_scheduler_t *rga_job_schedule(struct rga_job *job)
 {
+	int i;
 	struct rga_scheduler_t *scheduler = NULL;
+
+	for (i = 0; i < rga_drvdata->num_of_scheduler; i++) {
+		scheduler = rga_drvdata->scheduler[i];
+		rga_job_scheduler_timeout_clean(scheduler);
+	}
 
 	if (rga_drvdata->num_of_scheduler > 1) {
 		job->core = rga_job_assign(job);
@@ -375,8 +381,6 @@ static struct rga_scheduler_t *rga_job_schedule(struct rga_job *job)
 		job->ret = -EFAULT;
 		return NULL;
 	}
-
-	rga_job_scheduler_timeout_clean(scheduler);
 
 	return scheduler;
 }
@@ -533,11 +537,21 @@ static int rga_request_add_acquire_fence_callback(int acquire_fence_fd,
 		return -EINVAL;
 	}
 	/* close acquire fence fd */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
+	close_fd(acquire_fence_fd);
+#else
 	ksys_close(acquire_fence_fd);
+#endif
 
 	ret = rga_dma_fence_get_status(acquire_fence);
-	if (ret != 0)
+	if (ret < 0) {
+		pr_err("%s: Current acquire fence unexpectedly has error status before signal\n",
+		       __func__);
 		return ret;
+	} else if (ret > 0) {
+		/* has been signaled */
+		return ret;
+	}
 
 	/*
 	 * Ensure that the request will not be free early when
@@ -636,7 +650,8 @@ static int rga_request_scheduler_job_abort(struct rga_request *request)
 					scheduler->ops->soft_reset(scheduler);
 				}
 
-				pr_err("reset core[%d] by request abort", scheduler->core);
+				pr_err("reset core[%d] by request[%d] abort",
+				       scheduler->core, request->id);
 				running_abort_count++;
 			}
 		}
@@ -736,19 +751,20 @@ static int rga_request_timeout_query_state(struct rga_request *request)
 		if (scheduler->running_job) {
 			job = scheduler->running_job;
 			if (request->id == job->request_id) {
-				if (test_bit(RGA_JOB_DONE, &job->state) &&
+				if (test_bit(RGA_JOB_STATE_DONE, &job->state) &&
 				    test_bit(RGA_JOB_STATE_FINISH, &job->state)) {
 					spin_unlock_irqrestore(&scheduler->irq_lock, flags);
 					return request->ret;
-				} else if (!test_bit(RGA_JOB_DONE, &job->state) &&
+				} else if (!test_bit(RGA_JOB_STATE_DONE, &job->state) &&
 					   test_bit(RGA_JOB_STATE_FINISH, &job->state)) {
 					spin_unlock_irqrestore(&scheduler->irq_lock, flags);
-					pr_err("hardware has finished, but the software has timeout!\n");
+					pr_err("request[%d] hardware has finished, but the software has timeout!\n",
+					       request->id);
 					return -EBUSY;
-				} else if (!test_bit(RGA_JOB_DONE, &job->state) &&
+				} else if (!test_bit(RGA_JOB_STATE_DONE, &job->state) &&
 					   !test_bit(RGA_JOB_STATE_FINISH, &job->state)) {
 					spin_unlock_irqrestore(&scheduler->irq_lock, flags);
-					pr_err("hardware has timeout.\n");
+					pr_err("request[%d] hardware has timeout.\n", request->id);
 					return -EBUSY;
 				}
 			}
@@ -821,7 +837,7 @@ static void rga_request_acquire_fence_signaled_cb(struct dma_fence *fence,
 	struct rga_pending_request_manager *request_manager = rga_drvdata->pend_request_manager;
 
 	if (rga_request_commit(request))
-		pr_err("rga request commit failed!\n");
+		pr_err("rga request[%d] commit failed!\n", request->id);
 
 	mutex_lock(&request_manager->lock);
 	rga_request_put(request);
@@ -1069,9 +1085,10 @@ int rga_request_submit(struct rga_request *request)
 				request->acquire_fence_fd, request,
 				rga_request_acquire_fence_signaled_cb);
 			if (ret == 0) {
+				/* acquire fence active */
 				goto export_release_fence_fd;
-			} else if (ret == -ENOENT) {
-				/* has been signaled */
+			} else if (ret > 0) {
+				/* acquire fence has been signaled */
 				goto request_commit;
 			} else {
 				pr_err("Failed to add callback with acquire fence fd[%d]!\n",
@@ -1084,7 +1101,7 @@ int rga_request_submit(struct rga_request *request)
 request_commit:
 	ret = rga_request_commit(request);
 	if (ret < 0) {
-		pr_err("rga request commit failed!\n");
+		pr_err("rga request[%d] commit failed!\n", request->id);
 		goto err_put_release_fence;
 	}
 

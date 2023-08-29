@@ -1,0 +1,4 @@
+dir "/usr/share/fonts/truetype/freefont"
+match any family == "serif"	edit family += "FreeSerif";
+match any family == "sans"	edit family += "FreeSans";
+match any family == "mono"	edit family += "FreeMono";

@@ -2,7 +2,7 @@
 /*
  * System Control and Management Interface (SCMI) Base Protocol
  *
- * Copyright (C) 2018 ARM Ltd.
+ * Copyright (C) 2018-2021 ARM Ltd.
  */
 
 #define pr_fmt(fmt) "SCMI Notifications BASE - " fmt
@@ -33,6 +33,12 @@ struct scmi_msg_resp_base_attributes {
 	u8 num_agents;
 	__le16 reserved;
 };
+
+struct scmi_msg_resp_base_discover_agent {
+	__le32 agent_id;
+	u8 name[SCMI_MAX_STR_SIZE];
+};
+
 
 struct scmi_msg_base_error_notify {
 	__le32 event_control;
@@ -191,7 +197,7 @@ scmi_base_implementation_list_get(const struct scmi_protocol_handle *ph,
 			break;
 
 		loop_num_ret = le32_to_cpu(*num_ret);
-		if (tot_num_ret + loop_num_ret > MAX_PROTOCOLS_IMP) {
+		if (loop_num_ret > MAX_PROTOCOLS_IMP - tot_num_ret) {
 			dev_err(dev, "No. of Protocol > MAX_PROTOCOLS_IMP");
 			break;
 		}
@@ -225,18 +231,21 @@ static int scmi_base_discover_agent_get(const struct scmi_protocol_handle *ph,
 					int id, char *name)
 {
 	int ret;
+	struct scmi_msg_resp_base_discover_agent *agent_info;
 	struct scmi_xfer *t;
 
 	ret = ph->xops->xfer_get_init(ph, BASE_DISCOVER_AGENT,
-				      sizeof(__le32), SCMI_MAX_STR_SIZE, &t);
+				      sizeof(__le32), sizeof(*agent_info), &t);
 	if (ret)
 		return ret;
 
 	put_unaligned_le32(id, t->tx.buf);
 
 	ret = ph->xops->do_xfer(ph, t);
-	if (!ret)
-		strlcpy(name, t->rx.buf, SCMI_MAX_STR_SIZE);
+	if (!ret) {
+		agent_info = t->rx.buf;
+		strlcpy(name, agent_info->name, SCMI_MAX_STR_SIZE);
+	}
 
 	ph->xops->xfer_put(ph, t);
 
@@ -336,7 +345,7 @@ static int scmi_base_protocol_init(const struct scmi_protocol_handle *ph)
 	u32 version;
 	char name[SCMI_MAX_STR_SIZE];
 	struct device *dev = ph->dev;
-	struct scmi_revision_info *rev = scmi_get_revision_area(ph);
+	struct scmi_revision_info *rev = scmi_revision_area_get(ph);
 
 	ret = ph->xops->version_get(ph, &version);
 	if (ret)
@@ -375,7 +384,7 @@ static int scmi_base_protocol_init(const struct scmi_protocol_handle *ph)
 static const struct scmi_protocol scmi_base = {
 	.id = SCMI_PROTOCOL_BASE,
 	.owner = NULL,
-	.init_instance = &scmi_base_protocol_init,
+	.instance_init = &scmi_base_protocol_init,
 	.ops = NULL,
 	.events = &base_protocol_events,
 };

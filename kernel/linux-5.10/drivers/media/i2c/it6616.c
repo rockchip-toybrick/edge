@@ -3519,6 +3519,16 @@ static int it6616_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
 	return 0;
 }
 
+static void it6616_detect_hot_plug(struct v4l2_subdev *sd)
+{
+	struct it6616 *it6616 = to_it6616(sd);
+
+	if (it6616->mipi_tx_video_stable && it6616_hdmi_is_5v_on(it6616))
+		v4l2_ctrl_s_ctrl(it6616->detect_tx_5v_ctrl, 1);
+	else
+		v4l2_ctrl_s_ctrl(it6616->detect_tx_5v_ctrl, 0);
+}
+
 static void it6616_work_i2c_poll(struct work_struct *work)
 {
 	struct delayed_work *dwork = to_delayed_work(work);
@@ -3526,8 +3536,8 @@ static void it6616_work_i2c_poll(struct work_struct *work)
 			struct it6616, work_i2c_poll);
 	bool handled;
 
-	it6616_s_ctrl_detect_tx_5v(&it6616->sd);
 	it6616_isr(&it6616->sd, 0, &handled);
+	it6616_detect_hot_plug(&it6616->sd);
 	schedule_delayed_work(&it6616->work_i2c_poll,
 			msecs_to_jiffies(POLL_INTERVAL_MS));
 }
@@ -3776,8 +3786,7 @@ static int it6616_enum_frame_interval(struct v4l2_subdev *sd,
 	if (fie->index >= ARRAY_SIZE(supported_modes))
 		return -EINVAL;
 
-	if (fie->code != IT6616_MEDIA_BUS_FMT)
-		return -EINVAL;
+	fie->code = IT6616_MEDIA_BUS_FMT;
 
 	fie->width = supported_modes[fie->index].width;
 	fie->height = supported_modes[fie->index].height;

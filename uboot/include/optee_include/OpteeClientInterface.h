@@ -112,4 +112,8 @@ uint32_t trusty_read_toybrick_cpu_id(uint8_t *buf);
 uint32_t trusty_read_toybrick_SnMacAc(uint8_t *data, uint32_t size);
 uint32_t trusty_write_toybrick_SnMacAc(uint8_t *data, uint32_t size);
 uint32_t trusty_write_toybrick_extrakey(uint8_t *data, uint32_t size);
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+uint32_t toybrick_write_ksn(uint32_t *buf, uint32_t length);
+uint32_t toybrick_read_ksn(uint32_t *buf, uint32_t length);
+#endif
 #endif

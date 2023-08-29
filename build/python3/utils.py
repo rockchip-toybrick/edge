@@ -67,6 +67,9 @@ def dump_json_file(dump_file, json_data):
                   indent=2)
 
 def edge_cmd(cmd, path):
+    if cmd is None:
+        EDGE_DBG('cmd is None, skip it')
+        return 0
     EDGE_DBG(cmd)
     if path == None:
         return os.system(cmd)

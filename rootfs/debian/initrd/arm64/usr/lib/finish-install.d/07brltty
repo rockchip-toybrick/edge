@@ -1,0 +1,171 @@
+#! /bin/sh -e
+# Boot Parameters to Configuration File
+
+# This script processes the brltty= boot parameters in /proc/cmdline and
+# writes a corresponding BRLTTY configuration file to /target/etc/brltty.conf.
+
+. /usr/share/debconf/confmodule
+
+parse()
+{
+   brailleDriver=""
+   brailleDevice=""
+   textTable=""
+   brailleParameters=""
+
+   found=false
+   while [ "${#}" -gt 0 ]
+   do
+      case "${1}"
+      in
+         "brltty="*)
+            found=true
+            parameters="${1#*=}"
+
+            number=1
+            while [ "${number}" -le 4 ]
+            do
+               parameter="${parameters%%,*}"
+               if [ -n "${parameter}" ]
+               then
+                  case "${number}"
+                  in
+                     1)
+                        brailleDriver="${parameter}"
+                        ;;
+                     2)
+                        brailleDevice="${parameter}"
+                        ;;
+                     3)
+                        textTable="${parameter}"
+                        ;;
+                     4)
+                        brailleParameters="$(echo "$parameter" | sed -e 's/+/,/')"
+                        ;;
+                  esac
+               fi
+
+               number="`expr ${number} + 1`"
+               new_parameters="${parameters#*,}"
+               [ "${new_parameters}" != "${parameters}" ] || break
+               parameters="${new_parameters}"
+            done
+            ;;
+      esac
+
+      shift
+   done
+
+   if "${found}"
+   then
+      echo "# Modified by ${0}"
+      [ -z "${brailleDriver}" ] && brailleDriver=auto
+      echo "braille-driver ${brailleDriver}"
+      [ -z "${brailleDevice}" ] && brailleDevice=usb:
+      echo "braille-device ${brailleDevice}"
+      [ -n "${textTable}" ] && echo "text-table ${textTable}"
+      [ -n "${brailleParameters}" ] && echo "braille-parameters ${brailleParameters}"
+   fi
+
+   true
+}
+
+unset DEBIAN_HAS_FRONTEND
+unset DEBIAN_FRONTEND
+unset DEBCONF_FRONTEND
+unset DEBCONF_REDIR
+
+pid=/var/run/brltty.pid
+
+if [ -r $pid ] && kill -0 `cat $pid`; then
+    if apt-install brltty 1>&2; then
+        file="/proc/cmdline"
+        if [ -f $file ]; then
+            if grep brltty= $file >/dev/null ; then
+                parse `cat "${file}"` >>/target/etc/brltty.conf
+            fi
+        fi
+
+	# Grub
+	mkdir -p /target/etc/default/grub.d
+	echo 'GRUB_INIT_TUNE="480 440 1"' > /target/etc/default/grub.d/brltty.cfg
+	[ -x /target/usr/sbin/update-grub ] && /bin/in-target /usr/sbin/update-grub || true
+
+	# Gnome 2
+	/bin/in-target su -s /bin/sh -c "gconftool-2 --type bool --set /desktop/gnome/applications/at/screen_reader_enabled true" Debian-gdm || true
+
+	# Gnome 3
+	mkdir -p /target/usr/share/glib-2.0/schemas
+	cat > /target/usr/share/glib-2.0/schemas/15_brltty.gschema.override <<END
+# Setup by debian-installer (via finish-install.d/07brltty) since
+# braille support was enabled during initial installation
+
+[org.gnome.desktop.a11y.applications]
+screen-reader-enabled=true
+
+[org.gnome.desktop.sound]
+event-sounds=true
+
+[org.mate.interface]
+accessibility=true
+END
+
+	in-target dpkg-trigger --no-await /usr/share/glib-2.0/schemas || true
+	in-target dpkg --triggers-only -a || true
+
+	# lightdm
+	if [ -x "/target/usr/bin/orca-dm-wrapper" ];
+	then
+		mkdir -p /target/etc/xdg/lightdm/lightdm.conf.d
+		cat > /target/etc/xdg/lightdm/lightdm.conf.d/80_orca-dm-wrapper.conf << EOF
+[SeatDefaults]
+greeter-wrapper=/usr/bin/orca-dm-wrapper
+EOF
+	fi
+
+	# KDE4
+	/bin/in-target su -s /bin/sh -c "kwriteconfig --file kaccessibleapp --group Adaptor --key setSpeechEnabled 'true'" kdm || true
+	/bin/in-target su -s /bin/sh -c "kwriteconfig --file kaccessibleapp --group Main --key SpeechEnabled 'true'" kdm || true
+	# KDE5
+	/bin/in-target su -s /bin/sh -c "kwriteconfig5 --file kaccessrc --group ScreenReader --key Enabled 'true'" kdm || true
+
+	db_get passwd/username
+	USERNAME="$RET"
+	if [ -n "$USERNAME" ]
+	then
+		# Gnome 2
+		/bin/in-target su -s /bin/sh -c "gconftool-2 --type bool --set /desktop/gnome/interface/accessibility true" "$USERNAME" || true
+		/bin/in-target su -s /bin/sh -c "gconftool-2 --type bool --set /desktop/gnome/applications/at/visual/startup true" "$USERNAME" || true
+		/bin/in-target su -s /bin/sh -c "gconftool-2 --type bool --set /desktop/gnome/sound/event_sounds true" "$USERNAME" || true
+
+		# XFCE
+		/bin/in-target su -s /bin/sh -c "mkdir -p /home/$USERNAME/.config/xfce4/xfconf/xfce-perchannel-xml" "$USERNAME"
+		cat > /target/home/$USERNAME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml <<END
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-session" version="1.0">
+  <property name="general" type="empty">
+    <property name="StartAssistiveTechnologies" type="bool" value="true"/>
+  </property>
+</channel>
+END
+		/bin/in-target chown $USERNAME.$USERNAME /home/$USERNAME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+
+		# LXDE, XFCE, LXQt
+		if [ -r "/target/etc/xdg/autostart/orca-autostart.desktop" ];
+		then
+			/bin/in-target su -s /bin/sh -c "mkdir -p /home/$USERNAME/.config/autostart" "$USERNAME"
+			/bin/in-target su -s /bin/sh -c "cp /etc/xdg/autostart/orca-autostart.desktop /home/$USERNAME/.config/autostart/my-orca-autostart.desktop" "$USERNAME"
+			/bin/in-target su -s /bin/sh -c "sed -i -e 's/OnlyShowIn=.*/OnlyShowIn=XFCE;LXDE;LXQt;/' /home/$USERNAME/.config/autostart/my-orca-autostart.desktop" "$USERNAME"
+		fi
+
+		# KDE4
+		/bin/in-target su -s /bin/sh -c "kwriteconfig --file kaccessibleapp --group Adaptor --key setSpeechEnabled 'true'" "$USERNAME" || true
+		/bin/in-target su -s /bin/sh -c "kwriteconfig --file kaccessibleapp --group Main --key SpeechEnabled 'true'" "$USERNAME" || true
+		# KDE5
+		/bin/in-target su -s /bin/sh -c "kwriteconfig5 --file kaccessrc --group ScreenReader --key Enabled 'true'" "$USERNAME" || true
+	fi
+    fi
+fi
+
+exit 0

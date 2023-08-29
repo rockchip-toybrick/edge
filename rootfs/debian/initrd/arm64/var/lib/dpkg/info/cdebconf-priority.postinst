@@ -1,0 +1,12 @@
+#! /bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+#db_capb BACKUP
+
+# Critical, as we always want the question to be asked. It's kind of
+# pointless to run cdebconf-priority if you DON'T want to answer the
+# question. Unset the seen flag for the same reason.
+db_fset debconf/priority seen false
+db_input critical debconf/priority || true
+db_go

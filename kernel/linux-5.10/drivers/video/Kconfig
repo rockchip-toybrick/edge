@@ -30,6 +30,8 @@ menu "Rockchip Misc Video driver"
 source "drivers/video/rockchip/Kconfig"
 endmenu
 
+source "drivers/video/virtio/Kconfig"
+
 config VGASTATE
        tristate
        default n

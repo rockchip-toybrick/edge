@@ -1,0 +1,45 @@
+# Before udev is started, parse kernel command word for module params of
+# the form module.param=value and register them so they will be used when
+# modules are loaded. Also check for modules to be blacklisted.
+
+for word in $(cat /proc/cmdline); do
+	var="${word%%=*}"
+	val="${word#[!=]*=}"
+
+	# skip things that lack an '='
+	if [ -z "$var" ]; then
+		continue
+	fi
+
+	# skip normal variables with no dots
+	if [ "${var##*.*}" ]; then
+		continue
+	fi
+
+	module="${var%.*}"
+	param="${var#[!.]*.}"
+
+	# skip things that we know are not modules
+	case "$module" in
+		fsck|\
+		locale|\
+		luks|\
+		net|\
+		plymouth|\
+		quotacheck|\
+		rd|\
+		systemd|\
+		udev|\
+		vconsole)
+			continue
+		;;
+	esac
+
+	if [ "$module" ] && [ "$param" ]; then
+		if [ "$param" = blacklist ]; then
+			register-module -b "$module"
+		else
+			register-module -p -a "$module" "$param=$val"
+		fi
+	fi
+done

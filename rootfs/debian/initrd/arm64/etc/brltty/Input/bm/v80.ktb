@@ -1,0 +1,5 @@
+title Baum Vario 80
+include display6.kti
+include command.kti
+include front10.kti
+include routing6.kti

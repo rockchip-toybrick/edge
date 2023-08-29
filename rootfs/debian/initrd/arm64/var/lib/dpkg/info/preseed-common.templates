@@ -1,0 +1,631 @@
+Template: preseed/checksum_error
+Type: error
+Description: Checksum error
+ The ${ALGORITHM} checksum of the file retrieved from <${LOCATION}> fails
+ to match the expected value of "${CHECKSUM}".  The file may be corrupt,
+ or the provided checksums may be out of date.
+Description-ar.UTF-8: خطأ مجموع اختبار
+ فشلت مجاميع اختبار ${ALGORITHM} للملف المسترجَع من <${LOCATION}> في مطابقة القيمة المتوقعة "${CHECKSUM}".‫ قد يكون الملف تالفا، أو أنّ مجاميع الاختبار الموفَّرة قديمة.
+Description-be.UTF-8: Памылка кантрольнай сумы
+ Кантрольная сума ${ALGORITHM} файла атрыманая з <${LOCATION}> не супадае з чаканай "${CHECKSUM}". Гэты файл можа быць сапсаваны альбо кантрольныя сумы састарэлыя.
+Description-bg.UTF-8: Грешка в контролната сума
+ Контролната сума ${ALGORITHM} на файла, изтеглен от <${LOCATION}> не съвпада с очакваната стойност „${CHECKSUM}“. Или файлът е повреден, или предоставените контролни суми са остарели.
+Description-ca.UTF-8: Error de les sumes de comprovació
+ La suma de comprovació ${ALGORITHM} del fitxer obtingut de <${LOCATION}> no concorda amb el valor esperat de «${CHECKSUM}». El fitxer pot estar corromput, o les sumes de comprovació proveïdes poden estar desactualitzades.
+Description-cs.UTF-8: Chyba kontrolního součtu
+ Kontrolní ${ALGORITHM} součet souboru staženého z <${LOCATION}> neodpovídá očekávané hodnotě „${CHECKSUM}“. Soubor může být porušený, nebo mohou být zastaralé poskytnuté kontrolní součty.
+Description-da.UTF-8: Kontrolsumfejl
+ Kontrolsummen ${ALGORITHM} for filen hentet fra <${LOCATION}> matcher ikke den forventede værdi for »${CHECKSUM}«. Filen kan være ødelagt, eller de angivne kontrolsummer er forældede.
+Description-de.UTF-8: Prüfsummenfehler
+ Die ${ALGORITHM}-Prüfsumme der von <${LOCATION}> empfangenen Datei entspricht nicht dem erwarteten Wert von »${CHECKSUM}«. Die Datei könnte beschädigt oder die hinterlegte Prüfsumme eventuell veraltet sein.
+Description-el.UTF-8: Λάθος Checksum
+ Το ${ALGORITHM} checksum του αρχείου που λήφθηκε από <${LOCATION}> απέτυχε να ταιριάξει με την αναμενόμενη τιμή του "${CHECKSUM}".  Το αρχείο μπορεί να έχει φθαρεί, η το παρεχόμενο checksums μπορεί να είναι ξεπερασμένο.
+Description-eo.UTF-8: Kontrolsuma eraro
+ La kontrolsumo ${ALGORITHM} de la elŝutita dosiero el <${LOCATION}> malsukcesis kongrui kun la atendita valoro "${CHECKSUM}". La dosiero povas esti difekta, aŭ la provizitaj kontrolsumoj povas esti malaktualaj.
+Description-es.UTF-8: Error de suma de comprobación
+ La suma de comprobación ${ALGORITHM} del fichero obtenido de <${LOCATION}> no coincide con el valor esperado de "${CHECKSUM}". El fichero puede estar dañado o las sumas de comprobación pueden estar desactualizadas.
+Description-et.UTF-8: Kontrollsumma viga
+ Asukohast <${LOCATION}> hangitud faili ${ALGORITHM} kontrollsumma ei vasta oodatud väärtusele "${CHECKSUM}".  Fail võib olla vigane või on kontrollsumma aegunud.
+Description-eu.UTF-8: Errorea kontrol-baturan
+ <${LOCATION}>-(e)ndik berreskuratutako fitxategiaren ${ALGORITHM} kontrol-baturak huts egin du, ez baitator bat espero zen "${CHECKSUM}" balioarekin. Baliteke fitxategia hondatuta egotea, edo emandako kontrol-baturak zaharkitua egotea.
+Description-fa.UTF-8: خطای سرجمع
+ سرجمع  ${ALGORITHM}  فایل‌ دریافت شده از <${LOCATION}> با مقدار "${CHECKSUM}" هم‌خوانی ندارد. شاید فایل خراب شده است یا سرجمع‌های آماده شده، قدیمی هستند.
+Description-fi.UTF-8: Tarkisteen virhe
+ ${ALGORITHM}-tarkistussumma sijainnista <${LOCATION}> noudetulle tiedostolle ei vastaa odotettua arvoa "${CHECKSUM}".  Tiedosto saattaa olla rikkoutunut, tai vastaanotettu tarkistussumma saattaa olla vanhentunut.
+Description-fr.UTF-8: Erreur de somme de contrôle
+ La somme de contrôle ${ALGORITHM} du fichier récupéré depuis ${LOCATION} ne contient pas la valeur ${CHECKSUM} attendue. Le fichier est peut-être corrompu ou la somme de contrôle fournie n'est peut-être pas à jour.
+Description-ga.UTF-8: Earráid: suim sheiceála
+ Ní ionann suim sheiceála ${ALGORITHM} an chomhaid ó <${LOCATION}> agus an luach a rabhthas ag súil leis: "${CHECKSUM}". Seans go bhfuil an comhad truaillithe, nó go bhfuil na suimeanna seiceála as dáta.
+Description-gl.UTF-8: Erro na suma de comprobación
+ A suma de comprobación ${ALGORITHM} do ficheiro obtido de <${LOCATION}> non coincide co valor esperado «${CHECKSUM}». Pode que o ficheiro estea corrupto ou que as sumas de comprobación non estean actualizadas.
+Description-he.UTF-8: שגיאת סיכום ביקורת
+ סיכום ביקורת מסוג ${ALGORITHM} של הקובץ שהתקבל מ־<${LOCATION}> לא תואם לערך הצפוי „${CHECKSUM}”.  הקובץ כנראה אינו תקין, או שסיכום הביקורת אינו עדכני.
+Description-hi.UTF-8: चेकसम त्रुटि
+ ${LOCATION} से प्राप्त फ़ाइल का ${ALGORITHM} चेकसम "${CHECKSUM}" के अपेक्षित मूल्य से मेल नहीं खाता। फ़ाइल दूषित हो सकती है, या प्रदत्त चेकसम आउट ऑफ डेट हो सकते हैं।
+Description-hr.UTF-8: Greška jedinstvene vrijednosti
+ ${ALGORITHM} jedinstvena vrijednost datoteke preuzeta sa <${LOCATION}> ne podudara se s očekivanom vrijednosti "${CHECKSUM}".  Datoteka je možda oštećena ili je pružena jedinstvena vrijednost zastarjela.
+Description-hu.UTF-8: Ellenőrző összeg hiba
+ A(z) ${ALGORITHM} ellenőrző ősszeg a <${LOCATION}> helyről szerzett fájl várt "${CHECKSUM}" ellenőrző összegével nem egyezik. Lehet, hogy az állomány megsérült vagy az ellenőrző eszközök egy régebbi fájlra vonatkoznak.
+Description-id.UTF-8: Kesalahan Checksum
+ ${ALGORITHM} checksum yang diterima dari <${LOCATION}> gagal dicocokkan dengan "${CHECKSUM}".  Kemungkinan file tersebut rusak, atau checksum yang tersedia sudah kadaluarsa.
+Description-is.UTF-8: Villa í gátsummu
+ Gátsumma ${ALGORITHM} skrárinnar sem náð var í á <${LOCATION}> samsvarar ekki væntu gildi "${CHECKSUM}".  Skráin gæti verið skemmd, eða að uppgefnar gátsummur gætu verið úreltar.
+Description-it.UTF-8: Errore nel codice di controllo
+ Il codice di controllo ${ALGORITHM} del file ottenuto da <${LOCATION}> non corrisponde al valore atteso "${CHECKSUM}". Il file potrebbe essere rovinato o il codice di controllo fornite potrebbe non essere aggiornato.
+Description-ja.UTF-8: チェックサムエラー
+ <${LOCATION}> から取得したファイルの ${ALGORITHM} チェックサムが、期待される値である「${CHECKSUM}」と一致しませんでした。このファイルが壊れているか、提示されているチェックサムは古くなっているのかもしれません。
+Description-kab.UTF-8: Tuccḍa checksum
+ Tagrumma n usenqed ${ALGORITHM} n yifuyla i d-yettwarran seg <${LOCATION}> ur mṣadan ara d wazal yettuṛaǧun n "${CHECKSUM}".  Yezmer ad yili ufaylu yerreẓ neɣ tagrummiwin n usenqed d tiqburin.
+Description-kk.UTF-8: Бақылау сома қатесі
+ ${ALGORITHM} бақылау сомасы <${LOCATION}> жерінен алынған файлы үшін күтілген "${CHECKSUM}" мәніне сәйкес келмейді. Файл зақымдалған, немесе ұсынылған бақылау сомалары ескірген болуы мүмкін.
+Description-ko.UTF-8: 체크섬 오류
+ <${LOCATION}>에서 빼낸 파일의 ${ALGORITHM} 체크섬이 예상한 값과 ("${CHECKSUM}") 맞지 않습니다. 파일이 손상되었거나, 주어진 체크섬이 옛날 버전일 수도 있습니다.
+Description-lt.UTF-8: Kontrolinės sumos neatitikimas
+ Vieno iš failų ${ALGORITHM} kontrolinė suma, gauta iš <${LOCATION}>, neatitinka lauktos reikšmės (${CHECKSUM}). Gali būti, kad failas sugadintas arba pateiktos kontrolinės sumos pasenusios.
+Description-lv.UTF-8: Kontrolsummas kļūda
+ ${ALGORITHM} kontrolsumma datnei, kas atrodas vietā <${LOCATION}>, neatbilst sagaidītajai vērtībai “${CHECKSUM}”. Datne varētu būt bojāta vai dotās kontrolsummas varētu būt neaktuālas.
+Description-mr.UTF-8: चेकसम त्रुटी
+ <${LOCATION}> येथून प्राप्त झालेल्या फाईलची ${ALGORITHM} चेकसम "${CHECKSUM}" च्या अपेक्षित मूल्याशी जुळली नाही.  फाईल भ्रष्ट असू शकेल, वा पुरवले्या चेकसम कालबाह्य असू शकतात.
+Description-nb.UTF-8: Sjekksumfeil
+ ${ALGORITHM}-sjekksummen for filen hentet fra <${LOCATION}> stemmer ikke overens med forventet verdi «${CHECKSUM}». Filen har kanskje feil innhold eller de fremviste sjekksummene kan være utdatert.
+Description-ne.UTF-8: जोडको त्रुटी जाच्नुहोस
+ ${ALGORITHM} फाइलको चेकसमबाट <${LOCATION}> "${CHECKSUM}" को अपेक्षित मानसँग मेल खान्छ। फाइल भ्रष्ट हुन सक्छ, वा प्रदान गरिएका चेकसहरू मिति भन्दा बाहिर हुन सक्छ.
+Description-nl.UTF-8: Foutief controlegetal
+ Het ${ALGORITHM}-controlegetal van het bestand dat opgehaald werd van <${LOCATION}> komt niet overeen met de verwachte waarde van "${CHECKSUM}". Misschien is het bestand beschadigd of zijn de aangereikte controlegetallen verouderd.
+Description-nn.UTF-8: Sjekksumfeil
+ ${ALGORITHM}-sjekksummen for fila henta frå <${LOCATION}> stemmer ikkje med forventa verdi av «${CHECKSUM}». Fila kan vere korrupt eller så kan dei tillhøyrande sjekksummane vere utdaterte.
+Description-no.UTF-8: Sjekksumfeil
+ ${ALGORITHM}-sjekksummen for filen hentet fra <${LOCATION}> stemmer ikke overens med forventet verdi «${CHECKSUM}». Filen har kanskje feil innhold eller de fremviste sjekksummene kan være utdatert.
+Description-oc.UTF-8: Error de soma de contraròtle
+ La soma de contraròtle ${ALGORITHM} del fichièr recuperat a partir de ${LOCATION} conten pas la valor ${CHECKSUM} esperada.  Lo fichièr pòt èsser corromput o la soma de contraròtle provesida es pas a jorn.
+Description-pa.UTF-8: ਚੈਕਸਮ ਗਲ਼ਤੀ
+ <${LOCATION}> ਤੋਂ ਲਈ ਗਈ ਫ਼ਾਈਲ ਦਾ ${ALGORITHM} ਚੈਕਸਮ ਉਮੀਦ ਕੀਤੇ "${CHECKSUM}" ਮੁੱਲ ਨਾਲ ਮਿਲਦਾ ਨਹੀਂ ਹੈ। ਫਾਇਲ ਖ਼ਰਾਬ ਹੋਈ ਹੋ ਸਕਦੀ ਹੈ ਜਾਂ ਦਿੱਤਾ ਗਿਆ ਚੈਕਸਮ ਪੁਰਾਣਾ ਹੋ ਸਕਦਾ ਹੈ।
+Description-pl.UTF-8: Niezgodność sumy kontrolnej
+ Suma kontrolna ${ALGORITHM} pliku pobranego z <${LOCATION}> nie pasuje do oczekiwanej wartości "${CHECKSUM}". Plik może być uszkodzony lub też suma kontrolna jest nieaktualna.
+Description-pt.UTF-8: Erro de checksum
+ O checksum ${ALGORITHM} do ficheiro obtido de <${LOCATION}> não coincide com o valor esperado de "${CHECKSUM}". O ficheiro pode estar corrompido, ou os checksums disponibilizados podem estar desactualizados.
+Description-pt_BR.UTF-8: Erro de soma de verificação
+ A soma de verificação ${ALGORITHM} do arquivo obtido de <${LOCATION}> não combina com o valor esperado de "${CHECKSUM}". O arquivo pode estar corrompido, ou as somas de verificação fornecidas podem estar desatualizadas.
+Description-ro.UTF-8: Eroare a sumei de control
+ Suma de control (checksum) ${ALGORITHM} a fișierului obținut de la <${LOCATION}> nu se potrivește cu valoarea specificată de "${CHECKSUM}".  Fișierul ar putea fi corupt sau suma de control ar putea fi învechită.
+Description-ru.UTF-8: Ошибка контрольной суммы
+ ${ALGORITHM} контрольной суммы полученного файла из <${LOCATION}> не совпадает с ожидаемым значением "${CHECKSUM}". Файл может быть поврежден, либо же указанная контрольная сумма устарела.
+Description-sk.UTF-8: Chyba kontrolného súčtu
+ Kontrolný súčet ${ALGORITHM} súboru získaného z <${LOCATION}> sa nezhoduje s očakávanou hodnotou „${CHECKSUM}“. Je možné, že je súbor poškodený alebo že poskytnuté kontrolné súčty sú neaktuálne.
+Description-sl.UTF-8: Napaka pri nadzorni vsoti
+ Nadzorna vsota ${ALGORITHM} datoteke iz <${LOCATION}> ne odgovarja pričakovani vrednosti "${CHECKSUM}".  Datoteka je lahko pokvarjena ali pa nadzorna vsota ni posodobljena.
+Description-sq.UTF-8: Gabim checksum
+ ${ALGORITHM} checksum i skedarit të marre nga <${LOCATION}}> dështoi tëpërputhet me vlerën e pritur të "${CHECKSUM}".  Skedari mund të jetë korruptuar, ose checksum-et e dhëna mund të jenë jo të përditësuara.
+Description-sr.UTF-8: Грешка контролне суме
+ Контролна сума ${ALGORITHM} фајла преузета из <${LOCATION}> не одговара очекиваним вредностима "${CHECKSUM}". Фајл може бити корумпиран или је обезбеђена контролна сума застарела.
+Description-sv.UTF-8: Felaktig checksumma
+ ${ALGORITHM}-checksumman för filen hämtad från <${LOCATION}> matchar inte det förväntade värdet "${CHECKSUM}". Filen kan vara korrupt eller så är den tillhandahållna checksumman föråldrad.
+Description-ta.UTF-8: செக்சம் பிழை
+ <${LOCATION}> இடத்தில் இருந்து பெற்ற கோப்பின் ${ALGORITHM} செக்சம் எதிர்பார்க்கப்பட்ட "${CHECKSUM}" மதிப்பை ஒத்துப்போகவில்லை. கோப்பு சிதைந்து இருக்கலாம் அல்லது பழையதாகி இருக்கலாம்.
+Description-tg.UTF-8: Хатои ҷамъи санҷишӣ
+ Ҷамъи санҷишии ${ALGORITHM} барои файли бозёфта аз <${LOCATION}> ба қимати лозимии "${CHECKSUM}\” мувофиқат намекунад.  Эҳтимол аст, ки файл вайрон аст ё ин ки ҷамъи санҷишии таъминшуда аз муҳлаташ гузашт.
+Description-th.UTF-8: ผลรวมตรวจสอบผิดพลาด
+ ผลรวมตรวจสอบ ${ALGORITHM} ของแฟ้มที่ดึงมาจาก <${LOCATION}> ไม่ตรงกับค่าที่คาดหมาย คือ "${CHECKSUM}" แฟ้มดังกล่าวอาจเสียหาย หรือผลรวมตรวจสอบที่ให้มาอาจหมดอายุแล้ว
+Description-tr.UTF-8: Sağlama toplamı hatası
+ <${LOCATION}> konumundan indirilen dosyanın ${ALGORITHM} sağlama toplamı, beklenen değer olan "${CHECKSUM}" ile eşleşmiyor. Bu duruma dosyanın bozuk olması veya verilen sağlama toplamlarının eski olması neden olabilir.
+Description-uk.UTF-8: Помилка контрольної суми
+ ${ALGORITHM} контрольної суми файлу отриманого із <${LOCATION}> не збігається із очікуваним значенням "${CHECKSUM}". Файл може бути пошкоджений, або вказана контрольна сума може бути застаріла.
+Description-vi.UTF-8: Lỗi tổng kiểm tra
+ Tổng kiểm tra ${ALGORITHM} của tập tin đã nhận từ <${LOCATION}> lỗi không khớp với giá trị mong đợi của "${CHECKSUM}". Tập tin có lẽ đã hỏng, hoặc là tổng kiểm đã cung cấp có lẽ đã quá cũ.
+Description-zh_CN.UTF-8: 校验码错误
+ 从 <${LOCATION}> 下载的文件 ${ALGORITHM} 校验码不符合预期，预期的值为“${CHECKSUM}”。文件可能已经损毁，或所提供的校验码可能已经过期。
+Description-zh_TW.UTF-8: 校驗碼錯誤
+ 從 <${LOCATION}> 下載的檔案的 ${ALGORITHM} 校驗碼與預期的校驗碼不合，預期的值為 "${CHECKSUM}"。檔案可能已經損毀，或所提供的校驗碼可能已經過期。
+
+Template: preseed/retrieve_error
+Type: error
+Description: Failed to retrieve the preconfiguration file
+ The file needed for preconfiguration could not be retrieved from
+ ${LOCATION}. The installation will proceed in non-automated mode.
+Description-am.UTF-8: ቀድሞ አዘጋጅ ፋይልን ማግኘት አልተቻለም
+ ለቀድሞ ማዘጋጃ የሚረዳው ፋይል ከ ${LOCATION} ሊገኝ አልተቻለም. ተከላው ራስሰር ባልሆነ መንገድ ይቀጥላል።
+Description-ar.UTF-8: فشل استرجاع ملف التهيئة المسبق
+ تعذّر جلب الملف المطلوب للتهيئة المسبقة من ${LOCATION}. سيتابع التثبيت في وضعٍ غير آلي.
+Description-ast.UTF-8: Falló algamar el ficheru de preconfiguración
+ El ficheru necesita una preconfiguración que nun puede algamar dende ${LOCATION}. La instalación siguirá en mou non automáticu.
+Description-be.UTF-8: Не атрымалася здабыць файл папярэдніх наладак
+ Не атрымалася здабыць з ${LOCATION} файл, патрэбны, каб падрыхтаваць наладку. Устаноўка будзе працягнутая ў не-аўтаматычным рэжыме.
+Description-bg.UTF-8: Грешка при доставяне на файла с предварителни настройки
+ Файлът с предварителните настройки не може да бъде изтеглен от ${LOCATION}. Инсталацията ще продължи в неавтоматизиран режим.
+Description-bn.UTF-8: প্রাক-কনফিগারেশন ফাইল আনতে ব্যর্থ হয়েছি
+ প্রাক-কনফিগারেশনের জন্য প্রয়োজনীয় ফাইলটি ${LOCATION} থেকে আনা যায় নি। ইনস্টলেশন প্রক্রিয়া এখন স্বয়ংক্রিয় পদ্ধতিতে চলবে না।
+Description-bo.UTF-8: སྔོན་འགྲོའི་སྒྲིག་འགོད་ཡིག་ཆ་དེ་ལེན་མ་ཐུབ་པ
+ སྔོན་འགྲོའི་སྒྲིག་འགོད་ལ་དགོས་པའི་ཡིག་ཆ་${LOCATION} ནས་ཐོབ་མ་ཐུབ་པས་སྒྲིག་འཇུག་འདི་རང་འགུལ་རྣམ་པ་མིན་པའི་སྒོ་ནས་མུ་མཐུད་རྒྱུ་ཡིན
+Description-bs.UTF-8: Neuspjelo vraćanje prekonfiguracijske datoteke
+ Datoteka potrebna za prekonfiguraciju se ne može dobaviti s ${LOCATION}. Instalacija će se nastaviti u neautomatiziranom modu.
+Description-ca.UTF-8: No s'ha pogut obtindre el fitxer de preconfiguració
+ No s'ha pogut obtindre el fitxer requerit per a la preconfiguració des de ${LOCATION}. La instal·lació continuarà en mode no automàtic.
+Description-cs.UTF-8: Selhalo stažení souboru s přednastavením
+ Soubor potřebný pro přednastavení instalačního programu se nepodařilo stáhnout z ${LOCATION}. Instalace bude pokračovat v interaktivním režimu.
+Description-cy.UTF-8: Methwyd cyrchu'r ffeil cyngyfluniad
+ Methwyd cyrchu'r ffeil sy'n angenrheidiol ar gyfer cyngyfluniad o ${LOCATION}. Fe fydd y sefydliad yn mynd ymlaen yn y modd ddi-awtomatig.
+Description-da.UTF-8: Kunne ikke hente prækonfigurations-filen
+ Den fil, der kræves for prækonfiguration, kunne ikke hentes fra ${LOCATION}. Installationen vil fortsætte i ikke-automatisk tilstand.
+Description-de.UTF-8: Vorkonfigurationsdatei konnte nicht geladen werden
+ Die Datei für eine vorkonfigurierte Installation konnte nicht von ${LOCATION} geladen werden. Sie können die Installation manuell fortsetzen.
+Description-dz.UTF-8: སྔ་གོང་རིམ་སྒྲིག་ཡིག་སྣོད་འདི་སླར་འདྲེན་ནི་ལུ་འཐུས་ཤོར་བྱུང་ཡོད།
+ སྔ་གོང་རིམ་སྒྲིག་གི་དོན་ལུ་དགོ་པའི་ཡིག་སྣོད་འདི་ ${LOCATION}་ལས་སླར་འདྲེན་འབད་མི་བཏུབ། རང་བཞིན་གྱིས་བཟོ་བཟོཝ་མིན་པའི་ཐབས་ལམ་ནང་གཞི་བཙུགས་འདི་འཛུལ་སྤྱོད་འབད་འོང་།
+Description-el.UTF-8: Αδύνατη η ανάκτηση του αρχείου προρύθμισης
+ Δεν ήταν δυνατή η μεταφόρτωση του απαραίτητου αρχείου για προρύθμιση από τη διεύθυνση ${LOCATION}. Η εγκατάσταση θα συνεχιστεί με χειροκίνητο τρόπο.
+Description-eo.UTF-8: La ricevo de la antaŭagorda dosiero malsukcesis
+ La dosiero bezonata por antaŭagordado ne povis esti ricevita el ${LOCATION}. La instalado okazos laŭ ne-aŭtomata reĝimo.
+Description-es.UTF-8: Se produjo un fallo al obtener el fichero de preconfiguración
+ No se pudo descargar el fichero necesario para la preconfiguración de ${LOCATION}. La instalación no continuará en modo automatizado.
+Description-et.UTF-8: Eelseadistuse faili hankimine ei õnnestunud
+ Eelseadistamiseks vajalikku faili ei õnnestunud kohast ${LOCATION} hankida. Paigaldamine jätkub mitteautomaatises režiimis.
+Description-eu.UTF-8: Huts egin du aurrekonfigurazioaren fitxategia berreskuratzean
+ Aurrekonfiguraziorako behar den fitxategia ezin izan da ${LOCATION} kokalekutik berreskuratu. Instalazioak modu ez-automatikoan jarraituko du.
+Description-fa.UTF-8: دریافت فایل از پیش پیکربندی شده شکست خورد.
+ پروندهٔ مورد نیاز برای پیش‌پیکربندی نتوانست از ${LOCATION} بازیابی شود. نصب در حالت غیرخودکار انجام خواهد گرفت.
+Description-fi.UTF-8: Esiasetustiedoston noutaminen ei onnistunut
+ Esiasetuksiin tarvittavaa tiedostoa ei voitu noutaa taltiolta ${LOCATION}. Asennus jatkuu ilman automaatiota.
+Description-fr.UTF-8: Échec de la récupération du fichier de préconfiguration
+ Le fichier nécessaire à la préconfiguration n'a pas pu être téléchargé à l'adresse ${LOCATION}. L'installation va se dérouler sans automatisation.
+Description-ga.UTF-8: Níorbh fhéidir an comhad réamhchumraíochta a ghabháil
+ Níorbh fhéidir an comhad a theastaíonn le haghaidh réamhchumraíochta a fháil ó ${LOCATION}.  Leanfar an tsuiteáil ar aghaidh sa mhód neamh-uathoibríoch.
+Description-gl.UTF-8: Non foi posíbel obter o ficheiro de preconfiguración
+ Non foi posíbel obter de ${LOCATION} o ficheiro necesario para a preconfiguración. A instalación ha continuar en modo non automático.
+Description-gu.UTF-8: પૂર્વરૂપરેખાંકન ફાઇલ લાવવામાં નિષ્ફળ
+ પૂર્વરૂપરેખાંકન માટે જરૂરી ફાઇલ ${LOCATION} માંથી મેળવી શકાતી નથી. સ્થાપન હવે આપમેળે ન થઇ શકે તેવી સ્થિતીમાં આવી જશે.
+Description-he.UTF-8: קבלת קובץ הגדרות מוקדמות נכשלה
+ לא ניתן להוריד את הקובץ הנדרש בשביל הגדרות מוקדמות מ־${LOCATION}. תהליך ההתקנה יימשך במצב לא אוטומטי.
+Description-hi.UTF-8: प्रीकॉन्फ़िगरेशन फाइल को लाने में असफल
+ प्रीकॉन्फिगरेशन के लिए आवश्यक फाईल को ${LOCATION} से प्राप्त नहीं किया जा सका. संस्थापन गैर-स्वचालित ढंग से जारी रहेगा.
+Description-hr.UTF-8: Neuspjelo preuzimanje datoteke predpodešavanja
+ Datoteku potrebnu za predpodešavanje nije moguće preuzeti sa ${LOCATION}. Instalacija će se nastaviti u neautomatskom načinu rada.
+Description-hu.UTF-8: Előbeállító fájl beszerzése meghiúsult
+ Az előkonfigurációhoz szükséges fájlt nem tudtam letölteni innen: ${LOCATION}. A telepítés nem-automata módban megy tovább.
+Description-id.UTF-8: Gagal mengambil berkas prakonfigurasi
+ Berkas yang diperlukan untuk prakonfigurasi tidak dapat diambil dari ${LOCATION}. Instalasi ini akan dilanjutkan dalam moda non otomatis.
+Description-is.UTF-8: Mistókst að sækja forstillinga skrána
+ Ekki var hægt að sækja skrá nauðsynlega fyrir forstillinguna á ${LOCATION}. Uppsetningin mun halda áfram í ósjálfvirkri stillingu.
+Description-it.UTF-8: Scaricamento del file di preconfigurazione non riuscito
+ Non è stato possibile scaricare il file di preconfigurazione da ${LOCATION}. L'installazione proseguirà in modalità non-automatica.
+Description-ja.UTF-8: 事前設定ファイルの取得に失敗しました
+ 事前設定に必要となるファイルを ${LOCATION} から取得できませんでした。インストールは非自動モードで処理されます。
+Description-ka.UTF-8: წინა კონფიგურაციის ფაილის მიღება ვერ განხორციელდა
+ წინასწარი კონფიგურაციის ფაილის მიღება ${LOCATION}-დან ვერ განხორციელდა . ინსტალაცია გაგრძელდება არაავტომატურ რეჟიმში.
+Description-kab.UTF-8: Tiririt n ufaylu n azartwila ur yeddi ara
+ Afaylu yettusran i twila tuzwirt yegguma ad d-yuɣal seg ${LOCATION}. Asebded ad teddu ara deg uskar arawurman.
+Description-kk.UTF-8: Алдын-ала баптау файлын алу мүмкін болмады
+ Алдын ала баптау файлын ${LOCATION} орналасуынан алу мүмкін болмады. Орнату автоматтық емес режімде жалғастырылады.
+Description-km.UTF-8: បរាជ័យ​ក្នុង​ការ​ទៅ​យក​ឯកសារ​កំណត់​រចនា​សម្ព័ន្ធ​ស្រេច ។
+ មិន​អាច​ទៅ​យក​ឯកសារ​ដែល​ការ​កំណត់​រចនាសម្ព័ន្ធ​ស្រេច​ត្រូវការ​បាន​ឡើយ​ពី ${LOCATION} ។ ការ​ដំឡើង​នឹង​បន្ត​ក្នុង​របៀប​មិន​ស្វ័យប្រវត្តិ ។
+Description-kn.UTF-8: ಪೂರ್ವಸಂಯೋಜನಾ ಕಡತವನ್ನು ಹಿಂಪಡೆಯುವಲ್ಲಿ ವಿಫಲವಾಗಿದೆ.
+ ಪೂರ್ವಸಂಯೋಜನೆಗೆ ಬೇಕಾದ ಕಡತವನ್ನು ${LOCATION}ನಿಂದ ಹಿಂಪಡೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ. ಅನುಸ್ಥಾಪನೆಯು ಸ್ವಯಂಚಾಲಿತವಲ್ಲದ ವಿಧಾನದಲ್ಲಿ ಮುಂದುವರೆಯುವುದು.
+Description-ko.UTF-8: 미리 설정 파일을 가져오는데 실패했습니다
+ 미리 설정에 필요한 파일을 ${LOCATION}에서 다운로드할 수 없습니다. 자동이 아닌 모드로 설치를 진행합니다.
+Description-ku.UTF-8: Pela pêşveavakirinê nehate standin
+ Pela pêwist ya ji bo pêşveavakirinê ji ser ${LOCATION} nehate standin. Sazkirin wê li ser moda nebixweber bidome.
+Description-lo.UTF-8: ດືງແຟັມຄ່າຕັ້ງລວ່ງໜ້າບໍ່ສຳເລັດ
+ ບໍ່ສາມາດດຶງແຟັມທີ່ຕອ້ງໃຊ້ເພື່ອການຕັ້ງຄ່າລວ່ງໜ້າຈາກ ${LOCATION} ໄດ້ ການຕິດຕັ້ງຈະດຳເນີນຕໍ່ໄປໃນແບບບໍ່ເປັນອັດຕະໂນມັດ
+Description-lt.UTF-8: Nepavyko paimti išankstinės konfigūracijos failo
+ Failas reikalingas išankstinei konfigūracijai negali būti paimtas iš ${LOCATION}. Įdiegimas bus tęsiamas ne automatiniu režimu.
+Description-lv.UTF-8: Neizdevās ielādēt prekonfigurācijas datni
+ Datni, kas nepieciešams prekonfigurācijai, nevarēja iegūt no ${LOCATION}. Instalēšana tiks turpināta neautomātiskajā režīmā.
+Description-mk.UTF-8: Не успеав да ја преземам предконфигурациската датотека
+ Датотеката потребна за предконфигурација не можеше да биде преземена од ${LOCATION}. Инсталацијата ќе продолжи во неавтоамтски режим.
+Description-ml.UTF-8: മുന്‍ ക്രമീകരണ ഫയല്‍ വീണ്ടെടുക്കാന്‍ സാധിച്ചില്ല
+ ${LOCATION} ല്‍ നിന്നും മുന്‍ ക്രമീകരണത്തിനാവശ്യമായ ഫയല്‍ വീണ്ടെടുക്കാന്‍ സാധിച്ചില്ല. ഓട്ടോമേറ്റഡല്ലാത്ത മോഡില്‍ ഇന്‍സ്റ്റലേഷന്‍ പ്രക്രിയ മുന്നോട്ട് നീങ്ങും.
+Description-mr.UTF-8: पूर्वसंरचना फाईल प्राप्त करण्यात अपयश
+ ${LOCATION} पासून पूर्वसंरचना फाईल प्राप्त झाली नाही. आता अधिष्ठापना अ-स्वयंचलीत पद्धतीने चालू राहील.
+Description-nb.UTF-8: Klarte ikke å finne fila med forhåndsoppsettet
+ Den fila som trengs for forhåndsoppsettet kunne ikke lastes ned fra ${LOCATION}. Installasjonen vil fortsette med manuelle valg.
+Description-ne.UTF-8: पूर्व कन्फिगरेशन फाइल पुन:प्राप्त गर्नु असफल भयो
+ पूर्व कन्फिगरेशनका लागि आवश्यक फाइल ${LOCATION} बाट पुन: प्राप्त गर्न सक्दैन । स्थापना स्वचालित नगरिएको मोडमा प्रक्रिया हुनेछ ।
+Description-nl.UTF-8: Ophalen van het voorconfiguratiebestand is mislukt
+ Het bestand dat nodig is voor de voorconfiguratie kon niet worden opgehaald van ${LOCATION}. De installatie zal niet-geautomatiseerd worden vervolgd.
+Description-nn.UTF-8: Klarte ikkje å henta førehandsoppsettsfila
+ Fila som trengst for førehandsoppsettet kunne ikkje bli lasta ned frå ${LOCATION}. Installasjonen vil halde fram i ikkje-automatisk modus.
+Description-no.UTF-8: Klarte ikke å finne fila med forhåndsoppsettet
+ Den fila som trengs for forhåndsoppsettet kunne ikke lastes ned fra ${LOCATION}. Installasjonen vil fortsette med manuelle valg.
+Description-oc.UTF-8: Fracàs de la recuperacion del fichièr de preconfiguracion
+ Lo fichièr necessari per la preconfiguracion a pas pogut èsser telecargat a l'adreça ${LOCATION}. L'installacion serà faicha sens automatizacion.
+Description-pa.UTF-8: ਪਹਿਲੀ-ਸੰਰਚਨਾ ਫਾਇਲ ਮੁੜ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ
+ ਪਹਿਲਾ-ਸੰਰਚਨਾ ਲਈ ਲੋੜੀਂਦੀ ਫਾਇਲ ${LOCATION} ਤੋਂ ਮੁੜ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਇੰਸਟਾਲੇਸ਼ਨ ਬਿਨਾਂ-ਆਟੋਮੈਟਿਕ ਵਿਧੀ ਤੋਂ ਜਾਰੀ ਹੋਵੇਗੀ।
+Description-pl.UTF-8: Pobranie wstępnego pliku konfiguracji nie powiodło się
+ Plik potrzebny do wstępnej konfiguracji nie mógł być pobrany z ${LOCATION}. Instalacja będzie kontynuowana w trybie nieautomatycznym.
+Description-pt.UTF-8: Falhou obter o ficheiro de pré-configuração
+ O ficheiro necessário para a pré-configuração não pode ser obtido de ${LOCATION}. A instalação vai continuar em modo não-automático.
+Description-pt_BR.UTF-8: Falha ao obter arquivo de pré-configuração
+ O arquivo necessário para a pré-configuração não pôde ser obtido de ${LOCATION}. A instalação prosseguirá em modo não-automatizado.
+Description-ro.UTF-8: Eșec la obținerea fișierului de preconfigurare
+ Nu s-a putut obține fișierul necesar pentru preconfigurare de la ${LOCATION}. Instalarea va continua în modul non-automat.
+Description-ru.UTF-8: Не удалось получить файл предварительной настройки
+ Не удалось получить файл из ${LOCATION}, необходимый для предварительной настройки. Установка будет продолжена в не автоматическом режиме.
+Description-si.UTF-8: පෙර සැකසුම් ගොනුව ලබාගැනීම අසාර්ථක විය
+ ${LOCATION} වෙතින් පෙරසැකසීම සඳහා අවශ්‍ය ගොනුව ලබාගත නොහැකි විය, ස්ථාපනය දැන් ස්වයංක්‍රීය-නොවන ප්‍රකාරයෙන් ඉදිරියට යයි.
+Description-sk.UTF-8: Chyba pri získavaní súboru s predvoleným nastavením
+ Inštalácia bude pokračovať v neautomatickom režime, pretože sa nedal stiahnuť súbor s predvoleným nastavením z ${LOCATION}.
+Description-sl.UTF-8: Prenos prednastavljene datoteke ni uspel
+ Datoteke, potrebne za prednastavitev, ni mogoče prenesti iz ${LOCATION}. Namestitev se bo nadaljevala v ne-samodejnem načinu.
+Description-sq.UTF-8: Dështova në shkarkimin e skedarit të parakonfiguruar
+ Skedari i duhur për parakonfigurimin nuk mundi të shkarkohej nga ${LOCATION}. Instalimi do vazhdojë në mënyrën manuale.
+Description-sr.UTF-8: Неуспело преузимање преконфигурисаног фајла
+ Фајл потребан за преконфигурацију није могао бити добављен са ${LOCATION}. Инсталација ће се наставити у неаутоматизованом моду.
+Description-sv.UTF-8: Misslyckades med att hämta förkonfigurationsfilen
+ Filen som behövs för förkonfigurering kunde inte hämtas från ${LOCATION}. Installationen kommer att fortsätta i manuellt läge.
+Description-ta.UTF-8: முன் வடிவமைப்பு கோப்பை மீட்டுப் பெறுதல் தோல்வியுற்றது
+ ${LOCATION} இடத்திலிருந்து முன் வடிவமைப்பு கோப்பை மீட்டுப் பெற இயலவில்லை. நிறுவல் தானியங்காத வகையில் தொடரும்.
+Description-te.UTF-8: ముందలి అమరిక (preconfiguration) ఫైల్  తెచ్చుట విఫలమైంది.
+  ${LOCATION}నుండి  ముందలి అమరిక (preconfiguration)ఫైల్  తెచ్చుట విఫలమైంది. స్వయంచాలకము కాని పద్ధతిలో స్థాపన కొనసాగుతుంది.
+Description-tg.UTF-8: Бозёбии файли пештанзимшуда қатъ шудааст
+ Файли лозимӣ барои пештанзимкунӣ аз ${LOCATION} бозёбӣ намешавад. Насб дар ҳолати ғайри худкор идома дода мешавад.
+Description-th.UTF-8: ดึงแฟ้มค่าตั้งล่วงหน้าไม่สำเร็จ
+ ไม่สามารถดึงแฟ้มที่ต้องใช้เพื่อการตั้งค่าล่วงหน้าจาก ${LOCATION} ได้ การติดตั้งจะดำเนินต่อไปในแบบไม่เป็นอัตโนมัติ
+Description-tl.UTF-8: Bigo ang pagkuha ng talaksang preconfiguration
+ Ang talaksan na kailangan para sa preconfiguration ay hindi nakuha mula sa ${LOCATION}. Magpapatuloy ang pagluklok sa hindi-awtomatiko na mode.
+Description-tr.UTF-8: Ön yapılandırma dosyası alınamadı
+ Ön yapılandırma için gerekli dosya ${LOCATION} üzerinden alınamadı. Kurulum otomatik olmayan kipte devam edecek.
+Description-ug.UTF-8: ئالدىن سەپلىمە ھۆججەتنى ئوقۇش مەغلۇپ بولدى
+ ${LOCATION} دىن ئالدىن سەپلىمە ئېھتىياجلىق ھۆججەتكە ئېرىشەلمىدى. ئورنىتىش پروگراممىسى غەيرىي ئۆزلۈكىدىن ئورنىتىش ھالىتىنى ئىشلىتىدۇ.
+Description-uk.UTF-8: Не вдалося отримати файл передналаштування
+ Файл, необхідний для передналаштування, не може бути завантажений з ${LOCATION}. Встановлення буде продовжене в неавтоматичному режимі.
+Description-vi.UTF-8: Gặp lỗi khi lấy tập tin cấu hình sẵn
+ Tập tin cần thiết để cấu hình sẵn không thể được lấy từ ${LOCATION}. Vậy việc cài đặt sẽ tiếp tục trong chế độ không tự động.
+Description-zh_CN.UTF-8: 读取预配置文件失败
+ 无法从 ${LOCATION} 获得预配置所需要的文件。安装程序将会使用非自动安装模式。
+Description-zh_TW.UTF-8: 無法取得事先準備好的設定檔
+ 無法由 ${LOCATION} 取得在預先設定時所需要的檔案。安裝程式將以非自動模式進行。
+
+Template: preseed/load_error
+Type: error
+Description: Failed to process the preconfiguration file
+ The installer failed to process the preconfiguration file from
+ ${LOCATION}. The file may be corrupt.
+Description-am.UTF-8: ቀድሞ አዘጋጅ ፋይልን ማስኬድ አልተቻለም
+ ተካዩ ከቀድሞ ማዘጋጃው ፋይል ${LOCATION} ስራውን ማከናወን አልቻለም. ፋይሉ ተበክሎ ሊሆን ይችላል።
+Description-ar.UTF-8: فشلت معالجة ملف التهيئة المسبقة
+ فشل برنامج التثبيت في تحميل ملف التهيئة المسبق من ${LOCATION}. قد يكون الملف فاسداً.
+Description-ast.UTF-8: Falló'l procesu del ficheru de preconfiguración
+ Falló l'instalador al procesar el ficheru preconfiguráu dende ${LOCATION}. El ficheru puede tar corruptu.
+Description-be.UTF-8: Не атрымалася апрацаваць файл папярэдніх наладак
+ Праграма ўсталявання не здолела апрацаваць файл папярэдніх наладак з ${LOCATION}. Магчыма, ён пашкоджаны.
+Description-bg.UTF-8: Грешка при зареждане на файла с предварителните настройки
+ Инсталаторът не можа да зареди файла с предварителните настройки от ${LOCATION}. Файлът може би е повреден.
+Description-bn.UTF-8: প্রাক-কনফিগারেশন ফাইল প্রক্রিয়া করতে ব্যর্থ
+ ইনস্টলার প্রাক-কনফিগারেশনের ফাইলটি ${LOCATION} স্থান থেকে প্রক্রিয়া করতে পারে নি। ফাইলটি সম্ভবত ত্রুটিযুক্ত।
+Description-bo.UTF-8: སྔོན་འགྲོའི་སྒྲིག་འགོད་ཡིག་ཆ་བེད་སྤྱོད་བྱེད་མ་ཐུབ
+ སྔོན་འགྲོའི་སྒྲིག་འགོད་ཡིག་ཆ་དེ་ ${LOCATION} ནས་བེད་སྤྱོད་བྱེད་མ་ཐུབ། ཡིག་ཆ་དེ་ཕལ་ཆེར་འཕྲོ་བརླགས་ཤོར་འདུག
+Description-bs.UTF-8: Neuspjelo procesuiranje prekonfiguracijske datoteke
+ Instalater nije uspio procesuirati prekonfiguracijsku datoteku s ${LOCATION}. Datoteka može biti oštećena.
+Description-ca.UTF-8: No s'ha pogut processar el fitxer de preconfiguració
+ L'instal·lador no ha pogut processar el fitxer de preconfiguració de ${LOCATION}. El fitxer pot estar corrupte.
+Description-cs.UTF-8: Selhalo zpracování souboru s přednastavením
+ Instalační program nedokázal zpracovat soubor s přednastavením z ${LOCATION}. Soubor může být poškozen.
+Description-cy.UTF-8: Methwyd brosesu'r ffeil cyngyfluniad
+ Methodd y sefydlydd brosesu'r ffeil cyngyfluniad o ${LOCATION}. Efallai fod y ffeil yn llygredig.
+Description-da.UTF-8: Kunne ikke bearbejde prækonfigurations-filen
+ Installationsprogrammet kunne ikke bearbejde prækonfigurationsfilen fra ${LOCATION}. Filen er muligvis ødelagt.
+Description-de.UTF-8: Die Vorkonfigurationsdatei konnte nicht verarbeitet werden
+ Der Installer konnte die Vorkonfigurationsdatei von ${LOCATION} nicht auswerten. Die Datei ist möglicherweise beschädigt.
+Description-dz.UTF-8: སྔ་གོང་རིམ་ལུགས་ཡིག་སྣོད་འདི་ ལས་སྦྱོར་འབད་ནི་ལུ་འཐུས་ཤོར་བྱུང་ཡོད།
+ ${LOCATION} ལས་སྔ་གོང་རིམ་ལུགས་ཡིག་སྣོད་འདི་ ལས་སྦྱོར་འབད་ནི་ལུ་འཐུས་ཤོར་བྱུང་ཡོད། ཡིག་སྣོད་འདི་ངན་ཅན་འོང་།
+Description-el.UTF-8: Απέτυχε η επεξεργασία του αρχείου προρύθμισης
+ Ο εγκαταστάτης απέτυχε στην επεξαργασία του αρχείου προρυθμίσεων από το ${LOCATION}. Το αρχείο μπορεί να μην είναι έγκυρο.
+Description-eo.UTF-8: La procezado de la antaŭagorda dosiero malsukcesis
+ La instalilo malsukcesis procezi la antaŭagordan dosieron el ${LOCATION}. La dosiero eble difektiĝas.
+Description-es.UTF-8: Se produjo un fallo al procesar el fichero de preconfiguración
+ El instalador no pudo procesar fichero de preconfiguración de ${LOCATION}. Es posible que el fichero esté corrompido.
+Description-et.UTF-8: Eelseadistuse faili töötlemine nurjus
+ Paigaldaja ei suutnud laadida eelseadistuse faili ${LOCATION} alt. Fail võib olla vigane.
+Description-eu.UTF-8: Huts egin du aurrekonfigurazioko fitxategia prozesatzean
+ Instalatzaileak huts egin du aurrekonfigurazioko fitxategia ${LOCATION} kokalekutik prozesatzean. Fitxategia hondatuta egon daiteke.
+Description-fa.UTF-8: عملیات بر روی فایل از پیش پیکربندی شده شکست خورد
+ نصاب در پردازش پروندهٔ پیش‌پیکربندی از ${LOCATION} شکست خورد. پرونده ممکن است ... باشد.
+Description-fi.UTF-8: Esiasetustiedoston käsittely ei onnistunut
+ Esiasetukset sisältävän tiedoston taltiolta ${LOCATION} käsittely ei onnistunut asentimessa. Tiedosto saattaa olla vioittunut.
+Description-fr.UTF-8: Échec du traitement du fichier de préconfiguration
+ L'outil d'installation n'a pas pu traiter le fichier de préconfiguration depuis ${LOCATION}. Le fichier est peut-être corrompu.
+Description-ga.UTF-8: Níorbh fhéidir an comhad réamhchumraíochta a phróiseáil
+ Níorbh fhéidir leis an suiteálaí an comhad réamhchumraíochta a phróiseáil ó ${LOCATION}. Comhad truaillithe?
+Description-gl.UTF-8: Non foi posíbel procesar o ficheiro de preconfiguración
+ O instalador non puido procesar o ficheiro de preconfiguración de ${LOCATION}. O ficheiro pode estar corrompido.
+Description-gu.UTF-8: પૂર્વરૂપરેખાંકન ફાઇલ પર પ્રક્રિયા કરવામાં નિષ્ફળ
+ સ્થાપન ${LOCATION} માંથી પૂર્વરૂપરેખાંકન ફાઇલ પર પ્રક્રિયા કરવામાં નિષ્ફળ ગયું. ફાઇલ કદાચ ખરાબ હોઇ શકે.
+Description-he.UTF-8: עיבוד קובץ הגדרות מוקדמות נכשל
+ תוכנית ההתקנה נכשלה בעיבוד קובץ הגדרות מוקדמות מ־${LOCATION}. הקובץ עלול להיות לא תקין.
+Description-hi.UTF-8: प्रीकॉन्फिगरेशन फाइल को संसाधित करने में असफल
+ संस्थापक ${LOCATION} में स्थित प्रीकॉन्फिगरेशन फाइल को संसाधित करने में असफल रहा. हो सकता है कि यह फाइल विकृत हो.
+Description-hr.UTF-8: Neuspjela obrada datoteke predpodešavanja
+ Instalacijski program nije uspio učitati datoteku predpodešavanja sa ${LOCATION}. Datoteka bi mogla biti oštećena.
+Description-hu.UTF-8: Előkonfigurációs fájl betöltése meghiúsult
+ A telepítő az előbeállító fájlt nem tudta betölteni innen: ${LOCATION}. A fájl megsérülhetett.
+Description-id.UTF-8: Gagal memroses berkas prakonfigurasi
+ Program instalasi gagal memproses berkas prakonfigurasi dari ${LOCATION}. Berkas tersebut mungkin rusak.
+Description-is.UTF-8: Mistókst að vinna úr foruppsetningarskrá
+ Uppsetningarforritinu mistókst að vinna úr forstillingaskránni frá ${LOCATION}. Skráin gæti verið skemmd.
+Description-it.UTF-8: Caricamento del file di preconfigurazione non riuscito
+ Il programma d'installazione non è stato in grado di elaborare il file di preconfigurazione da ${LOCATION}. Il file potrebbe essere danneggiato.
+Description-ja.UTF-8: 事前設定ファイルの処理に失敗しました
+ インストーラは ${LOCATION} からの事前設定ファイルの処理に失敗しました。ファイルは恐らく壊れています。
+Description-ka.UTF-8: შეცდომა წინასწარი კონფიგურირების ფაილის დამუშავებისას
+ ინსტალერი ვერ ასრულებს წინასწარი კონფიგურირების ფაილს ${LOCATION}-დან. შესაძლოა ფაილი დაზიანებულია.
+Description-kab.UTF-8: Asesfer n ufaylu n twila tuzwirt ur yeddi ara
+ Asebdad yecceḍ deg usesfer n ufaylu n twila tuzwirt seg ${LOCATION}. Ahat yerreẓ ufaylu.
+Description-kk.UTF-8: Алдын-ала баптау файлын өңдеу кезінде қате кетті
+ Орнату бағдарламасы ${LOCATION} орналасуынан алдын ала баптау файлын өңдей алмады. Файл зақымданған болуы мүмкін.
+Description-km.UTF-8: បាន​បរាជ័យ​ក្នុង​ការ​ដំណើរ​ការ​ឯកសារ​កំណត់​រចនាសម្ព័ន្ធ​ជា​មុន
+ កម្មវិធី​ដំឡើង​បាន​បរាជ័យ​ក្នុង​ការ​ដំណើរ​ការ​ឯកសារ​កំណត់​រចនាសម្ព័ន្ធ​ជា​មុន​ពី ${LOCATION} ។ ឯកសារ​ប្រហែល​ជា​ខូច ។
+Description-kn.UTF-8: ಪೂರ್ವಸಂಯೋಜನಾ ಕಡತವನ್ನು ಸಂಸ್ಕರಿಸುವಲ್ಲಿ ವಿಫಲವಾಗಿದೆ.
+ ${LOCATION}ನಲ್ಲಿರುವ ಪೂರ್ವಸಂಯೋಜನಾ ಕಡತವನ್ನು ಸಂಸ್ಕರಿಸುವಲ್ಲಿ ಅನುಸ್ಥಾಪಕವು ವಿಫಲವಾಗಿದೆ. ಪ್ರಾಯಶಃ ಕಡತವು ಹಾಳಗಿರಬಹುದು.
+Description-ko.UTF-8: 미리 설정 파일을 처리하는데 실패했습니다
+ 설치 프로그램에서 ${LOCATION}에 있는 미리 설정 파일을 처리하는데 실패했습니다. 파일 내용이 망가진 것 같습니다.
+Description-ku.UTF-8: Pêşkêşkirina mîhengên destpêk ên pel biserneket
+ Bernameya sazkirinê pela pêşveavakirinê ya ji ser ${LOCATION} hate stendin nexebitand. Dibe ku rewşa pelê xerab be.
+Description-lo.UTF-8: ປະມວນຜົນແຟັມຄ່າຕັ້ງລວ່ງໜ່າບໍ່ສຳເລັດ
+ ໂປແກຣັມຕິດຕັ້ງປະມວນຜົນແຟັມຄ່າຕັ້ງລວ່ງໜ້າຈາກ ${LOCATION} ບໍ່ສຳເລັດ ແຟັມດັ່ງກ່າວອາດຈະເສຍຫາຍ
+Description-lt.UTF-8: Nepavyko apdoroti išankstinės konfigūracijos failo
+ Įdiegikliui nepavyko apdoroti išankstinės konfigūracijos failo iš ${LOCATION}. Galbūt failas yra sugadintas.
+Description-lv.UTF-8: Neizdevās apstrādāt prekonfigurācijas datni
+ Instalators nevarēja apstrādāt prekonfigurācijas datni no ${LOCATION}. Iespējams, šī datne ir bojāta.
+Description-mk.UTF-8: Не успеав да ја процесирам предконфигурациската датотека
+ Инсталерот не успеа да ја процесира предконфигурациската датотека од ${LOCATION}. Датотеката може да е расипана.
+Description-ml.UTF-8: മുന്‍ ക്രമീകരണ ഫയല്‍ മനസ്സിലാക്കുന്നതില്‍ പരാജയപ്പെട്ടു
+ ${LOCATION} ല്‍ നിന്നും മുന്‍ ക്രമീകരണ ഫയല്‍ മനസ്സിലാക്കുന്നതില്‍ ഇന്‍സ്റ്റോളര്‍ പരാജയപ്പെട്ടു. ഒരു പക്ഷേ ഫയല്‍ കറപ്റ്റായിരിക്കും.
+Description-mr.UTF-8: पूर्वसंरचना फाईलवर प्रक्रिया करणे अयशस्वी
+ ${LOCATION} या ठिकाणावरच्या पूर्वसंरचना फाईलवर प्रक्रिया करताना अपयश आले. ही फाईल बहूदा भ्रष्ट असावी.
+Description-nb.UTF-8: Klarte ikke å behandle fila med forhåndsoppsettet
+ Installasjonprogrammet klarte ikke å behandle fila med forhåndsoppsettet fra ${LOCATION}. Det kan hende fila er ødelagt.
+Description-ne.UTF-8: पुन:कन्फिगरेशन फाइल प्रक्रिया गर्न असफल भयो
+ ${LOCATION} बाट पुन:कन्फिगरेशन फाइल प्रक्रिया गर्न असफल भयो । फाइल दूषित हुन सक्छ ।
+Description-nl.UTF-8: Verwerken van het voorconfiguratie-bestand is mislukt
+ Het verwerken van het voorconfiguratie-bestand vanaf ${LOCATION} door het installatiesysteem is mislukt: Mogelijk is het bestand beschadigd.
+Description-nn.UTF-8: Klarte ikkje laste førehandsoppsettsfila
+ Installasjonsprogrammet klarte ikkje å laste førehandsoppsettsfila frå ${LOCATION}. Fila kan vere øydelagd.
+Description-no.UTF-8: Klarte ikke å behandle fila med forhåndsoppsettet
+ Installasjonprogrammet klarte ikke å behandle fila med forhåndsoppsettet fra ${LOCATION}. Det kan hende fila er ødelagt.
+Description-oc.UTF-8: Lo tractament del fichièr de preconfiguracion a pas capitat
+ L'aisina d'installacion tractèt pas lo fichièr de preconfiguracion dempuèi ${LOCATION}. Benlèu lo fichièr es corromput.
+Description-pa.UTF-8: ਪਹਿਲੀ-ਸੰਰਚਨਾ ਫਾਇਲ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ
+ ਇੰਸਟਾਲਰ ਪਹਿਲੀ-ਸੰਰਚਨਾ ਫਾਇਲ ${LOCATION} ਤੋਂ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ ਹੋਇਆ। ਫਾਇਲ ਖਰਾਬ ਹੋਈ ਜਾਪਦੀ ਹੈ।
+Description-pl.UTF-8: Przetworzenie wstępnego pliku konfiguracji nie powiodło się
+ Instalator nie mógł przetworzyć pliku wstępnej konfiguracji z ${LOCATION}. Możliwe, że plik jest uszkodzony.
+Description-pt.UTF-8: Falhou o processamento do ficheiro de pré-configuração
+ O instalador falhou o processamento do ficheiro de pré-configuração a partir de ${LOCATION}. O ficheiro pode estar corrompido.
+Description-pt_BR.UTF-8: Falha ao processar o arquivo de pré-configuração
+ O instalador falhou ao processar o arquivo de pré-configuração de ${LOCATION}. O arquivo pode estar corrompido.
+Description-ro.UTF-8: Eșec la procesarea fișierului de preconfigurare
+ Programul de instalare a eșuat la procesarea fișierului de preconfigurare de la ${LOCATION}. Fișierul ar putea fi corupt.
+Description-ru.UTF-8: Не удалось обработать файл предварительной настройки
+ Программе установки не удалось обработать файл предварительной настройки из ${LOCATION}. Вероятно, файл повреждён.
+Description-si.UTF-8: පෙරසැකසූ ගොනුව සැකසීම අසාර්ථකයි
+ ${LOCATION} න් ලද පෙරසැකසුම් ගොනුව සැකසීමට ස්ථාපකයට නොහැකි විය. ගොනුව ඇතැම්විට දූශිත විය හැක.
+Description-sk.UTF-8: Chyba pri spracovaní súboru s predvoleným nastavením
+ Inštalačný program nedokázal spracovať súbor s predvoleným nastavením z ${LOCATION}. Súbor je možno poškodený.
+Description-sl.UTF-8: Nalaganje prednastavljene konfiguracijske datoteke ni uspelo
+ Namestitveni program ni uspel naložiti prednastavitvene konfiguracijske datoteke iz ${LOCATION}. Datoteka je morda pokvarjena.
+Description-sq.UTF-8: Dështoi në përpunimin e skedarit të parakonfigurimit
+ Instaluesi dështoi në përpunimin e skedarit të parakonfigurimit nga ${LOCATION}. Skedari mund të jetë i korruptuar.
+Description-sr.UTF-8: Неуспело процесирање преконфигурационог фајла
+ Инсталер није успео да процесира преконфигурациони фајл са ${LOCATION}. Фајл је можда неисправан.
+Description-sv.UTF-8: Misslyckades med att behandla förkonfigurationsfilen
+ Installationsprogrammet misslyckades med att behandla förkonfigurationsfilen från ${LOCATION}. Filen kan vara skadad.
+Description-ta.UTF-8: முன் வடிவமைப்பு கோப்பை செயல் படுத்துதல் தோல்வியுற்றது
+ ${LOCATION} இடத்திலிருந்து பெற்ற முன் வடிவமைப்பு கோப்பை செயல் படுத்த இயலவில்லை கோப்பு சிதைந்திருக்கலாம்.
+Description-te.UTF-8: ముందలి అమరిక (preconfiguration) ఫైల్   వాడుట  విఫలమైంది.
+ స్థాపన వ్యవస్థ ${LOCATION}నుండి  ముందలి అమరిక (preconfiguration)ఫైల్   వాడుట విఫలమైంది. ఫైల్ చెడిపోయి వుండవచ్చు.
+Description-tg.UTF-8: Иҷрои файли пештанзимкунӣ қатъ шудааст
+ Насбкунанда файли танзими пешакиро аз ${LOCATION} коркард карда натавонист. Эҳтимол аст, ки файл харобшуда мебошад.
+Description-th.UTF-8: ประมวลผลแฟ้มค่าตั้งล่วงหน้าไม่สำเร็จ
+ โปรแกรมติดตั้งประมวลผลแฟ้มค่าตั้งล่วงหน้าจาก ${LOCATION} ไม่สำเร็จ แฟ้มดังกล่าวอาจจะเสียหาย
+Description-tl.UTF-8: Bigo ang pagproseso ng talaksang preconfiguration
+ Bigo ang pagpasok ng talaksang preconfiguration mula sa ${LOCATION}. Maaaring sira ang talaksan.
+Description-tr.UTF-8: Ön yapılandırma dosyası işlenemedi
+ Kurulum programı ${LOCATION} üzerinden alınan ön yapılandırma dosyasını işleyemedi. Dosya bozulmuş olabilir.
+Description-ug.UTF-8: ئالدىن سەپلىمە ھۆججىتىنى بىر تەرەپ قىلىش مەغلۇپ بولدى.
+ ئورنىتىش پروگراممىسى ${LOCATION} دىكى ئالدىن سەپلىمە ھۆججىتىنى بىر تەرەپ قىلالمىدى. ھۆججەت بۇزۇلغان بولۇشى مۇمكىن.
+Description-uk.UTF-8: Не вдалося обробити файл передналаштувань
+ Встановлювач не зміг обробити файл передналаштувань з ${LOCATION}. Цей файл, можливо, пошкоджено.
+Description-vi.UTF-8: Gặp lỗi khi xử lý tập tin cấu hình sẵn
+ Trình cài đặt không xử lý được tập tin cấu hình sẵn từ ${LOCATION}. Tập tin này có thể bị hỏng.
+Description-zh_CN.UTF-8: 处理预配置文件失败
+ 安装程序无法处理 ${LOCATION} 上预配置文件。文件可能已被损坏。
+Description-zh_TW.UTF-8: 無法執行事先準備好的設定檔
+ 安裝程式無法執行預先設定檔案 ${LOCATION}。這個檔案可能已經損毀了。
+
+Template: preseed/boot_command
+Type: string
+Description: for internal use; can be preseeded
+ Shell command or commands to run in the d-i environment during boot
+
+Template: preseed/early_command
+Type: string
+Description: for internal use; can be preseeded
+ Shell command or commands to run in the d-i environment as early as possible
+
+Template: preseed/late_command
+Type: string
+Description: for internal use; can be preseeded
+ Shell command or commands to run in the d-i environment as late as possible
+
+Template: preseed/run
+Type: string
+Description: for internal use; can be preseeded
+ Programs to be obtained & run
+
+Template: preseed/run/checksum
+Type: string
+Description: for internal use; can be preseeded
+ md5sums of programs to be obtained & run
+
+Template: preseed/include
+Type: string
+Description: for internal use; can be preseeded
+ Additional preseed files to load
+
+Template: preseed/include/checksum
+Type: string
+Description: for internal use; can be preseeded
+ md5sums of additional preseed files to load
+
+Template: preseed/include_command
+Type: string
+Description: for internal use; can be preseeded
+ Shell command to run that may output a list of preseed files to load
+
+Template: preseed/command_failed
+Type: error
+Description: Failed to run preseeded command
+ Execution of preseeded command "${COMMAND}" failed with exit code ${CODE}.
+Description-am.UTF-8: preseeded ትዕዛዞችን መጫን አልተቻለም
+ የቀደመው ትዕዛዝ "${COMMAND}" አፈጻጸም የመውጫ ኮድ ${CODE} በመስጠት አልተሳካም።
+Description-ar.UTF-8: فشل تنفيذ أمر preseed
+ فشل تنفيذ أمر preseed )"${COMMAND}"( مُرجعاً رمز الخروج ${CODE}.
+Description-ast.UTF-8: Falló la execución de la orde de preconfiguración
+ Hebo un fallu na execución de la orde de preconfiguración «${COMMAND}», amosó'l códigu d'erru ${CODE}.
+Description-be.UTF-8: Не атрымалася выканаць патрэбную каманду
+ Не атрымалася выканаць каманду "${COMMAND}" - код выхаду ${CODE}.
+Description-bg.UTF-8: Грешка при изпълнението на командата за предварителна настройка
+ Изпълнението на командата за предварителна настройка „${COMMAND}“ върна грешка с код ${CODE}.
+Description-bn.UTF-8: preseeded কমান্ড চালাতে ব্যর্থ হয়েছি
+ preseeded কমান্ড "${COMMAND}" ব্যর্থ হয়েছে। প্রস্থান (exit) কোড ছিল ${CODE} ।
+Description-bo.UTF-8: བཀའ་བརྡ་དེ་བཀོལ་སྤྱོད་བྱས་མ་ཐུབ
+ བཀའ་བརྡ་ "${COMMAND}" བཀོལ་སྤྱོད་བྱས་མ་ཐུབ། ནོར་འཁྲུལ་ཨང་རྟགས་ ${CODE} རེད།
+Description-bs.UTF-8: Neuspjelo pokretanje presseded naredbe
+ Izvršavanje preseeded naredbe "${COMMAND}" nije uspjelo, kod greške ${CODE}.
+Description-ca.UTF-8: No s'ha pogut executar l'ordre preconfigurada
+ L'execució de l'ordre preconfigurada «${COMMAND}» ha fallat amb codi d'eixida ${CODE}.
+Description-cs.UTF-8: Spuštění příkazu přednastavení selhalo
+ Vykonávání příkazu přednastavení („${COMMAND}“) selhalo s návratovým kódem ${CODE}.
+Description-cy.UTF-8: Methwyd rhedeg y gochymyn cynhedynnedig
+ Method gweithrediad y gorchymyn cynhedynnedig "${COMMAND}" gyda'r côd gorffen ${CODE}.
+Description-da.UTF-8: Kunne ikke udføre preseeded-kommando
+ Kørsel af preseed-kommando (»${COMMAND}«) mislykkedes med afslutningskode ${CODE}.
+Description-de.UTF-8: Vorkonfigurationsbefehl konnte nicht ausgeführt werden
+ Die Ausführung des Vorkonfigurationsbefehls (»${COMMAND}«) ist fehlgeschlagen: Fehlercode ${CODE}
+Description-dz.UTF-8: སྔ་གོང་ལས་བཙག་འཐུ་འབད་ཡོད་པའི་བརྡ་བཀོད་གཡོག་བཀོལ་ནི་ལུ་འཐུས་ཤོར་བྱུང་ཡོད།
+ ${CODE}.ཕྱིར་ཐོན་ཨང་རྟགས་མཉམ་ "${COMMAND}" སྔ་གོང་ལས་བཙག་འཐུ་འབད་ཡོད་པའི་བརྡ་བཀོད་ཀྱི་ལག་ལེན་འཐབ་ནི་འདི་འཐུས་ཤོར་ཡོདཔ།
+Description-el.UTF-8: Αποτυχία εκτέλεσης της εντολής προρύθμισης
+ Η εκτέλεση της εντολής προρύθμισης "${COMMAND}" απέτυχε με κωδικό εξόδου ${CODE}.
+Description-eo.UTF-8: Lanĉado de antaŭsemita komando malsukcesis
+ Lanĉado de la antaŭsemita komando "${COMMAND}" malsukcesis kun liverita kodo ${CODE}.
+Description-es.UTF-8: Falló la ejecución de la orden de preconfiguración
+ Se produjo un fallo en la ejecución de la orden de preconfiguración «${COMMAND}», indicó el código de error ${CODE}.
+Description-et.UTF-8: Eelseemendatud käsk nurjus
+ Eelseemendatud käsu "${COMMAND}" käivitamine nurjus veakoodiga ${CODE}.
+Description-eu.UTF-8: Huts egin du aurrez konfiguratutako komandoa exekutatzean
+ Huts egin du aurrez konfiguratutako "${COMMAND}" komandoa exekutatzean, irteerako kodea: ${CODE}.
+Description-fa.UTF-8: اجرای دستورات preseed با شکست مواجه شد
+ اجرای فرمان ... «${COMMAND}» با کد خروج ${CODE} شکست خورد.
+Description-fi.UTF-8: Esiasetukset tekevän komennon suoritus epäonnistui
+ Esiasetukset tekevä komento ”${COMMAND}” epäonnistui, paluuarvo on ${CODE}.
+Description-fr.UTF-8: Échec de l'exécution de la commande préconfigurée
+ L'exécution de la commande préconfigurée (« ${COMMAND} ») a échoué avec le code d'erreur ${CODE}.
+Description-ga.UTF-8: Níorbh fhéidir an t-ordú réamhshíolaithe a rith
+ Theip ar ordú réamhshíolaithe "${COMMAND}" le stádas scortha ${CODE}.
+Description-gl.UTF-8: Non foi posíbel executar a orde preconfigurada
+ A execución da orde preconfigurada «${COMMAND}» fallou co código de erro ${CODE}.
+Description-gu.UTF-8: પ્રિસિડેડ આદેશ ચલાવવામાં નિષ્ફળ
+ પ્રિસિડેડ આદેશ "${COMMAND}" ચલાવવાનું બહાર નીકળવાની સંજ્ઞા ${CODE} સાથે નિષ્ફળ.
+Description-he.UTF-8: הרצת פקודה טעונה מראש נכשלה
+ הרצת הפקודה „${COMMAND}” שנטענה מראש נכשלה עם קוד היציאה ${CODE}.
+Description-hi.UTF-8: प्रीसीडेड कमांड चलाने में असफल
+ पूर्व-निर्धारित आदेश "${COMMAND}" का निष्पादन निकास कोड ${CODE} के साथ विफल रहा।
+Description-hr.UTF-8: Neuspjelo pokretanje predodređene naredbe
+ Pokretanje predodređene naredbe ("${COMMAND}") nije uspjelo uz izlazni kôd ${CODE}.
+Description-hu.UTF-8: Előkonfigurált parancs futtatása sikertelen
+ "${COMMAND}" előkonfigurált parancs ${CODE} hibakóddal kilépett.
+Description-id.UTF-8: Gagal menjalakan perintah yang telah disiapkan
+ Jalannya perintah preseeded "${COMMAND}" gagal dengan kode ${CODE}.
+Description-is.UTF-8: Mistókst að keyra forplantaða skipun
+ Keyrsla forplöntuðu skipunarinnar „${COMMAND}‟ mistókst með útgangsboðunum ${CODE}.
+Description-it.UTF-8: Esecuzione del comando di preconfigurazione non riuscita
+ Esecuzione del comando di preconfigurazione «${COMMAND}» non riuscita, codice di uscita ${CODE}.
+Description-ja.UTF-8: preseeded コマンドの実行に失敗しました
+ 終了コード ${CODE} で preseeded コマンド ("${COMMAND}") の実行に失敗しました。
+Description-ka.UTF-8: თვითგამართვის ბრძანება ვერ შესრულდა
+ თვითმოწყობის ბრძანება "${COMMAND}" შესრულებისას იძლევა შეცდომას კოდით ${CODE}.
+Description-kab.UTF-8: Aselkem n tladna s twila tuzwirt ur teddi ara
+ Aselkem n tladna s twila tuzwirt "${COMMAND}" ur yeddi ara akked tengalt yellan ${CODE}.
+Description-kk.UTF-8: Автоматтық баптау командасын орындау сәтсіз аяқталды
+ "${COMMAND}" автоматтық баптау командасының орындалуы ${CODE} қателер кодымен сәтсіз аяқталды.
+Description-km.UTF-8: បាន​បរាជ័យ​ក្នុង​ការ​រត់​ពាក្យបញ្ជា​កំណត់​រួច
+ ការ​ប្រតិបត្តិ​ពាក្យ​បញ្ជា​កំណត់​រួច "${COMMAND}" បាន​បរាជ័យ​ហើយ ដោយ​បញ្ចេញ​កូដ ${CODE} ។
+Description-kn.UTF-8: ಮುಂಚಿತವಾಗಿ ಆಯ್ಕೆಯಾದ ಆಜ್ಞೆಯನ್ನು ನೆಡೆಸುವಲ್ಲಿ ವಿಫಲವಾಗಿದೆ.
+ ಮುಂಚಿತವಾಗಿ ಆಯ್ಕೆಯಾದ ಆಜ್ಞೆ "${COMMAND}" ನ ಚಾಲನೆ ${CODE} ನಿರ್ಗಮನ ಸಂಕೇತದೊಂದಿಗೆ ವಿಫಲವಾಗಿದೆ.
+Description-ko.UTF-8: preseed 명령 실행이 실패했습니다
+ 미리 설정한 명령어 ("${COMMAND}") 실행이 상태 코드 ${CODE}번으로 실패했습니다.
+Description-ku.UTF-8: Meşandina fermana preseeded serneket
+ Dema fermana ("${COMMAND}") ya pêşî hatiye bersivandin dixebitî bi koda çewtiyan ya ${CODE} bi dawî bû.
+Description-lo.UTF-8: ເອີ້ນຄຳສັ່ງທີ່ມີການຕັ້ງຄ່າລວ່ງໜ່າບໍ່ສຳເລັດ
+ ການເຮັດວຽກຂອງຄຳສັ່ງທີ່ມີການຕັ້ງຄ່າລວ່ງໜ່າ "${COMMAND}" ລົ້ມເຫຼວຍອ້ນລະຫັດຂໍ້ຜິດພາດ  ${CODE}
+Description-lt.UTF-8: Nepavyko numatytos (preseeded) komandos vykdymas
+ Išankstinėje konfigūracijoje numatyta komanda "${COMMAND}" nepavyko ir gražino kodą ${CODE}.
+Description-lv.UTF-8: Neizdevās izpildīt prekonfigurācijas komandu
+ Prekonfigurēšanas komanda "${COMMAND}" bija nesekmīga ar iziešanas kodu ${CODE}.
+Description-mk.UTF-8: Не успеав да ја извршам preseed командата
+ Извршувањето на preseeded командата „${COMMAND}“ не успеа враќајќи код на грешка ${CODE}.
+Description-ml.UTF-8: മുന്‍പത്തെ കമാന്‍ഡ് പ്രവര്‍ത്തിപ്പിക്കുന്നതില്‍ പരാജയപ്പെട്ടു
+ മുന്‍പത്തെ കമാന്‍ഡ് "${COMMAND}" പ്രവര്‍ത്തനം ${CODE} എന്ന എക്സിറ്റ് കോഡോടു കൂടി പരാജയപ്പെട്ടു.
+Description-mr.UTF-8: पूर्वबीज आज्ञा वापरताना अपयश
+ "${COMMAND}" ही पुर्वबीज आज्ञा कार्यान्वयीत करतांना ${CODE} ही त्रुटी आली.
+Description-nb.UTF-8: Klarte ikke å kjøre forhåndsinnstilt kommando
+ Kjøring av forhåndsinnstilt kommando «${COMMAND}» mislyktes med returkoden ${CODE}.
+Description-ne.UTF-8: पहिले चलाएको आदेश चलाउनु असफल भयो 
+ पहिले चलाएको आदेश "${COMMAND}" को कार्यन्वयन निकास कोड ${CODE} सँगै असफल भयो ।
+Description-nl.UTF-8: Uitvoering van voorgeconfigureerd commando mislukt
+ De uitvoering van voorgeconfigureerd commando ("${COMMAND}") is mislukt met foutcode ${CODE}.
+Description-nn.UTF-8: Klarte ikkje køyre førkommando
+ Utføring av førkommando «${COMMAND}» feila med returkode ${CODE}.
+Description-no.UTF-8: Klarte ikke å kjøre forhåndsinnstilt kommando
+ Kjøring av forhåndsinnstilt kommando «${COMMAND}» mislyktes med returkoden ${CODE}.
+Description-oc.UTF-8: Impossible d'executar la comanda preconfigurada
+ L'execucion de la comanda preconfigurada (« ${COMMAND} ») a pas capitat amb lo còdi d'error ${CODE}.
+Description-pa.UTF-8: ਅਗਲੀ ਕਮਾਂਡ ਚਲਾਉਣ ਵਿੱਚ ਅਸਫਲ
+ ਅਗਲੀ ਕਮਾਂਡ "${COMMAND}" ਬਾਹਰੀ ਕੋਡ ${CODE} ਨਾਲ ਚੱਲਣ ਵਿੱਚ ਅਸਫਲ।
+Description-pl.UTF-8: Uruchomienie wstępnie pobranego polecenia nie powiodło się
+ Uruchomienie wstępnie pobranego polecenia "${COMMAND}" nie powiodło się zwracając kod ${CODE}.
+Description-pt.UTF-8: Falhou a execução do comando preseed
+ A execução do comando preseed ("${COMMAND}") falhou com o código de saída ${CODE}.
+Description-pt_BR.UTF-8: Falha ao executar comando pré-configurado
+ A execução do comando pré-configurado "${COMMAND}" falhou com o código de saída ${CODE}.
+Description-ro.UTF-8: Eșec la rularea comenzii preconfigurate
+ Execuția comenzii de preconfigurare „${COMMAND}” a eșuat cu codul de eroare ${CODE}.
+Description-ru.UTF-8: Не удалось выполнить команду автонастройки
+ Выполнение команды автонастройки ("${COMMAND}") завершилось неудачно с кодом ошибки ${CODE}.
+Description-si.UTF-8: පෙරපෝශිත විධානය ක්‍රියාත්මක කිරීම අසාර්ථකයි
+ "${COMMAND}" පෙරපෝශිත විධානයේ ක්‍රියාවලිය ${CODE} පිටවීම් කේතය සමඟ අසාර්ථක විය.
+Description-sk.UTF-8: Chyba pri spustení preseed príkazu
+ Vykonanie preseed príkazu „${COMMAND}“ zlyhalo s chybou ${CODE}.
+Description-sl.UTF-8: Zagon predpripravljenega ukaza ni uspel
+ Izvajanje predpripravljenega ukaza "${COMMAND}" ni uspelo, koda napake je ${CODE}.
+Description-sq.UTF-8: Dështova në ekzekutimin e komandës
+ Ekzekutimi i komandës "${COMMAND}" dështoi me gabimin ${CODE}.
+Description-sr.UTF-8: Грешка при извршавању предефинисане команде
+ Извршавање предефинисане команде „${COMMAND}“ није успело (излазни код ${CODE}).
+Description-sv.UTF-8: Misslyckades med att köra förinställt kommando
+ Exekveringen av det förinställda kommandot "${COMMAND}" misslyckades med felkoden ${CODE}.
+Description-ta.UTF-8: முன் விதைக்கப் பட்ட கட்டளையை செயற்படுத்தல் தோல்வியுற்றது
+ முன் விதைக்கப் பட்ட "${COMMAND}" கட்டளையை செயற்படுத்தல் தோல்வியுற்றது. வெளியேற்றக் குறி ${CODE}.
+Description-te.UTF-8: preseeded కమాండ్ నడుపుట విఫలమైంది
+ preseeded కమాండ్   "${COMMAND}" నడుపుట  ${CODE} నిష్క్రమణ కోడ్ తోవిఫలమైంది
+Description-tg.UTF-8: Иҷрои фармони танзими худкор қатъ карда шуд
+ Иҷрои фармони танзими худкори "${COMMAND}" бо рамзи хуруҷи ${CODE} қатъ карда шуд.
+Description-th.UTF-8: เรียกคำสั่งที่มีการตั้งค่าล่วงหน้าไม่สำเร็จ
+ การทำงานของคำสั่งที่มีการตั้งค่าล่วงหน้า "${COMMAND}" ล้มเหลวด้วยรหัสข้อผิดพลาด ${CODE}
+Description-tl.UTF-8: Bigo sa pagtakbo ng utos na preseeded
+ Ang pagtakbo ng preseeded command "${COMMAND}" ay nabigo at naghudyat ng exit code ${CODE}.
+Description-tr.UTF-8: önyanıtlanmış komut çalıştırılamadı
+ Önyanıtlanmış ("${COMMAND}") komutu çalıştırılırken ${CODE} hata koduyla sonlandı.
+Description-ug.UTF-8: ئالدىن تەڭشىگەن بۇيرۇقنى ئىجرا قىلالمىدى
+ ئالدىن بۇيرۇق "${COMMAND}" نى ئىجرا قىلىش مەغلۇپ بولدى، چېكىنىش كودى ${CODE}.
+Description-uk.UTF-8: Не вдалося запустити команду попереднього налаштування
+ Виконання команди попереднього налаштування „${COMMAND}“ завершилося помилкою з кодом ${CODE}.
+Description-vi.UTF-8: Gặp lỗi khi chạy lệnh đã chèn sẵn
+ Việc thực hiện lệnh đã chèn sẵn “${COMMAND}” bị lỗi với mã thoát ${CODE}.
+Description-zh_CN.UTF-8: 无法运行预置的命令
+ 执行预置命令 (“${COMMAND}”) 失败，退出代码为 ${CODE}。
+Description-zh_TW.UTF-8: 無法執行預先設定指令
+ 在執行預先設定指令 ${COMMAND} 時失敗了，錯誤代碼為 ${CODE}。
+
+Template: preseed/interactive
+Type: boolean
+Default: false
+Description: for internal use; can be preseeded
+ If true, preseed questions but don't mark them as seen

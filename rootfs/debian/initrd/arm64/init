@@ -1,0 +1,80 @@
+#!/bin/sh
+# used for initramfs
+export PATH
+. /lib/debian-installer/init-debug
+debugshell "just booted"
+
+mount /run
+mkdir -p /userdata
+mkdir -p /run/lock
+mount /proc
+mount /sys
+/lib/debian-installer/start-udev
+
+init='/bin/busybox init'
+switch_root='switch_root /sysroot /sbin/init'
+userdata_part=/dev/disk/by-partlabel/userdata
+rootfs_part=/dev/disk/by-partlabel/rootfs
+boot_recovery=$(updateEngine --misc=display | grep boot-recovery)
+boot_update=$(updateEngine --misc=display | grep update_package)
+
+for i in $(cat /proc/cmdline); do
+	case $i in
+		init=/init|init=init)
+			# Avoid endless loop
+			: ;;
+		init=*)
+			init=${i#init=} ;;
+		noshell)
+			sed -i '/^tty[23]/s/^/#/' /etc/inittab ;;
+	esac
+done
+
+# If OTA flag is set(updateEngine), system will enter OTA update mode
+if [ ! -z "${boot_update}" ]; then
+	echo "[0] OTA flag is set, enter OTA update mode ..."
+	mount ${userdata_part} /userdata
+	echo "[1] Close multi-display ..."
+	display.sh auto
+	echo "[2] e2fsck ${rootfs_part} ..."
+	e2fsck -p ${rootfs_part}
+	e2fsck -B 16384 ${rootfs_part}
+	echo "[3] mount ${rootfs_part} ..."
+	mount ${rootfs_part} /sysroot
+	echo "[4] exec $init ..."
+	exec $init
+
+# If misc.img is flash, system will clean userdata and switch-root
+elif [ ! -z "${boot_recovery}" ]; then
+	echo "[0] misc.img is flash, clean userdata and switch-root ..."
+	# Hide the OTA and shell menu
+	sed -i "s/Installer-Menu-Item: 1000/#Installer-Menu-Item: 1000/g" /var/lib/dpkg/status
+	sed -i "s/Installer-Menu-Item: 1040/#Installer-Menu-Item: 1040/g" /var/lib/dpkg/status
+	echo "[1] Clean userdata ..."
+	mount ${userdata_part} /userdata
+	rm -rf /userdata/*
+	echo "[2] Clean misc ..."
+	dd if=/dev/zero of=/dev/disk/by-partlabel/misc bs=512 count=1 seek=32
+	echo "[3] e2fsck ${rootfs_part} ..."
+	e2fsck -p ${rootfs_part}
+	e2fsck -B 16384 ${rootfs_part}
+	echo "[4] mount ${rootfs_part} ..."
+	mount ${rootfs_part} /sysroot
+	echo "[5] exec $switch_root"
+	exec $init
+
+# If recovery key is pressed, system will execute a shell for more operations
+else
+	echo "[0] recovery key is pressed, execute a shell ..."
+	# Hide the OTA menu
+	sed -i "s/Installer-Menu-Item: 1000/#Installer-Menu-Item: 1000/g" /var/lib/dpkg/status
+	echo "[1] Close multi-display ..."
+	display.sh auto
+	echo "[2] e2fsck ${rootfs_part} ..."
+	e2fsck -p ${rootfs_part}
+	e2fsck -B 16384 ${rootfs_part}
+	echo "[3] mount ${rootfs_part} ..."
+	mount ${rootfs_part} /sysroot
+	echo "[4] exec $init ..."
+	exec $init
+fi

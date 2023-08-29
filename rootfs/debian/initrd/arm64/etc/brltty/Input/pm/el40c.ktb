@@ -1,0 +1,4 @@
+title Papenmeier BrailleX EL40c
+assign hasSingleStepBar
+assign statusKeys 0
+include bar.kti

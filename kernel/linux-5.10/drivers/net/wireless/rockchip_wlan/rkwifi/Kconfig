@@ -54,3 +54,9 @@ config BCMDHD_STATIC_IF
 	bool "Enable wlan1 support"
 	help
 	  default to add wlan1 interface
+
+config BCMDHD_HYPER_PASS
+	bool "Enable hyper passthrough support"
+	default n
+	help
+	  Enable hyper passthrough support

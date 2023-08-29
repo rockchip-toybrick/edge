@@ -1033,7 +1033,7 @@ static void __sc4336_power_off(struct sc4336 *sc4336)
 	regulator_bulk_disable(SC4336_NUM_SUPPLIES, sc4336->supplies);
 }
 
-static int sc4336_runtime_resume(struct device *dev)
+static int __maybe_unused sc4336_runtime_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1042,7 +1042,7 @@ static int sc4336_runtime_resume(struct device *dev)
 	return __sc4336_power_on(sc4336);
 }
 
-static int sc4336_runtime_suspend(struct device *dev)
+static int __maybe_unused sc4336_runtime_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1199,8 +1199,7 @@ static int sc4336_set_ctrl(struct v4l2_ctrl *ctrl)
 					 (ctrl->val + sc4336->cur_mode->height)
 					 & 0xff);
 		sc4336->cur_vts = ctrl->val + sc4336->cur_mode->height;
-		if (sc4336->cur_vts != sc4336->cur_mode->vts_def)
-			sc4336_modify_fps_info(sc4336);
+		sc4336_modify_fps_info(sc4336);
 		break;
 	case V4L2_CID_TEST_PATTERN:
 		ret = sc4336_enable_test_pattern(sc4336, ctrl->val);

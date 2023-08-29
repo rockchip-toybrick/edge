@@ -1,0 +1,39 @@
+Template: debian-installer/framebuffer
+Type: boolean
+Default: true
+Description: for internal use; can be preseeded
+ Enable frame buffer console on boot
+
+Template: debian-installer/exit/always_halt
+Type: boolean
+Default: false
+Description: for internal use only
+ Always halt the machine
+
+Template: debian-installer/exit/halt
+Type: boolean
+Default: false
+Description: for internal use; can be preseeded
+ Halt the machine
+
+Template: debian-installer/exit/poweroff
+Type: boolean
+Default: false
+Description: for internal use; can be preseeded
+ Power off the machine
+
+Template: debian-installer/theme
+Type: string
+Description: for internal use; can be preseeded
+ Theme to use for the (newt or gtk) frontend
+
+Template: debian-installer/allow_unauthenticated
+Type: boolean
+Default: false
+Description: for internal use; can be preseeded
+
+Template: debian-installer/allow_unauthenticated_ssl
+Type: boolean
+Default: false
+Description: for internal use; can be preseeded
+

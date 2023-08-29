@@ -524,6 +524,12 @@ config DEFAULT_FDT_FILE
 	help
 	  This option is used to set the default fdt file to boot OS.
 
+config TOYBRICK_FREQ_POLICY
+	bool "Frequency Limiting Policy"
+	default n
+	help
+	  This option is used to set right frequency limiting policy.
+
 config VERSION_VARIABLE
 	bool "add U-Boot environment variable vers"
 	default n
@@ -679,6 +685,18 @@ config HASH
 	  algorithms (such as SHA1, MD5, CRC32). The API is defined in hash.h
 	  and the algorithms it supports are defined in common/hash.c. See
 	  also CMD_HASH for command-line access.
+
+endmenu
+
+menu "MT support"
+
+config MP_BOOT
+	bool "Support MT boot"
+	default n
+
+config MP_BOOT_BOOTM
+	bool "MT simple bootm image"
+	depends on MP_BOOT
 
 endmenu
 

@@ -1,0 +1,3 @@
+#! /bin/sh
+# Avoid reportbug getting marked as 'automatically installed'
+apt-install --no-recommends installation-report || true

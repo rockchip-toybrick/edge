@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/ {
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio_key_sets>;
+
+		key1 {
+			debounce-interval = <100>;
+			gpios = <&gpio3 RK_PA3 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 1";
+			linux,code = <KEY_1>;
+		};
+		key2 {
+			debounce-interval = <100>;
+			gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 2";
+			linux,code = <KEY_2>;
+		};
+		key3 {
+			debounce-interval = <100>;
+			gpios = <&gpio3 RK_PC0 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key 3";
+			linux,code = <KEY_3>;
+		};
+	};
+
+	leds: leds {
+        compatible = "gpio-leds";
+        red: red {
+            gpios = <&gpio3 RK_PA1 GPIO_ACTIVE_HIGH>;
+        };
+
+		green: green {
+            gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>;
+        };
+		blue: blue {
+            gpios = <&gpio3 RK_PA4 GPIO_ACTIVE_HIGH>;
+        };
+    };
+};
+
+&i2s3_2ch {
+	status = "disabled";
+};
+
+&i2c5 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c5m0_xfer>;
+
+	sc888x-charger@6b {
+		compatible = "sc,sc8886";
+		reg = <0x6b>;
+		sc,sc888x-intr-gpio = <&gpio3 17 0>;
+		sc,charge-current = <1000000>;
+		sc,max-input-voltage = <20000000>;
+		sc,min-input-voltage = <4200000>;/* VINDPM*/
+		sc,max-input-current = <6000000>;
+		sc,max-charge-voltage = <8400000>;
+		sc,input-current = <500000>;
+		sc,input-current-sdp = <500000>;
+		sc,input-current-dcp = <2000000>;
+		sc,input-current-cdp = <2000000>;
+		sc,minimum-sys-voltage = <7400000>;
+		sc,otg-voltage = <5000000>;
+		sc,otg-current = <500000>;
+	};
+};
+
+/*
+&i2c6 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c6m3_xfer>;
+};
+*/
+
+&pinctrl {
+	buttons {
+		gpio_key_sets: gpio-key-sets {
+			rockchip,pins =
+				<3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>,
+				<3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>,
+				<3 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0m0_cs0 &spi0m0_pins>;
+	max-freq = <50000000>;
+	spi_test@0 {
+		compatible = "rockchip,spidev";
+		reg = <0>;
+		spi-max-frequency = <5000000>;
+	};
+};

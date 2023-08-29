@@ -1,0 +1,77 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+db_get debian-installer/theme
+theme=$RET
+
+case "$theme" in
+	dark)
+		cat > /target/usr/share/glib-2.0/schemas/99_enable_accessibility_theme.gschema.override << END
+# Setup by debian-installer (via finish-install.d/06rootskel) since
+# dark theme was enabled during initial installation
+
+[org.mate.Marco.general]
+theme='HighContrastInverse'
+
+[org.mate.interface]
+gtk-theme='HighContrastInverse'
+gtk-key-theme='Default'
+icon-theme='ContrastHigh'
+
+[org.gnome.desktop.interface]
+cursor-theme='ContrastHigh'
+gtk-theme='HighContrastInverse'
+icon-theme='ContrastHigh'
+
+[org.gnome.desktop.wm.preferences]
+theme='HighContrastInverse'
+END
+
+		# Install and enable compiz, to provide very good zoom support
+		if /bin/in-target dpkg -l mate-session-manager
+		then
+			apt-install compiz
+			cat > /target/usr/share/glib-2.0/schemas/15_rootskel.gschema.override << END
+# Setup by debian-installer (via finish-install.d/06rootskel) since
+# dark theme was enabled during initial installation
+
+[org.mate.session.required-components]
+windowmanager='compiz'
+END
+			db_get passwd/username
+			USERNAME="$RET"
+			if [ -n "$USERNAME" ]
+			then
+				/bin/in-target su -s /bin/sh -c "mkdir -p /home/$USERNAME/.config/compiz/compizconfig" "$USERNAME"
+				cat > /target/home/$USERNAME/.config/compiz/compizconfig/Default.ini << END
+[ezoom]
+s0_scale_mouse = true
+s0_hide_original_mouse = true
+s0_follow_focus = true
+s0_always_center_mouse = true
+END
+				/bin/in-target chown $USERNAME.$USERNAME /home/$USERNAME/.config/compiz/compizconfig/Default.ini
+			fi
+		fi
+
+		in-target dpkg-trigger --no-await /usr/share/glib-2.0/schemas || true
+		in-target dpkg --triggers-only -a || true
+
+		mkdir -p /target/etc/grub.d
+		cat > /target/etc/grub.d/06_dark_theme << END
+# Setup by debian-installer (via finish-install.d/06rootskel) since
+# dark theme was enabled during initial installation
+
+echo "set menu_color_normal=white/black"
+echo "set menu_color_highlight=yellow/black"
+echo "set color_normal=white/black"
+echo "set color_highlight=yellow/black"
+echo "background_image"
+END
+		chmod +x /target/etc/grub.d/06_dark_theme
+		in-target update-grub || true
+		;;
+esac
+
+exit 0

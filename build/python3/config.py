@@ -14,14 +14,14 @@ from utils import *
 class Config:
     def __init__(self, root_path):
         self.root_path = root_path
-        self.common_items = ['board', 'chip', 'arch', 'bootmode']
+        self.common_items = ['board', 'chip', 'arch', 'bootmode', 'hyper']
         self.secureboot_items = ['enable', 'rollback', 'burnkey']
         self.part_extlinux_items = ['uboot', 'misc', 'boot_linux:bootable', 'recovery', 'resource', 'rootfs:grow']
         self.part_fit_items = ['uboot', 'misc', 'boot', 'recovery', 'backup', 'rootfs', 'oem', 'userdata:grow']
         self.part_flash_items = ['vnvm', 'uboot', 'boot']
         self.uboot_items = ['config']
         self.kernel_items = ['version', 'config', 'dtbname', 'size', 'docker', 'debug']
-        self.rootfs_items = ['osname', 'version', 'type', 'apturl', 'uuid', 'size', 'user', 'password', 'relver']
+        self.rootfs_items = ['osname', 'version', 'type', 'apturl', 'uuid', 'size', 'user', 'password', 'relver', 'key']
 
         self.default_file = '%s/vendor/common/config.json' % root_path
         self.edge_file = '%s/edge_config.json' % root_path
@@ -96,6 +96,7 @@ class Config:
     def show(self):
         conf = self.get()
         bootmode = conf['bootmode']
+        hyper = conf['hyper']
         EDGE_DBG('root path: %s' % conf['root_path'])
         EDGE_DBG('out path: %s' % conf['out_path'])
 
@@ -128,6 +129,10 @@ class Config:
         for item in self.kernel_items:
             EDGE_DBG('  %s: %s' % (item, conf['kernel_%s' % item]))
         
+        EDGE_DBG('> Rootfs:')
+        for item in self.rootfs_items:
+            EDGE_DBG('  %s: %s' % (item, conf['rootfs_%s' % item]))
+
     def get(self):
         if self.conf_set == False:
             EDGE_ERR('Build env is not set')
@@ -154,17 +159,21 @@ class Config:
     def part_cmdline(self):
         cmdline = ''
         bootmode = self.conf['bootmode']
+        hyper = self.conf['hyper']
         if bootmode in ('extlinux'):
             part_items = self.part_extlinux_items
+            part_prefix = 'part-%s' % bootmode
         elif bootmode in ('fit'):
             part_items = self.part_fit_items
+            part_prefix = 'part-%s' % bootmode
         elif bootmode in ('flash'):
             part_items = self.part_flash_items
+            part_prefix = 'part-%s' % bootmode
         else:
             EDGE_ERR('boot mode <%s> is not supported' % bootmode)
             sys.exit(1)
         for item in part_items:
-            val = self.conf['part-%s_%s' % (bootmode, item)]
+            val = self.conf['%s_%s' % (part_prefix, item)]
             if val[1] == '-':
                 cmdline += "%s@%s(%s)" % (val[1], val[0], item)
                 break

@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config VIRTIO_VIDEO
+	tristate "Virtio video driver"
+	depends on VIRTIO
+	select V4L2_MEM2MEM_DEV
+	select VIDEOBUF2_DMA_SG
+	select VIDEOBUF2_DMA_CONTIG
+
+	help
+	 This option adds virtio video driver.

@@ -487,6 +487,12 @@ static int rkusb_do_vs_write(struct fsg_common *common)
 				rc = toybrick_write_extrakey(curlun, vhead, data);
 				if (rc < 0)
 					return rc;
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+			} else if (type == 4 && memcmp(data, "KSN0", 4) == 0) {
+				rc = toybrick_write_ksn((uint32_t *)(data + 8), 6);
+				if (rc < 0)
+					return rc;
+#endif
 			} else if (!type) {
 #else
 			if (!type) {
@@ -653,6 +659,13 @@ static int rkusb_do_vs_read(struct fsg_common *common)
 			if (rc < 0)
 				return rc;
 			vhead->size = common->data_size - 8;
+#ifdef CONFIG_TOYBRICK_OTP_KSN
+		} else if (type == 4) {
+			rc = toybrick_read_ksn((uint32_t *)data, 5);
+			if (rc < 0)
+				return rc;
+			vhead->size = common->data_size - 8;
+#endif
 #else
 			/* security storage */
 #ifdef CONFIG_RK_AVB_LIBAVB_USER

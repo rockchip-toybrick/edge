@@ -101,6 +101,18 @@ enum rockchip_hdcp_encrypted {
 	RK_IF_HDCP_ENCRYPTED_LEVEL2,
 };
 
+enum rockchip_color_bar_mode {
+	ROCKCHIP_COLOR_BAR_OFF = 0,
+	ROCKCHIP_COLOR_BAR_HORIZONTAL = 1,
+	ROCKCHIP_COLOR_BAR_VERTICAL = 2,
+};
+
+enum rockchip_drm_split_area {
+	ROCKCHIP_DRM_SPLIT_UNSET = 0,
+	ROCKCHIP_DRM_SPLIT_LEFT_SIDE = 1,
+	ROCKCHIP_DRM_SPLIT_RIGHT_SIDE = 2,
+};
+
 struct rockchip_drm_sub_dev {
 	struct list_head list;
 	struct drm_connector *connector;
@@ -178,6 +190,37 @@ struct rockchip_dsc_sink_cap {
 	u16 target_bits_per_pixel_x16;
 };
 
+#define ACM_GAIN_LUT_HY_LENGTH		(9*17)
+#define ACM_GAIN_LUT_HY_TOTAL_LENGTH	(ACM_GAIN_LUT_HY_LENGTH * 3)
+#define ACM_GAIN_LUT_HS_LENGTH		(13*17)
+#define ACM_GAIN_LUT_HS_TOTAL_LENGTH	(ACM_GAIN_LUT_HS_LENGTH * 3)
+#define ACM_DELTA_LUT_H_LENGTH		65
+#define ACM_DELTA_LUT_H_TOTAL_LENGTH	(ACM_DELTA_LUT_H_LENGTH * 3)
+
+struct post_acm {
+	s16 delta_lut_h[ACM_DELTA_LUT_H_TOTAL_LENGTH];
+	s16 gain_lut_hy[ACM_GAIN_LUT_HY_TOTAL_LENGTH];
+	s16 gain_lut_hs[ACM_GAIN_LUT_HS_TOTAL_LENGTH];
+	u16 y_gain;
+	u16 h_gain;
+	u16 s_gain;
+	u16 acm_enable;
+};
+
+struct post_csc {
+	u16 hue;
+	u16 saturation;
+	u16 contrast;
+	u16 brightness;
+	u16 r_gain;
+	u16 g_gain;
+	u16 b_gain;
+	u16 r_offset;
+	u16 g_offset;
+	u16 b_offset;
+	u16 csc_enable;
+};
+
 struct rockchip_crtc_state {
 	struct drm_crtc_state base;
 	int vp_id;
@@ -221,6 +264,7 @@ struct rockchip_crtc_state {
 	int afbdc_win_yoffset;
 	int dsp_layer_sel;
 	u32 output_if;
+	u32 output_if_left_panel;
 	u32 bus_format;
 	u32 bus_flags;
 	int yuv_overlay;
@@ -249,6 +293,7 @@ struct rockchip_crtc_state {
 	struct drm_property_blob *hdr_ext_data;
 	struct drm_property_blob *acm_lut_data;
 	struct drm_property_blob *post_csc_data;
+	struct drm_property_blob *cubic_lut_data;
 
 	int request_refresh_rate;
 	int max_refresh_rate;
@@ -271,6 +316,15 @@ struct rockchip_logo {
 	phys_addr_t start;
 	phys_addr_t size;
 	int count;
+};
+
+struct rockchip_mcu_timing {
+	int mcu_pix_total;
+	int mcu_cs_pst;
+	int mcu_cs_pend;
+	int mcu_rw_pst;
+	int mcu_rw_pend;
+	int mcu_hold_mode;
 };
 
 struct loader_cubic_lut {
@@ -384,7 +438,7 @@ struct next_hdr_sink_data {
  * @wait_vact_end: wait the last active line.
  */
 struct rockchip_crtc_funcs {
-	int (*loader_protect)(struct drm_crtc *crtc, bool on);
+	int (*loader_protect)(struct drm_crtc *crtc, bool on, void *data);
 	int (*enable_vblank)(struct drm_crtc *crtc);
 	void (*disable_vblank)(struct drm_crtc *crtc);
 	size_t (*bandwidth)(struct drm_crtc *crtc,
@@ -404,6 +458,7 @@ struct rockchip_crtc_funcs {
 	void (*te_handler)(struct drm_crtc *crtc);
 	int (*wait_vact_end)(struct drm_crtc *crtc, unsigned int mstimeout);
 	void (*crtc_standby)(struct drm_crtc *crtc, bool standby);
+	int (*crtc_set_color_bar)(struct drm_crtc *crtc, enum rockchip_color_bar_mode mode);
 };
 
 struct rockchip_dclk_pll {
@@ -436,6 +491,8 @@ struct rockchip_drm_private {
 	struct drm_property *aclk_prop;
 	struct drm_property *bg_prop;
 	struct drm_property *line_flag_prop;
+	struct drm_property *cubic_lut_prop;
+	struct drm_property *cubic_lut_size_prop;
 
 	/* private plane prop */
 	struct drm_property *eotf_prop;
@@ -445,6 +502,7 @@ struct rockchip_drm_private {
 
 	/* private connector prop */
 	struct drm_property *connector_id_prop;
+	struct drm_property *split_area_prop;
 
 	const struct rockchip_crtc_funcs *crtc_funcs[ROCKCHIP_MAX_CRTC];
 
@@ -489,6 +547,7 @@ int rockchip_drm_add_modes_noedid(struct drm_connector *connector);
 void rockchip_drm_te_handle(struct drm_crtc *crtc);
 void drm_mode_convert_to_split_mode(struct drm_display_mode *mode);
 void drm_mode_convert_to_origin_mode(struct drm_display_mode *mode);
+u32 rockchip_drm_get_dclk_by_width(int width);
 #if IS_REACHABLE(CONFIG_DRM_ROCKCHIP)
 int rockchip_drm_get_sub_dev_type(void);
 u32 rockchip_drm_get_scan_line_time_ns(void);
@@ -515,6 +574,8 @@ int rockchip_drm_parse_cea_ext(struct rockchip_drm_dsc_cap *dsc_cap,
 			       const struct edid *edid);
 int rockchip_drm_parse_next_hdr(struct next_hdr_sink_data *sink_data,
 				const struct edid *edid);
+int rockchip_drm_parse_colorimetry_data_block(u8 *colorimetry, const struct edid *edid);
+
 __printf(3, 4)
 void rockchip_drm_dbg(const struct device *dev, enum rockchip_drm_debug_category category,
 		      const char *format, ...);

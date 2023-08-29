@@ -1,0 +1,18 @@
+title HIMS Braille Edge
+include common.kti
+include scroll.kti
+include left.kti
+include right.kti
+include f18.kti
+include contexts.kti
+assign metaModifier F4
+assign controlModifier F5
+include braille.kti
+context PRDIFCHAR
+bind RoutingKey PRDIFCHAR
+context NXDIFCHAR
+bind RoutingKey NXDIFCHAR
+context PRINDENT
+bind RoutingKey PRINDENT
+context NXINDENT
+bind RoutingKey NXINDENT

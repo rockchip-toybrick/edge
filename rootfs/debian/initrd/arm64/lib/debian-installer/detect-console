@@ -1,0 +1,16 @@
+if [ -z "$TERM_TYPE" ]; then
+	case $(readlink /proc/self/fd/0) in
+	    /dev/console|/dev/tty[A-Z]*|/dev/ttymxc*|/dev/hvc*|/dev/hvsi*)
+		TERM_TYPE=serial
+		;;
+	    /dev/tty*)
+		TERM_TYPE=virtual
+		TERM_FRAMEBUFFER_TRY=yes
+		;;
+	    /dev/pts/*)
+		TERM_TYPE=pts
+		;;
+	esac
+fi
+
+export TERM_TYPE
