@@ -47,6 +47,8 @@ device-tree-compiler clang bison flex lld libssl-dev bc genext2fs git make
 
    ```shell
    git clone git@github.com:rockchip-toybrick/edge.git
+   cd edge
+   ./download_rootfs.sh  #获取ROOTFS二进制软件包和Debian Core
    ```
    
 
