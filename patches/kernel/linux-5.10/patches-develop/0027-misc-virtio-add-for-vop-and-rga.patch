@@ -1,0 +1,2246 @@
+From 0b7582ac96634436f639f32640fb1d63425dc494 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Thu, 23 Mar 2023 11:59:04 +0800
+Subject: [PATCH 27/31] misc: virtio: add for vop and rga
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: Ibe18c426d2677a8120c19dc6a68f68e0ce3145f1
+---
+ drivers/misc/Kconfig                      |   1 +
+ drivers/misc/Makefile                     |   1 +
+ drivers/misc/virtio/Kconfig               |   7 +
+ drivers/misc/virtio/Makefile              |  12 +
+ drivers/misc/virtio/virtio_misc.h         | 159 +++++
+ drivers/misc/virtio/virtio_misc_device.c  |  51 ++
+ drivers/misc/virtio/virtio_misc_driver.c  | 173 ++++++
+ drivers/misc/virtio/virtio_misc_helpers.c |  20 +
+ drivers/misc/virtio/virtio_misc_rga.c     | 138 +++++
+ drivers/misc/virtio/virtio_misc_vop.c     | 108 ++++
+ drivers/misc/virtio/virtio_misc_vq.c      | 720 ++++++++++++++++++++++
+ drivers/misc/virtio/virtio_priv.h         | 165 +++++
+ include/uapi/misc/virtio_rga.h            | 477 ++++++++++++++
+ include/uapi/misc/virtio_vop.h            |  86 +++
+ 14 files changed, 2118 insertions(+)
+ create mode 100644 drivers/misc/virtio/Kconfig
+ create mode 100644 drivers/misc/virtio/Makefile
+ create mode 100644 drivers/misc/virtio/virtio_misc.h
+ create mode 100644 drivers/misc/virtio/virtio_misc_device.c
+ create mode 100644 drivers/misc/virtio/virtio_misc_driver.c
+ create mode 100644 drivers/misc/virtio/virtio_misc_helpers.c
+ create mode 100644 drivers/misc/virtio/virtio_misc_rga.c
+ create mode 100644 drivers/misc/virtio/virtio_misc_vop.c
+ create mode 100644 drivers/misc/virtio/virtio_misc_vq.c
+ create mode 100644 drivers/misc/virtio/virtio_priv.h
+ create mode 100644 include/uapi/misc/virtio_rga.h
+ create mode 100644 include/uapi/misc/virtio_vop.h
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 62f35ba898de..068fe374ef1e 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -502,4 +502,5 @@ source "drivers/misc/ocxl/Kconfig"
+ source "drivers/misc/cardreader/Kconfig"
+ source "drivers/misc/habanalabs/Kconfig"
+ source "drivers/misc/uacce/Kconfig"
++source "drivers/misc/virtio/Kconfig"
+ endmenu
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 8be76bac6eb8..60a63a25c056 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -59,3 +59,4 @@ obj-$(CONFIG_UACCE)		+= uacce/
+ obj-$(CONFIG_XILINX_SDFEC)	+= xilinx_sdfec.o
+ obj-$(CONFIG_HISI_HIKEY_USB)	+= hisi_hikey_usb.o
+ obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
++obj-y				+= virtio/
+diff --git a/drivers/misc/virtio/Kconfig b/drivers/misc/virtio/Kconfig
+new file mode 100644
+index 000000000000..025afb6b6d65
+--- /dev/null
++++ b/drivers/misc/virtio/Kconfig
+@@ -0,0 +1,7 @@
++# SPDX-License-Identifier: GPL-2.0-only
++
++config VIRTIO_MISC
++	tristate "Virtio misc driver"
++	depends on VIRTIO
++	help
++	 This option adds virtio misc driver.
+diff --git a/drivers/misc/virtio/Makefile b/drivers/misc/virtio/Makefile
+new file mode 100644
+index 000000000000..f3c055e63bca
+--- /dev/null
++++ b/drivers/misc/virtio/Makefile
+@@ -0,0 +1,12 @@
++#
++# Makefile for the virtio-misc driver
++#
++virtio_misc-y := \
++	virtio_misc_driver.o \
++	virtio_misc_device.o \
++	virtio_misc_vq.o \
++	virtio_misc_vop.o \
++	virtio_misc_rga.o \
++	virtio_misc_helpers.o
++
++obj-$(CONFIG_VIRTIO_MISC) += virtio_misc.o
+diff --git a/drivers/misc/virtio/virtio_misc.h b/drivers/misc/virtio/virtio_misc.h
+new file mode 100644
+index 000000000000..b6f0e40b7d8c
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc.h
+@@ -0,0 +1,159 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef _VIRTIO_MISC_H
++#define _VIRTIO_MISC_H
++
++#ifdef __KERNEL__
++#include <uapi/misc/virtio_vop.h>
++#include <uapi/misc/virtio_rga.h>
++#else
++#include "virtio_vop.h"
++#include "virtio_rga.h"
++#endif
++
++#define DRIVER_NAME		"virtio-misc"
++
++#define VIRTIO_ID_MISC_VOP    103
++#define VIRTIO_ID_MISC_RGA    104
++
++/*
++ * Device type
++ */
++enum virtio_misc_device_type {
++	VIRTIO_MISC_DEVICE_VOP = 0x0100,
++	VIRTIO_MISC_DEVICE_RGA,
++};
++
++/*
++ * Feature bits
++ */
++enum {
++	/* Guest pages can be used for misc buffers. */
++	VIRTIO_MISC_F_RESOURCE_GUEST_PAGES = 0,
++	/* The host can process buffers even if they are non-contiguous memory
++	   such as scatter-gather lists. */
++	VIRTIO_MISC_F_RESOURCE_NON_CONTIG = 1,
++	/* Support of vendor virtqueues */
++	VIRTIO_MISC_F_VENDOR = 2
++};
++
++/*
++ * Config
++ */
++struct virtio_misc_config {
++	uint32_t version;
++	uint32_t max_resp_length;
++};
++
++/*
++ * SG list
++ */
++struct virtio_misc_sg_entry {
++	uint64_t addr;
++	uint32_t length;
++	uint8_t padding[4];
++};
++
++struct virtio_misc_sg_list {
++	uint32_t num_entries;
++	uint8_t padding[4];
++	struct virtio_misc_sg_entry entries[];
++};
++
++#define VIRTIO_MISC_SG_SIZE(n) \
++	offsetof(struct virtio_misc_sg_list, entries[n])
++
++/*
++ * Rect
++ */
++typedef struct {
++	uint32_t x;
++	uint32_t y;
++	uint32_t w;
++	uint32_t h;
++} vmisc_rect_t;
++
++/*
++ * Commands
++ */
++enum virtio_misc_cmd_type {
++	/* Command */
++	VIRTIO_VOP_CMD_COMP = 0x0100,
++	VIRTIO_VOP_CMD_CREATE_LAYER,
++	VIRTIO_VOP_CMD_DESTROY_LAYER,
++	VIRTIO_RGA_CMD_BLIT = 0x200,
++	VIRTIO_RGA_CMD_GET_HW_VERSION,
++	VIRTIO_RGA_CMD_GET_DRIVER_VERSION,
++};
++
++struct virtio_misc_cmd_hdr {
++	uint32_t type; /* One of enum virtio_misc_cmd_type */
++};
++
++/*
++ * Events
++ */
++enum virtio_misc_event_type {
++	/* For all devices */
++	VIRTIO_MISC_EVENT_ERROR = 0x0100,
++};
++
++struct virtio_misc_event {
++	uint32_t event_type; /* One of VIRTIO_MISC_EVENT_* types */
++};
++
++/*
++ * Virtio VOP
++ */
++struct virtio_vop_comp {
++	struct virtio_misc_cmd_hdr hdr;
++	struct vvop_plane plane;
++};
++
++struct virtio_vop_layer {
++	struct virtio_misc_cmd_hdr hdr;
++	struct vvop_layer layer;
++};
++
++/*
++ * Virtio RGA
++ */
++struct virtio_rga_req {
++	struct virtio_misc_cmd_hdr hdr;
++	struct rga_req req;
++};
++
++struct virtio_rga_driver_version {
++	struct virtio_misc_cmd_hdr hdr;
++};
++
++struct virtio_rga_hw_version {
++	struct virtio_misc_cmd_hdr hdr;
++};
++
++struct virtio_rga_driver_version_resp {
++	struct virtio_misc_cmd_hdr hdr;
++	struct rga_version_t ver;
++};
++
++struct virtio_rga_hw_version_resp {
++	struct virtio_misc_cmd_hdr hdr;
++	struct rga_hw_versions_t ver;
++};
++
++#endif
+diff --git a/drivers/misc/virtio/virtio_misc_device.c b/drivers/misc/virtio/virtio_misc_device.c
+new file mode 100644
+index 000000000000..7a6d096ab861
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_device.c
+@@ -0,0 +1,51 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "virtio_priv.h"
++
++void virtio_misc_handle_error(struct virtio_misc_device *vmd)
++{
++	MISC_LOGD(vmd, "enter\n");
++}
++
++int virtio_misc_device_init(struct virtio_misc_device *vmd)
++{
++	int ret;
++
++	switch (vmd->type) {
++	case VIRTIO_MISC_DEVICE_VOP:
++		virtio_misc_vop_init(vmd);
++		break;
++	case VIRTIO_MISC_DEVICE_RGA:
++		virtio_misc_rga_init(vmd);
++		break;
++	}
++
++	ret = misc_register(&vmd->mdev);
++	if (ret < 0) {
++		MISC_LOGE(vmd, "misc_register failed\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++void virtio_misc_device_deinit(struct virtio_misc_device *vmd)
++{
++	misc_deregister(&vmd->mdev);
++}
+diff --git a/drivers/misc/virtio/virtio_misc_driver.c b/drivers/misc/virtio/virtio_misc_driver.c
+new file mode 100644
+index 000000000000..77c72df92e0b
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_driver.c
+@@ -0,0 +1,173 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++
++#include "virtio_priv.h"
++
++static int virtio_misc_probe(struct virtio_device *vdev)
++{
++	int ret = 0;
++	const char *device_type;
++	struct virtio_misc_device *vmd;
++	struct virtqueue *vqs[2];
++	struct device *dev = &vdev->dev;
++	static const char * const names[] = { "commandq", "eventq" };
++	static vq_callback_t *callbacks[] = {
++		virtio_misc_cmd_cb,
++		virtio_misc_event_cb
++        };
++
++	if (!virtio_has_feature(vdev, VIRTIO_MISC_F_RESOURCE_GUEST_PAGES)) {
++		dev_err(dev, "device must support guest allocated buffers\n");
++		return -ENODEV;
++	}
++
++	ret = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64));
++	if (ret) {
++		dev_err(dev, "dma_coerce_mask_and_coherent failed, ret %d\n", ret);
++		return ret;
++	}
++
++	vmd = devm_kzalloc(dev, sizeof(*vmd), GFP_KERNEL);
++	if (!vmd)
++		return -ENOMEM;
++
++	switch (vdev->id.device) {
++	case VIRTIO_ID_MISC_VOP:
++		vmd->type = VIRTIO_MISC_DEVICE_VOP;
++		strcpy(vmd->device_type, "vvop");
++		break;
++	case VIRTIO_ID_MISC_RGA:
++		vmd->type = VIRTIO_MISC_DEVICE_RGA;
++		strcpy(vmd->device_type, "vrga");
++		break;
++	default:
++		vmd->type = VIRTIO_MISC_DEVICE_VOP;
++		break;
++	}
++	vmd->vdev = vdev;
++	vmd->dev = dev;
++	vdev->priv = vmd;
++
++	spin_lock_init(&vmd->pending_buf_list_lock);
++	spin_lock_init(&vmd->resource_idr_lock);
++	idr_init(&vmd->resource_idr);
++
++	if (virtio_has_feature(vdev, VIRTIO_MISC_F_RESOURCE_NON_CONTIG))
++		vmd->supp_non_contig = true;
++
++	spin_lock_init(&vmd->commandq.qlock);
++ 	init_waitqueue_head(&vmd->commandq.reclaim_queue);
++
++	INIT_WORK(&vmd->eventq.work, virtio_misc_process_events);
++
++	INIT_LIST_HEAD(&vmd->pending_vbuf_list);
++
++	ret = virtio_find_vqs(vdev, 2, vqs, callbacks, names, NULL);
++ 	if (ret < 0) {
++		MISC_LOGE(vmd, "failed to find virt queues\n");
++		goto err_vqs;
++	}
++
++	vmd->commandq.vq = vqs[0];
++	vmd->eventq.vq = vqs[1];
++
++	ret = virtio_misc_alloc_vbufs(vmd);
++	if (ret < 0) {
++		MISC_LOGE(vmd, "failed to alloc vbufs\n");
++		goto err_vbufs;
++	}
++
++	virtio_cread(vdev, struct virtio_misc_config, max_resp_length,
++		     &vmd->max_resp_len);
++	if (!vmd->max_resp_len) {
++		MISC_LOGE(vmd, "max_resp_len is zero\n");
++		ret = -EINVAL;
++		goto err_config;
++	}
++
++	ret = virtio_misc_alloc_events(vmd);
++	if (ret < 0)
++		goto err_events;
++
++	virtio_device_ready(vdev);
++	vmd->commandq.ready = true;
++	vmd->eventq.ready = true;
++
++	ret = virtio_misc_device_init(vmd);
++	if (ret < 0) {
++		MISC_LOGE(vmd, "fail to init virtio misc\n");
++		goto err_init;
++	}
++
++	MISC_LOGD(vmd, "%s initialize successfully, max_resp_len %d\n",
++			device_type, vmd->max_resp_len);
++	return 0;
++
++err_init:
++err_events:
++err_config:
++	virtio_misc_free_vbufs(vmd);
++err_vbufs:
++	vdev->config->del_vqs(vdev);
++err_vqs:
++	devm_kfree(&vdev->dev, vmd);
++	return ret;
++}
++
++static void virtio_misc_remove(struct virtio_device *vdev)
++{
++	struct virtio_misc_device *vmd = vdev->priv;
++
++	virtio_misc_device_deinit(vmd);
++	devm_kfree(&vdev->dev, vmd);
++}
++
++static struct virtio_device_id id_table[] = {
++        { VIRTIO_ID_MISC_VOP, VIRTIO_DEV_ANY_ID },
++        { VIRTIO_ID_MISC_RGA, VIRTIO_DEV_ANY_ID },
++        { 0 },
++};
++
++static unsigned int features[] = {
++        VIRTIO_MISC_F_RESOURCE_GUEST_PAGES,
++        VIRTIO_MISC_F_RESOURCE_NON_CONTIG,
++};
++
++static struct virtio_driver virtio_misc_driver = {
++        .feature_table = features,
++        .feature_table_size = ARRAY_SIZE(features),
++        .driver.name = DRIVER_NAME,
++        .driver.owner = THIS_MODULE,
++        .id_table = id_table,
++        .probe = virtio_misc_probe,
++        .remove = virtio_misc_remove,
++};
++
++module_virtio_driver(virtio_misc_driver);
++
++MODULE_DEVICE_TABLE(virtio, id_table);
++MODULE_DESCRIPTION("virtio misc driver");
++MODULE_AUTHOR("Addy Ke <addy.ke@rock-chips.com>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/misc/virtio/virtio_misc_helpers.c b/drivers/misc/virtio/virtio_misc_helpers.c
+new file mode 100644
+index 000000000000..c8858977baf6
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_helpers.c
+@@ -0,0 +1,20 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "virtio_priv.h"
++
+diff --git a/drivers/misc/virtio/virtio_misc_rga.c b/drivers/misc/virtio/virtio_misc_rga.c
+new file mode 100644
+index 000000000000..2f3387c08cd4
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_rga.c
+@@ -0,0 +1,138 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "virtio_priv.h"
++
++static const char vrga_driver_name[] = "vrga";
++
++static long vrga_ioctl_blit(struct virtio_misc_device *vmd,
++			    unsigned char __user *args,
++			    bool sync)
++{
++	size_t bytes;
++	struct rga_req req;
++
++	bytes = copy_from_user(&req, args, sizeof(req));
++        if (bytes)
++                return -EFAULT;
++
++	return virtio_rga_cmd_blit(vmd, req, sync);
++}
++
++static long vrga_ioctl_get_driver_version(struct virtio_misc_device *vmd,
++			    unsigned char __user *args)
++{
++	size_t bytes;
++	struct virtio_rga_driver_version_resp *resp;
++	long ret;
++	
++	resp = kzalloc(sizeof(struct virtio_rga_driver_version_resp), GFP_KERNEL);
++	if (!resp) {
++		MISC_LOGE(vmd, "no memory for resp\n");
++		return -EINVAL;
++	}
++	ret = virtio_rga_cmd_get_driver_version(vmd, resp);
++	if (ret < 0)
++		goto exit;
++
++	bytes = copy_to_user(args, &resp->ver, sizeof(resp->ver));
++        if (bytes) {
++                ret = -EFAULT;
++		goto exit;
++	}
++
++exit:
++	kfree(resp);
++	return ret;
++}
++
++static long vrga_ioctl_get_hw_version(struct virtio_misc_device *vmd,
++			    unsigned char __user *args)
++{
++	size_t bytes;
++	struct virtio_rga_hw_version_resp *resp;
++	long ret;
++
++	resp = kzalloc(sizeof(struct virtio_rga_hw_version_resp), GFP_KERNEL);
++	if (!resp) {
++		MISC_LOGE(vmd, "no memory for resp\n");
++		return -EINVAL;
++	}
++	ret = virtio_rga_cmd_get_hw_version(vmd, resp);
++	if (ret < 0)
++		goto exit;
++
++	bytes = copy_to_user(args, &resp->ver, sizeof(resp->ver));
++        if (bytes) {
++                ret = -EFAULT;
++		goto exit;
++	}
++exit:
++	kfree(resp);
++	return ret;
++}
++
++static long vrga_ioctl(struct file *file,
++		       unsigned int cmd, unsigned long arg)
++{
++	struct virtio_misc_device *vmd = miscdev_to_vmd(file->private_data);
++
++	pr_debug("vrga: ioctl file=0x%lx, cmd=0x%x, arg=0x%lx\n",
++                 (unsigned long)file, cmd, arg);
++
++	switch (cmd) {
++	case RGA_BLIT_SYNC:
++		return vrga_ioctl_blit(vmd, (unsigned char __user *)arg, true);
++	case RGA_BLIT_ASYNC:
++		return vrga_ioctl_blit(vmd, (unsigned char __user *)arg, false);
++	case RGA_IOC_GET_DRVIER_VERSION:
++		return vrga_ioctl_get_driver_version(vmd, (unsigned char __user *)arg);
++	case RGA_IOC_GET_HW_VERSION:
++		return vrga_ioctl_get_hw_version(vmd, (unsigned char __user *)arg);
++	default:
++		pr_warn("vrga: unknown ioctl 0x%x\n", cmd);
++		return -EINVAL;
++	};
++}
++
++static int vrga_open(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static int vrga_release(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static const struct file_operations vrga_fops = {
++	.owner          = THIS_MODULE,
++	.unlocked_ioctl = vrga_ioctl,
++	.open           = vrga_open,
++	.release        = vrga_release,
++};
++
++int virtio_misc_rga_init(struct virtio_misc_device *vmd)
++{
++	vmd->mdev.name = vrga_driver_name;
++	vmd->mdev.minor = MISC_DYNAMIC_MINOR;
++	vmd->mdev.fops = &vrga_fops;
++	vmd->mdev.mode = 0666;
++
++	return 0;
++};
+diff --git a/drivers/misc/virtio/virtio_misc_vop.c b/drivers/misc/virtio/virtio_misc_vop.c
+new file mode 100644
+index 000000000000..47b6251ab4ed
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_vop.c
+@@ -0,0 +1,108 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "virtio_priv.h"
++
++static const char vvop_driver_name[] = "vvop";
++
++static long vvop_ioctl_comp(struct virtio_misc_device *vmd,
++		unsigned char __user *args)
++{
++	size_t bytes;
++	struct vvop_plane planes;
++
++	bytes = copy_from_user(&planes, args, sizeof(planes));
++        if (bytes)
++                return -EFAULT;
++
++	return (long)virtio_vop_cmd_comp(vmd, planes);
++}
++
++static long vvop_ioctl_create_layer(struct virtio_misc_device *vmd,
++		unsigned char __user *args)
++{
++	size_t bytes;
++	struct vvop_layer layer;
++
++	bytes = copy_from_user(&layer, args, sizeof(layer));
++        if (bytes)
++                return -EFAULT;
++
++	return (long)virtio_vop_cmd_create_layer(vmd, layer);
++}
++
++static long vvop_ioctl_destroy_layer(struct virtio_misc_device *vmd,
++		unsigned char __user *args)
++{
++	size_t bytes;
++	struct vvop_layer layer;
++
++	bytes = copy_from_user(&layer, args, sizeof(layer));
++        if (bytes)
++                return -EFAULT;
++
++	return (long)virtio_vop_cmd_destroy_layer(vmd, layer);
++}
++
++static long vvop_ioctl(struct file *file,
++		       unsigned int cmd, unsigned long arg)
++{
++	struct virtio_misc_device *vmd = miscdev_to_vmd(file->private_data);
++
++	pr_debug("vvop: ioctl file=0x%lx, cmd=0x%x, arg=0x%lx\n",
++                 (unsigned long)file, cmd, arg);
++
++	switch (cmd) {
++	case VIRTIO_VOP_IOCTL_COMP:
++		return vvop_ioctl_comp(vmd, (unsigned char __user *)arg);
++	case VIRTIO_VOP_IOCTL_CREATE_LAYER:
++		return vvop_ioctl_create_layer(vmd, (unsigned char __user *)arg);
++	case VIRTIO_VOP_IOCTL_DESTROY_LAYER:
++		return vvop_ioctl_destroy_layer(vmd, (unsigned char __user *)arg);
++	default:
++		pr_warn("vvop: unknown ioctl 0x%x\n", cmd);
++		return -EINVAL;
++	};
++}
++
++static int vvop_open(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static int vvop_release(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static const struct file_operations vvop_fops = {
++	.owner          = THIS_MODULE,
++	.unlocked_ioctl = vvop_ioctl,
++	.open           = vvop_open,
++	.release        = vvop_release,
++};
++
++int virtio_misc_vop_init(struct virtio_misc_device *vmd)
++{
++	vmd->mdev.name = vvop_driver_name;
++	vmd->mdev.minor = MISC_DYNAMIC_MINOR;
++	vmd->mdev.fops = &vvop_fops;
++	vmd->mdev.mode = 0666;
++
++	return 0;
++};
+diff --git a/drivers/misc/virtio/virtio_misc_vq.c b/drivers/misc/virtio/virtio_misc_vq.c
+new file mode 100644
+index 000000000000..bd39277c631f
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_misc_vq.c
+@@ -0,0 +1,720 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "virtio_priv.h"
++
++#define MAX_INLINE_CMD_SIZE   712
++#define MAX_INLINE_RESP_SIZE  298
++#define VBUFFER_SIZE		(sizeof(struct virtio_misc_vbuffer) \
++				+ MAX_INLINE_CMD_SIZE               \
++				+ MAX_INLINE_RESP_SIZE)
++
++static bool vbuf_is_pending(struct virtio_misc_device *vmd,
++			    struct virtio_misc_vbuffer *vbuf)
++{
++	struct virtio_misc_vbuffer *entry;
++
++	list_for_each_entry(entry, &vmd->pending_vbuf_list, pending_list_entry)
++	{
++		if (entry == vbuf && entry->id == vbuf->id)
++			return true;
++	}
++
++	return false;
++}
++
++static void free_vbuf(struct virtio_misc_device *vmd,
++		      struct virtio_misc_vbuffer *vbuf)
++{
++	list_del(&vbuf->pending_list_entry);
++	if (vbuf->src_buf)
++		kfree(vbuf->src_buf);
++	if (vbuf->dst_buf)
++		kfree(vbuf->dst_buf);
++	if (vbuf->pat_buf)
++		kfree(vbuf->pat_buf);
++	kmem_cache_free(vmd->vbufs, vbuf);
++}
++
++static int virtio_misc_queue_event_buffer(struct virtio_misc_device *vmd,
++					   struct virtio_misc_event *evt)
++{
++	int ret;
++	struct scatterlist sg;
++	struct virtqueue *vq = vmd->eventq.vq;
++
++	memset(evt, 0, sizeof(struct virtio_misc_event));
++	sg_init_one(&sg, evt, sizeof(struct virtio_misc_event));
++
++	ret = virtqueue_add_inbuf(vq, &sg, 1, evt, GFP_KERNEL);
++	if (ret) {
++		MISC_LOGE(vmd, "failed to queue event buffer\n");
++		return ret;
++	}
++
++	virtqueue_kick(vq);
++
++	return 0;
++}
++
++static void virtio_misc_handle_event(struct virtio_misc_device *vmd,
++				     struct virtio_misc_event *evt)
++{
++	switch (le32_to_cpu(evt->event_type)) {
++	case VIRTIO_MISC_EVENT_ERROR:
++		MISC_LOGE(vmd, "error event\n");
++		virtio_misc_handle_error(vmd);
++		break;
++	default:
++		MISC_LOGW(vmd, "unknown event\n");
++		break;
++	}
++}
++
++static struct virtio_misc_vbuffer *
++virtio_misc_get_vbuf(struct virtio_misc_device *vmd, int size, int resp_size,
++		      void *resp_buf, virtio_misc_resp_cb resp_cb)
++{
++	struct virtio_misc_vbuffer *vbuf;
++
++	vbuf = kmem_cache_alloc(vmd->vbufs, GFP_KERNEL);
++	if (!vbuf)
++		return ERR_PTR(-ENOMEM);
++	memset(vbuf, 0, VBUFFER_SIZE);
++
++	BUG_ON(size > MAX_INLINE_CMD_SIZE);
++	vbuf->buf = (void *)vbuf + sizeof(*vbuf);
++	vbuf->size = size;
++
++	vbuf->resp_cb = resp_cb;
++	vbuf->resp_size = resp_size;
++	if (resp_size <= MAX_INLINE_RESP_SIZE && !resp_buf)
++		vbuf->resp_buf = (void *)vbuf->buf + size;
++	else
++		vbuf->resp_buf = resp_buf;
++	BUG_ON(!vbuf->resp_buf);
++
++	return vbuf;
++}
++
++int virtio_misc_alloc_vbufs(struct virtio_misc_device *vmd)
++{
++	vmd->vbufs =
++		kmem_cache_create("virtio-misc-vbufs", VBUFFER_SIZE,
++				  __alignof__(struct virtio_misc_vbuffer), 0,
++				  NULL);
++	if (!vmd->vbufs)
++		return -ENOMEM;
++
++	return 0;
++}
++
++void virtio_misc_free_vbufs(struct virtio_misc_device *vmd)
++{
++	struct virtio_misc_vbuffer *vbuf;
++
++	/* Release command buffers. Operation on vbufs here is lock safe,
++           since before device was deinitialized and queues was stopped
++           (in not ready state) */
++	while ((vbuf = virtqueue_detach_unused_buf(vmd->commandq.vq))) {
++		if (vbuf_is_pending(vmd, vbuf))
++			free_vbuf(vmd, vbuf);
++	}
++
++	kmem_cache_destroy(vmd->vbufs);
++	vmd->vbufs = NULL;
++
++	/* Release event buffers */
++	while (virtqueue_detach_unused_buf(vmd->eventq.vq));
++
++	kfree(vmd->evts);
++	vmd->evts = NULL;
++}
++
++static int
++virtio_misc_queue_cmd_buffer(struct virtio_misc_device *vmd,
++			     struct virtio_misc_vbuffer *vbuf)
++{
++	unsigned long flags;
++	struct virtqueue *vq = vmd->commandq.vq;
++	struct scatterlist *sgs[5], vreq, vsrc, vdst, vpat, vresp;
++	int outcnt = 0, incnt = 0;
++	int ret;
++
++	if (!vmd->commandq.ready)
++		return -ENODEV;
++
++	spin_lock_irqsave(&vmd->commandq.qlock, flags);
++
++	vbuf->id = vmd->vbufs_sent++;
++	list_add_tail(&vbuf->pending_list_entry, &vmd->pending_vbuf_list);
++
++	sg_init_one(&vreq, vbuf->buf, vbuf->size);
++	sgs[outcnt + incnt] = &vreq;
++	outcnt++;
++
++	if (vbuf->src_size) {
++		sg_init_one(&vsrc, vbuf->src_buf, vbuf->src_size);
++		sgs[outcnt + incnt] = &vsrc;
++		outcnt++;
++	}
++
++	if (vbuf->dst_size) {
++		sg_init_one(&vdst, vbuf->dst_buf, vbuf->dst_size);
++		sgs[outcnt + incnt] = &vdst;
++		outcnt++;
++	}
++
++	if (vbuf->pat_size) {
++		sg_init_one(&vpat, vbuf->pat_buf, vbuf->pat_size);
++		sgs[outcnt + incnt] = &vpat;
++		outcnt++;
++	}
++
++	if (vbuf->resp_size) {
++		sg_init_one(&vresp, vbuf->resp_buf, vbuf->resp_size);
++		sgs[outcnt + incnt] = &vresp;
++		incnt++;
++	}
++
++retry:
++	ret = virtqueue_add_sgs(vq, sgs, outcnt, incnt, vbuf, GFP_ATOMIC);
++	if (ret == -ENOSPC) {
++		spin_unlock_irqrestore(&vmd->commandq.qlock, flags);
++		wait_event(vmd->commandq.reclaim_queue, vq->num_free);
++		spin_lock_irqsave(&vmd->commandq.qlock, flags);
++		goto retry;
++	} else {
++		virtqueue_kick(vq);
++	}
++
++	spin_unlock_irqrestore(&vmd->commandq.qlock, flags);
++
++	return ret;
++}
++
++static int
++virtio_misc_queue_cmd_buffer_sync(struct virtio_misc_device *vmd,
++				   struct virtio_misc_vbuffer *vbuf)
++{
++	int ret;
++	unsigned long rem;
++	unsigned long flags;
++
++	vbuf->is_sync = true;
++	init_completion(&vbuf->reclaimed);
++
++	ret = virtio_misc_queue_cmd_buffer(vmd, vbuf);
++	if (ret)
++		return ret;
++
++	rem = wait_for_completion_timeout(&vbuf->reclaimed, 5 * HZ);
++	if (rem == 0)
++		ret = -ETIMEDOUT;
++
++	spin_lock_irqsave(&vmd->commandq.qlock, flags);
++	if (vbuf_is_pending(vmd, vbuf))
++		free_vbuf(vmd, vbuf);
++	spin_unlock_irqrestore(&vmd->commandq.qlock, flags);
++
++	return ret;
++}
++
++static void *virtio_misc_alloc_req(struct virtio_misc_device *vmd,
++				    struct virtio_misc_vbuffer **vbuffer_p,
++				    int size)
++{
++	struct virtio_misc_vbuffer *vbuf;
++
++	vbuf = virtio_misc_get_vbuf(vmd, size,
++				     sizeof(struct virtio_misc_cmd_hdr),
++				     NULL, NULL);
++	if (IS_ERR(vbuf)) {
++		*vbuffer_p = NULL;
++		return ERR_CAST(vbuf);
++	}
++	*vbuffer_p = vbuf;
++
++	return vbuf->buf;
++}
++
++static void *
++virtio_misc_alloc_req_resp(struct virtio_misc_device *vmd,
++			   virtio_misc_resp_cb cb,
++			   struct virtio_misc_vbuffer **vbuffer_p,
++			   int req_size, int resp_size,
++			   void *resp_buf)
++{
++	struct virtio_misc_vbuffer *vbuf;
++
++	vbuf = virtio_misc_get_vbuf(vmd, req_size, resp_size, resp_buf, cb);
++	if (IS_ERR(vbuf)) {
++		*vbuffer_p = NULL;
++		return ERR_CAST(vbuf);
++	}
++	*vbuffer_p = vbuf;
++
++	return vbuf->buf;
++}
++
++int virtio_misc_alloc_events(struct virtio_misc_device *vmd)
++{
++	int ret;
++	size_t i;
++	struct virtio_misc_event *evts;
++	size_t num = vmd->eventq.vq->num_free;
++
++	evts = kzalloc(num * sizeof(struct virtio_misc_event), GFP_KERNEL);
++	if (!evts) {
++		MISC_LOGE(vmd, "failed to alloc event buffers!!!\n");
++		return -ENOMEM;
++	}
++	vmd->evts = evts;
++
++	for (i = 0; i < num; i++) {
++		ret = virtio_misc_queue_event_buffer(vmd, &evts[i]);
++		if (ret) {
++			MISC_LOGE(vmd, "failed to queue event buffer\n");
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++void virtio_misc_process_events(struct work_struct *work)
++{
++	struct virtio_misc_device *vmd = container_of(work,
++			struct virtio_misc_device, eventq.work);
++	struct virtqueue *vq = vmd->eventq.vq;
++	struct virtio_misc_event *evt;
++	unsigned int len;
++
++	while (vmd->eventq.ready) {
++		virtqueue_disable_cb(vq);
++
++		while ((evt = virtqueue_get_buf(vq, &len))) {
++			virtio_misc_handle_event(vmd, evt);
++			virtio_misc_queue_event_buffer(vmd, evt);
++		}
++
++		if (unlikely(virtqueue_is_broken(vq)))
++			break;
++
++		if (virtqueue_enable_cb(vq))
++			break;
++	}
++}
++
++static void virtio_vop_print_args(struct virtio_misc_device *vmd,
++				  struct virtio_vop_comp *req_p)
++{
++	int i;
++
++	MISC_LOGD(vmd, "num_plane %d\r\n", req_p->plane.num_plane);
++	for(i = 0; i < req_p->plane.num_plane; i++) {
++		MISC_LOGD(vmd, "Planes[%d].plane_id: %d\r\n", i, req_p->plane.planes[i].plane_id);
++		MISC_LOGD(vmd, "Planes[%d].layer_id: %d\r\n", i, req_p->plane.planes[i].layer_id);
++		MISC_LOGD(vmd, "Planes[%d].source_crop: %d %d %d %d\r\n", i,
++				req_p->plane.planes[i].source_crop.left,
++				req_p->plane.planes[i].source_crop.top,
++				req_p->plane.planes[i].source_crop.right,
++				req_p->plane.planes[i].source_crop.bottom);
++		MISC_LOGD(vmd, "Planes[%d].display_frame: %d %d %d %d\r\n", i,
++				req_p->plane.planes[i].display_frame.left,
++				req_p->plane.planes[i].display_frame.top,
++				req_p->plane.planes[i].display_frame.right,
++				req_p->plane.planes[i].display_frame.bottom);
++		MISC_LOGD(vmd, "Planes[%d].rotation: %ld\r\n", i, req_p->plane.planes[i].rotation);
++		MISC_LOGD(vmd, "Planes[%d].alpha: %ld\r\n", i, req_p->plane.planes[i].alpha);
++		MISC_LOGD(vmd, "Planes[%d].blend: %ld\r\n", i, req_p->plane.planes[i].blend);
++		MISC_LOGD(vmd, "Planes[%d].zorder: %d\r\n", i, req_p->plane.planes[i].zorder);
++		MISC_LOGD(vmd, "Planes[%d].format: %d\r\n", i, req_p->plane.planes[i].format);
++	}
++}
++
++static unsigned int build_virtio_misc_sglist(struct virtio_misc_sg_list *sgl,
++			 struct sg_table *sgt)
++{
++	int i;
++	struct scatterlist *sg;
++
++	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
++		sgl->entries[i].addr = cpu_to_le64(sg_phys(sg));
++		sgl->entries[i].length = cpu_to_le32(sg->length);
++	}
++
++	sgl->num_entries = sgt->nents;
++
++	return VIRTIO_MISC_SG_SIZE(sgt->nents);
++}
++
++static void virtio_misc_mbuf_free(struct virtio_misc_map_buffer *mbuf)
++{
++	if (mbuf->attach && mbuf->sgt) {
++		drm_gem_unmap_dma_buf(mbuf->attach, mbuf->sgt, mbuf->dir);
++		mbuf->sgt = NULL;
++	}
++	if (mbuf->attach) {
++		dma_buf_detach(mbuf->dma_buf, mbuf->attach);
++		mbuf->attach = NULL;
++	}
++	if (mbuf->dma_buf) {
++		dma_buf_put(mbuf->dma_buf);
++		mbuf->dma_buf = NULL;
++	}
++
++	mbuf->dir = 0;
++}
++
++static int virtio_misc_mbuf_map(struct virtio_misc_device *vmd,
++				int buf_fd,
++				enum dma_data_direction dir,
++				struct virtio_misc_map_buffer *mbuf)
++{
++	int ret;
++
++	memset(mbuf, 0, sizeof(*mbuf));
++
++	mbuf->dma_buf = dma_buf_get(buf_fd);
++	if (IS_ERR(mbuf->dma_buf)) {
++		MISC_LOGE(vmd, "dma_buf_get fail fd[%d]\n", buf_fd);
++		mbuf->dma_buf = NULL;
++		return -EINVAL;
++	}
++
++	mbuf->attach = dma_buf_attach(mbuf->dma_buf, vmd->dev);
++	if (IS_ERR(mbuf->attach)) {
++		MISC_LOGE(vmd, "Failed to attach dma_buf\n");
++		ret = -EINVAL;
++		goto err_get_attach;
++	}
++
++	mbuf->sgt = drm_gem_map_dma_buf(mbuf->attach, dir);
++	if (IS_ERR(mbuf->sgt)) {
++		MISC_LOGE(vmd, "Failed to map src attachment\n");
++		ret = -EINVAL;
++		goto err_get_sgt;
++	}
++	
++	mbuf->dir = dir;
++	return 0;
++
++err_get_sgt:
++	if (mbuf->attach) {
++		dma_buf_detach(mbuf->dma_buf, mbuf->attach);
++		mbuf->attach = NULL;
++	}
++err_get_attach:
++	if (mbuf->dma_buf) {
++		dma_buf_put(mbuf->dma_buf);
++		mbuf->dma_buf = NULL;
++	}
++	return ret;
++}
++
++int virtio_vop_cmd_comp(struct virtio_misc_device *vmd,
++			struct vvop_plane args)
++{
++	struct virtio_vop_comp *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++	struct virtio_misc_sg_list *sg_list;
++	struct virtio_misc_map_buffer mbufs[VIRTVOP_MAX_PLANE];
++	void *src_buf = NULL;
++	size_t src_size = 0;
++	unsigned int offset = 0;
++	int i, ret = 0;
++	enum dma_data_direction dir = DMA_BIDIRECTIONAL;
++
++	if (args.num_plane > VIRTVOP_MAX_PLANE) {
++		MISC_LOGE(vmd, "num_plane(%d) should be less than or equal %d\n",
++				args.num_plane, VIRTVOP_MAX_PLANE);
++		return -EINVAL;
++	};
++
++	for (i = 0; i < args.num_plane; i++)
++	{
++		ret = virtio_misc_mbuf_map(vmd, args.planes[i].buf_fd, dir, &mbufs[i]);	
++		if (ret < 0)
++			goto err_mbuf_map;
++
++		src_size += VIRTIO_MISC_SG_SIZE(mbufs[i].sgt->nents);
++	}
++
++	src_buf = kcalloc(1, src_size, GFP_KERNEL);
++	if (!src_buf) {
++		MISC_LOGE(vmd, "no memory for src_buf\n");
++		ret = -ENOMEM;
++		goto err_kcalloc;
++	}
++
++	req_p = virtio_misc_alloc_req(vmd, &vbuf, sizeof(*req_p));
++	if (IS_ERR(req_p)) {
++		ret = PTR_ERR(req_p);
++		goto err_alloc_req;
++	}
++
++	req_p->hdr.type = cpu_to_le32(VIRTIO_VOP_CMD_COMP);
++	memcpy(&req_p->plane, &args, sizeof(args));
++	for (i = 0; i < args.num_plane; i++) {
++		sg_list = src_buf + offset;
++		offset += build_virtio_misc_sglist(sg_list, mbufs[i].sgt);
++		virtio_misc_mbuf_free(&mbufs[i]);
++	}
++
++	virtio_vop_print_args(vmd, req_p);
++
++	vbuf->src_buf = src_buf;
++	vbuf->src_size = src_size;
++	return virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++
++err_alloc_req:
++	kfree(src_buf);
++err_kcalloc:
++err_mbuf_map:
++	for (i = 0; i < args.num_plane; i++)
++		virtio_misc_mbuf_free(&mbufs[i]);
++	return ret;
++}
++
++int virtio_vop_cmd_create_layer(struct virtio_misc_device *vmd,
++                        struct vvop_layer args)
++{
++	struct virtio_vop_layer *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++
++	req_p = virtio_misc_alloc_req(vmd, &vbuf, sizeof(*req_p));
++	if (IS_ERR(req_p))
++		return PTR_ERR(req_p);
++
++	req_p->hdr.type = cpu_to_le32(VIRTIO_VOP_CMD_CREATE_LAYER);
++	memcpy(&req_p->layer, &args, sizeof(args));
++	MISC_LOGD(vmd, "layer_id %u\n", req_p->layer.layer_id);
++
++	return virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++}
++
++
++int virtio_vop_cmd_destroy_layer(struct virtio_misc_device *vmd,
++                        struct vvop_layer args)
++{
++	struct virtio_vop_layer *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++
++	req_p = virtio_misc_alloc_req(vmd, &vbuf, sizeof(*req_p));
++	if (IS_ERR(req_p))
++		return PTR_ERR(req_p);
++
++	req_p->hdr.type = cpu_to_le32(VIRTIO_VOP_CMD_DESTROY_LAYER);
++	memcpy(&req_p->layer, &args, sizeof(args));
++	MISC_LOGD(vmd, "layer_id %u\n", req_p->layer.layer_id);
++
++	return virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++}
++
++int virtio_rga_cmd_blit(struct virtio_misc_device *vmd,
++			struct rga_req args,
++			bool sync)
++{
++	int ret = 0;
++	struct virtio_rga_req *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++	struct virtio_misc_sg_list *sg_list;
++	struct virtio_misc_map_buffer src_mbuf, dst_mbuf, pat_mbuf;
++	void *src_buf = NULL, *dst_buf = NULL, *pat_buf = NULL;
++	size_t src_size = 0, dst_size = 0, pat_size = 0;
++	enum dma_data_direction dir = DMA_BIDIRECTIONAL;
++	bool src_valid = false, dst_valid = false, pat_valid = false;
++
++	if (!sync) {
++		MISC_LOGE(vmd, "blit_async is unsupported now!\n");
++		return -EIO;
++	}
++	if ((int64_t)args.src.yrgb_addr > 0)
++		src_valid = true;
++	if ((int64_t)args.dst.yrgb_addr > 0)
++		dst_valid = true;
++	if ((int64_t)args.pat.yrgb_addr > 0)
++		pat_valid = true;
++
++	memset(&src_mbuf, 0, sizeof(src_mbuf));
++	memset(&dst_mbuf, 0, sizeof(dst_mbuf));
++	memset(&pat_mbuf, 0, sizeof(pat_mbuf));
++
++	if (src_valid) {
++		ret = virtio_misc_mbuf_map(vmd, args.src.yrgb_addr, dir, &src_mbuf);
++		if (ret < 0)
++			goto exit;
++
++		src_size = VIRTIO_MISC_SG_SIZE(src_mbuf.sgt->nents);
++		src_buf = kcalloc(1, src_size, GFP_KERNEL);
++		if (!src_buf) {
++			MISC_LOGE(vmd, "no memory for src_buf\n");
++			virtio_misc_mbuf_free(&src_mbuf);
++			ret = -ENOMEM;
++			goto exit;
++		}
++		sg_list = src_buf;
++		build_virtio_misc_sglist(sg_list, src_mbuf.sgt);
++		virtio_misc_mbuf_free(&src_mbuf);
++	}
++
++	if (dst_valid) {
++		ret = virtio_misc_mbuf_map(vmd, args.dst.yrgb_addr, dir, &dst_mbuf);
++		if (ret < 0)
++			goto exit;
++
++		dst_size = VIRTIO_MISC_SG_SIZE(dst_mbuf.sgt->nents);
++		dst_buf = kcalloc(1, dst_size, GFP_KERNEL);
++		if (!dst_buf) {
++			MISC_LOGE(vmd, "no memory for dst_buf\n");
++			virtio_misc_mbuf_free(&dst_mbuf);
++			ret = -ENOMEM;
++			goto exit;
++		}
++		sg_list = dst_buf;
++		build_virtio_misc_sglist(sg_list, dst_mbuf.sgt);
++		virtio_misc_mbuf_free(&dst_mbuf);
++	}
++
++	if (pat_valid) {
++		ret = virtio_misc_mbuf_map(vmd, args.pat.yrgb_addr, dir, &pat_mbuf);
++		if (ret < 0)
++			goto exit;
++
++		pat_size = VIRTIO_MISC_SG_SIZE(pat_mbuf.sgt->nents);
++		pat_buf = kcalloc(1, pat_size, GFP_KERNEL);
++		if (!pat_buf) {
++			MISC_LOGE(vmd, "no memory for pat_buf\n");
++			virtio_misc_mbuf_free(&pat_mbuf);
++			ret = -ENOMEM;
++			goto exit;
++		}
++		sg_list = pat_buf;
++		build_virtio_misc_sglist(sg_list, pat_mbuf.sgt);
++		virtio_misc_mbuf_free(&pat_mbuf);
++	}
++
++	req_p = virtio_misc_alloc_req(vmd, &vbuf, sizeof(*req_p));
++	if (IS_ERR(req_p)) {
++		ret = PTR_ERR(req_p);
++		goto exit;
++	}
++	req_p->hdr.type = cpu_to_le32(VIRTIO_RGA_CMD_BLIT);
++	memcpy(&req_p->req, &args, sizeof(args));
++
++	vbuf->src_buf = src_buf;
++	vbuf->src_size = src_size;
++	vbuf->dst_buf = dst_buf;
++	vbuf->dst_size = dst_size;
++	vbuf->pat_buf = pat_buf;
++	vbuf->pat_size = pat_size;
++	return virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++
++exit:
++	if (pat_buf)
++		kfree(pat_buf);
++	if (dst_buf)
++		kfree(dst_buf);
++	if (src_buf)
++		kfree(src_buf);
++	return ret;
++}
++
++int virtio_rga_cmd_get_driver_version(struct virtio_misc_device *vmd,
++				      struct virtio_rga_driver_version_resp *resp)
++{
++	int ret = 0;
++
++	struct virtio_rga_driver_version *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++
++	req_p = virtio_misc_alloc_req_resp(vmd, NULL, &vbuf, sizeof(*req_p),
++					   sizeof(*resp), resp);
++	if (IS_ERR(req_p))
++		return PTR_ERR(req_p);
++
++	req_p->hdr.type = cpu_to_le32(VIRTIO_RGA_CMD_GET_DRIVER_VERSION);
++	ret = virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++	if (ret == -ETIMEDOUT)
++		MISC_LOGE(vmd, "timed out waiting for get driver version\n");
++
++	return ret;
++}
++
++int virtio_rga_cmd_get_hw_version(struct virtio_misc_device *vmd,
++	  			  struct virtio_rga_hw_version_resp *resp)
++{
++	int ret = 0;
++	struct virtio_rga_driver_version *req_p;
++	struct virtio_misc_vbuffer *vbuf;
++
++	req_p = virtio_misc_alloc_req_resp(vmd, NULL, &vbuf, sizeof(*req_p),
++					   sizeof(*resp), resp);
++	if (IS_ERR(req_p))
++		return PTR_ERR(req_p);
++
++	req_p->hdr.type = cpu_to_le32(VIRTIO_RGA_CMD_GET_HW_VERSION);
++	ret = virtio_misc_queue_cmd_buffer_sync(vmd, vbuf);
++	if (ret == -ETIMEDOUT)
++		MISC_LOGE(vmd, "timed out waiting for get hwr version\n");
++
++	return ret;
++}
++
++void virtio_misc_cmd_cb(struct virtqueue *vq)
++{
++	struct virtio_misc_device *vmd = vq->vdev->priv;
++	struct virtio_misc_vbuffer *vbuf;
++	unsigned long flags;
++	unsigned int len;
++
++	spin_lock_irqsave(&vmd->commandq.qlock, flags);
++	while (vmd->commandq.ready) {
++		virtqueue_disable_cb(vq);
++
++		while ((vbuf = virtqueue_get_buf(vq, &len))) {
++			if (!vbuf_is_pending(vmd, vbuf))
++				continue;
++
++			if (vbuf->resp_cb)
++				vbuf->resp_cb(vmd, vbuf);
++
++			if (vbuf->is_sync)
++				complete(&vbuf->reclaimed);
++			else
++				free_vbuf(vmd, vbuf);
++		}
++
++		if (unlikely(virtqueue_is_broken(vq)))
++			break;
++
++		if (virtqueue_enable_cb(vq))
++			break;
++	}
++	spin_unlock_irqrestore(&vmd->commandq.qlock, flags);
++
++	wake_up(&vmd->commandq.reclaim_queue);
++}
++
++void virtio_misc_event_cb(struct virtqueue *vq)
++{
++        struct virtio_misc_device *vmd = vq->vdev->priv;
++
++        schedule_work(&vmd->eventq.work);
++}
+diff --git a/drivers/misc/virtio/virtio_priv.h b/drivers/misc/virtio/virtio_priv.h
+new file mode 100644
+index 000000000000..def7fd2f79a4
+--- /dev/null
++++ b/drivers/misc/virtio/virtio_priv.h
+@@ -0,0 +1,165 @@
++// SPDX-License-Identifier: GPL-2.0+
++/* Driver for virtio misc device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef _VIRTIO_PRIV_H
++#define _VIRTIO_PRIV_H
++
++#include <linux/virtio.h>
++#include <linux/virtio_ids.h>
++#include <linux/virtio_config.h>
++#include <linux/list.h>
++#include <linux/completion.h>
++#include <linux/fcntl.h>
++#include <linux/slab.h>
++#include <linux/poll.h>
++#include <linux/init.h>
++#include <linux/fs.h>
++#include <linux/interrupt.h>
++#include <linux/spinlock.h>
++#include <linux/delay.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
++#include <linux/miscdevice.h>
++#include <linux/dma-buf.h>
++#include <drm/drm_prime.h>
++
++#include "virtio_misc.h"
++
++#define MISC_DEBUG
++
++#ifdef MISC_DEBUG
++#define MISC_LOGD(vmd, fmt, ...) \
++        dev_info(vmd->dev, "%s: %s - " fmt, vmd->device_type, __FUNCTION__, ##__VA_ARGS__)
++#else
++#define MISC_LOGD(vmd, fmt, ...) \
++        dev_debug(vmd->dev, "%s: %s - " fmt, vmd->device_type, __FUNCTION__, ##__VA_ARGS__)
++#endif
++#define MISC_LOGI(vmd, fmt, ...) \
++        dev_info(vmd->dev, "%s: %s - " fmt, vmd->device_type, __FUNCTION__, ##__VA_ARGS__)
++#define MISC_LOGW(vmd, fmt, ...) \
++        dev_warn(vmd->dev, "%s: %s - " fmt, vmd->device_type, __FUNCTION__, ##__VA_ARGS__)
++#define MISC_LOGE(vmd, fmt, ...) \
++        dev_err(vmd->dev, "%s: %s - " fmt, vmd->device_type, __FUNCTION__, ##__VA_ARGS__)
++
++#define miscdev_to_vmd(d) container_of(d, struct virtio_misc_device, mdev)
++
++struct virtio_misc_device;
++struct virtio_misc_vbuffer;
++typedef void (*virtio_misc_resp_cb)(struct virtio_misc_device *vmd,
++				    struct virtio_misc_vbuffer *vbuf);
++
++struct virtio_misc_vbuffer {
++	char *buf;
++	int size;
++	uint32_t id;
++
++	void *src_buf;
++	uint32_t src_size;
++
++	void *dst_buf;
++	uint32_t dst_size;
++
++	void *pat_buf;
++	uint32_t pat_size;
++
++	char *resp_buf;
++	int resp_size;
++
++	void *priv;
++	virtio_misc_resp_cb resp_cb;
++
++	bool is_sync;
++	struct completion reclaimed;
++
++	struct list_head pending_list_entry;
++};
++
++struct virtio_misc_cmd_queue {
++	struct virtqueue *vq;
++	bool ready;
++	spinlock_t qlock;
++	wait_queue_head_t reclaim_queue;
++};
++
++struct virtio_misc_event_queue {
++	struct virtqueue *vq;
++	bool ready;
++	struct work_struct work;
++};
++
++struct virtio_misc_map_buffer {
++	enum dma_data_direction dir;
++	struct dma_buf *dma_buf;
++        struct dma_buf_attachment *attach;
++        struct sg_table *sgt;
++};
++
++struct virtio_misc_device {
++        struct virtio_device *vdev;
++	struct miscdevice mdev;
++	struct device *dev;
++	struct virtio_misc_cmd_queue commandq;
++	struct virtio_misc_event_queue eventq;
++
++	struct kmem_cache *vbufs;
++	struct virtio_misc_event *evts;
++
++	struct idr resource_idr;
++	spinlock_t resource_idr_lock;
++
++	spinlock_t pending_buf_list_lock;
++	uint32_t vbufs_sent;
++	struct list_head pending_vbuf_list;
++
++	uint32_t max_resp_len;
++
++	bool supp_non_contig;
++	uint32_t type;
++
++	char device_type[16];
++};
++
++void virtio_misc_process_events(struct work_struct *work);
++int virtio_misc_alloc_events(struct virtio_misc_device *vmd);
++void virtio_misc_cmd_cb(struct virtqueue *vq);
++void virtio_misc_event_cb(struct virtqueue *vq);
++
++int virtio_misc_alloc_vbufs(struct virtio_misc_device *vmd);
++void virtio_misc_free_vbufs(struct virtio_misc_device *vmd);
++int virtio_misc_alloc_events(struct virtio_misc_device *vmd);
++
++void virtio_misc_handle_error(struct virtio_misc_device *vmd);
++int virtio_misc_device_init(struct virtio_misc_device *vmd);
++void virtio_misc_device_deinit(struct virtio_misc_device *vmd);
++
++int virtio_misc_vop_init(struct virtio_misc_device *vmd);
++int virtio_misc_rga_init(struct virtio_misc_device *vmd);
++
++int virtio_vop_cmd_comp(struct virtio_misc_device *vmd,
++                        struct vvop_plane args);
++int virtio_vop_cmd_create_layer(struct virtio_misc_device *vmd,
++                        struct vvop_layer args);
++int virtio_vop_cmd_destroy_layer(struct virtio_misc_device *vmd,
++                        struct vvop_layer args);
++
++int virtio_rga_cmd_blit(struct virtio_misc_device *vmd,
++			struct rga_req args, bool sync);
++int virtio_rga_cmd_get_driver_version(struct virtio_misc_device *vmd,
++				      struct virtio_rga_driver_version_resp *resp);
++int virtio_rga_cmd_get_hw_version(struct virtio_misc_device *vmd,
++				  struct virtio_rga_hw_version_resp * resp);
++#endif
+diff --git a/include/uapi/misc/virtio_rga.h b/include/uapi/misc/virtio_rga.h
+new file mode 100644
+index 000000000000..8f7986450aa8
+--- /dev/null
++++ b/include/uapi/misc/virtio_rga.h
+@@ -0,0 +1,477 @@
++/*
++ * Copyright (C) 2022 Rockchip Electronics Co., Ltd.
++ * Authors:
++ *  Cerf Yu <cerf.yu@rock-chips.com>
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef _RGA_DRIVER_IOCTL_H_
++#define _RGA_DRIVER_IOCTL_H_
++
++#ifdef __KERNEL__
++#include <asm/ioctl.h>
++#else
++#include <sys/ioctl.h>
++#endif
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++
++/* Use 'r' as magic number */
++#define RGA_IOC_MAGIC       'r'
++#define RGA_IOW(nr, type)   _IOW(RGA_IOC_MAGIC, nr, type)
++#define RGA_IOR(nr, type)   _IOR(RGA_IOC_MAGIC, nr, type)
++#define RGA_IOWR(nr, type)  _IOWR(RGA_IOC_MAGIC, nr, type)
++
++#define RGA_IOC_GET_DRVIER_VERSION  RGA_IOR(0x1, struct rga_version_t)
++#define RGA_IOC_GET_HW_VERSION      RGA_IOR(0x2, struct rga_hw_versions_t)
++#define RGA_IOC_IMPORT_BUFFER       RGA_IOWR(0x3, struct rga_buffer_pool)
++#define RGA_IOC_RELEASE_BUFFER      RGA_IOW(0x4, struct rga_buffer_pool)
++#define RGA_IOC_REQUEST_CREATE      RGA_IOR(0x5, uint32_t)
++#define RGA_IOC_REQUEST_SUBMIT      RGA_IOWR(0x6, struct rga_user_request)
++#define RGA_IOC_REQUEST_CONFIG      RGA_IOWR(0x7, struct rga_user_request)
++#define RGA_IOC_REQUEST_CANCEL      RGA_IOWR(0x8, uint32_t)
++
++#define RGA_BLIT_SYNC   0x5017
++#define RGA_BLIT_ASYNC  0x5018
++#define RGA_FLUSH       0x5019
++#define RGA_GET_RESULT  0x501a
++#define RGA_GET_VERSION 0x501b
++
++#define RGA2_BLIT_SYNC   0x6017
++#define RGA2_BLIT_ASYNC  0x6018
++#define RGA2_FLUSH       0x6019
++#define RGA2_GET_RESULT  0x601a
++#define RGA2_GET_VERSION 0x601b
++
++#define RGA_START_CONFIG            RGA_IOC_REQUEST_CREATE
++#define RGA_END_CONFIG              RGA_IOC_REQUEST_SUBMIT
++#define RGA_CMD_CONFIG              RGA_IOC_REQUEST_CONFIG
++#define RGA_CANCEL_CONFIG           RGA_IOC_REQUEST_CANCEL
++
++#define RGA_REG_CTRL_LEN    0x8    /* 8  */
++#define RGA_REG_CMD_LEN     0x1c   /* 28 */
++#define RGA_CMD_BUF_SIZE    0x700  /* 16*28*4 */
++
++#define RGA_TASK_NUM_MAX		50
++
++#define RGA_SCHED_PRIORITY_DEFAULT 0
++#define RGA_SCHED_PRIORITY_MAX 6
++
++enum rga_memory_type {
++    RGA_DMA_BUFFER = 0,
++    RGA_VIRTUAL_ADDRESS,
++    RGA_PHYSICAL_ADDRESS
++};
++
++/* RGA process mode enum */
++enum {
++    bitblt_mode               = 0x0,
++    color_palette_mode        = 0x1,
++    color_fill_mode           = 0x2,
++    line_point_drawing_mode   = 0x3,
++    blur_sharp_filter_mode    = 0x4,
++    pre_scaling_mode          = 0x5,
++    update_palette_table_mode = 0x6,
++    update_patten_buff_mode   = 0x7,
++};
++
++/* unused */
++enum {
++    rop_enable_mask          = 0x2,
++    dither_enable_mask       = 0x8,
++    fading_enable_mask       = 0x10,
++    PD_enbale_mask           = 0x20,
++};
++
++enum {
++    color_palette_mode0      = 0x0,     /* 1K */
++    color_palette_mode1      = 0x1,     /* 2K */
++    color_palette_mode2      = 0x2,     /* 4K */
++    color_palette_mode3      = 0x3,     /* 8K */
++};
++
++enum {
++    BB_BYPASS   = 0x0,     /* no rotate */
++    BB_ROTATE   = 0x1,     /* rotate    */
++    BB_X_MIRROR = 0x2,     /* x_mirror  */
++    BB_Y_MIRROR = 0x3      /* y_mirror  */
++};
++
++enum {
++    nearby   = 0x0,     /* no rotate */
++    bilinear = 0x1,     /* rotate    */
++    bicubic  = 0x2,     /* x_mirror  */
++};
++
++/* RGA rotate mode */
++enum {
++    rotate_mode0             = 0x0,     /* no rotate */
++    rotate_mode1             = 0x1,     /* rotate    */
++    rotate_mode2             = 0x2,     /* x_mirror  */
++    rotate_mode3             = 0x3,     /* y_mirror  */
++};
++
++typedef struct rga_img_info_t {
++    uint64_t yrgb_addr;          /* yrgb    mem addr         */
++    uint64_t uv_addr;            /* cb/cr   mem addr         */
++    uint64_t v_addr;             /* cr      mem addr         */
++
++    uint32_t format;             //definition by RK_FORMAT
++    uint16_t act_w;
++    uint16_t act_h;
++    uint16_t x_offset;
++    uint16_t y_offset;
++
++    uint16_t vir_w;
++    uint16_t vir_h;
++
++    uint16_t endian_mode; //for BPP
++    uint16_t alpha_swap;
++
++    //used by RGA3
++    uint16_t rotate_mode;
++    uint16_t rd_mode;
++
++    uint16_t is_10b_compact;
++    uint16_t is_10b_endian;
++
++    uint16_t enable;
++} rga_img_info_t;
++
++typedef struct POINT {
++    uint16_t x;
++    uint16_t y;
++} POINT;
++
++typedef struct RECT {
++    uint16_t xmin;
++    uint16_t xmax; // width - 1
++    uint16_t ymin;
++    uint16_t ymax; // height - 1
++} RECT;
++
++typedef struct MMU {
++    uint8_t mmu_en;
++    uint64_t base_addr;
++    uint32_t mmu_flag;     /* [0] mmu enable [1] src_flush [2] dst_flush [3] CMD_flush [4~5] page size*/
++} MMU;
++
++typedef struct COLOR_FILL {
++    int16_t gr_x_a;
++    int16_t gr_y_a;
++    int16_t gr_x_b;
++    int16_t gr_y_b;
++    int16_t gr_x_g;
++    int16_t gr_y_g;
++    int16_t gr_x_r;
++    int16_t gr_y_r;
++    //u8  cp_gr_saturation;
++} COLOR_FILL;
++
++typedef struct FADING {
++    uint8_t b;
++    uint8_t g;
++    uint8_t r;
++    uint8_t res;
++} FADING;
++
++typedef struct line_draw_t {
++    POINT start_point;                  /* LineDraw_start_point                */
++    POINT end_point;                    /* LineDraw_end_point                  */
++    uint32_t   color;                   /* LineDraw_color                      */
++    uint32_t   flag;                    /* (enum) LineDrawing mode sel         */
++    uint32_t   line_width;              /* range 1~16 */
++} line_draw_t;
++
++/* color space convert coefficient. */
++typedef struct csc_coe_t {
++    int16_t r_v;
++    int16_t g_y;
++    int16_t b_u;
++    int32_t off;
++} csc_coe_t;
++
++typedef struct full_csc_t {
++    uint8_t flag;
++    csc_coe_t coe_y;
++    csc_coe_t coe_u;
++    csc_coe_t coe_v;
++} full_csc_t;
++
++typedef struct rga_mosaic_info_ioctl {
++    uint8_t enable;
++    uint8_t mode;
++} rga_mosaic_info_t;
++
++typedef struct rga_pre_intr_info_ioctl {
++    uint8_t enable;
++
++    uint8_t read_intr_en;
++    uint8_t write_intr_en;
++    uint8_t read_hold_en;
++    uint32_t read_threshold;
++    uint32_t write_start;
++    uint32_t write_step;
++} rga_pre_intr_info_t;
++
++/* MAX(min, (max - channel_value)) */
++typedef struct rga_osd_invert_factor_ioctl {
++    uint8_t alpha_max;
++    uint8_t alpha_min;
++    uint8_t yg_max;
++    uint8_t yg_min;
++    uint8_t crb_max;
++    uint8_t crb_min;
++} rga_osd_invert_factor_t;
++
++typedef struct rga_color_ioctl {
++    union {
++        struct {
++            uint8_t red;
++            uint8_t green;
++            uint8_t blue;
++            uint8_t alpha;
++        };
++        uint32_t value;
++    };
++} rga_color_t;
++
++typedef struct rga_osd_bpp2_ioctl {
++    uint8_t  ac_swap;           // ac swap flag
++                                // 0: CA
++                                // 1: AC
++    uint8_t  endian_swap;       // rgba2bpp endian swap
++                                // 0: Big endian
++                                // 1: Little endian
++    rga_color_t color0;
++    rga_color_t color1;
++} rga_osd_bpp2_t;
++
++typedef struct rga_osd_mode_ctrl_ioctal {
++    uint8_t mode;               // OSD cal mode:
++                                //   0b'1: statistics mode
++                                //   1b'1: auto inversion overlap mode
++    uint8_t direction_mode;     // horizontal or vertical
++                                //   0: horizontal
++                                //   1: vertical
++    uint8_t width_mode;         // using @fix_width or LUT width
++                                //   0: fix width
++                                //   1: LUT width
++    uint16_t block_fix_width;   // OSD block fixed width
++                                //   real width = (fix_width + 1) * 2
++    uint8_t block_num;          // OSD block num
++    uint16_t flags_index;       // auto invert flags index
++
++    /* invertion config */
++    uint8_t color_mode;         // selete color
++                                //   0: src1 color
++                                //   1: config data color
++    uint8_t invert_flags_mode;  // invert flag selete
++                                //   0: use RAM flag
++                                //   1: usr last result
++    uint8_t default_color_sel;  // default color mode
++                                //   0: default is bright
++                                //   1: default is dark
++    uint8_t invert_enable;      // invert channel enable
++                                //   1 << 0: aplha enable
++                                //   1 << 1: Y/G disable
++                                //   1 << 2: C/RB disable
++    uint8_t invert_mode;        // invert cal mode
++                                //   0: normal(max-data)
++                                //   1: swap
++    uint8_t invert_thresh;      // if luma > thresh, osd_flag to be 1
++    uint8_t unfix_index;        // OSD width config index
++} rga_osd_mode_ctrl_t;
++
++typedef struct rga_osd_info_ioctl {
++    uint8_t  enable;
++
++    rga_osd_mode_ctrl_t mode_ctrl;
++    rga_osd_invert_factor_t cal_factor;
++    rga_osd_bpp2_t bpp2_info;
++
++    union {
++        struct {
++            uint32_t last_flags1;
++            uint32_t last_flags0;
++        };
++        uint64_t last_flags;
++    };
++
++    union {
++        struct {
++            uint32_t cur_flags1;
++            uint32_t cur_flags0;
++        };
++        uint64_t cur_flags;
++    };
++} rga_osd_info_t;
++
++#define RGA_VERSION_SIZE    16
++#define RGA_HW_SIZE            5
++
++struct rga_version_t {
++    uint32_t major;
++    uint32_t minor;
++    uint32_t revision;
++    uint8_t str[RGA_VERSION_SIZE];
++};
++
++struct rga_hw_versions_t {
++    struct rga_version_t version[RGA_HW_SIZE];
++    uint32_t size;
++};
++
++struct rga_memory_parm {
++    uint32_t width;
++    uint32_t height;
++    uint32_t format;
++
++    uint32_t size;
++};
++
++struct rga_external_buffer {
++    uint64_t memory;
++    uint32_t type;
++
++    uint32_t handle;
++    struct rga_memory_parm memory_info;
++
++    uint8_t reserve[252];
++};
++
++struct rga_buffer_pool {
++    uint64_t buffers;
++    uint32_t size;
++};
++
++struct rga_req {
++    uint8_t render_mode;                  /* (enum) process mode sel */
++
++    rga_img_info_t src;                   /* src image info */
++    rga_img_info_t dst;                   /* dst image info */
++    rga_img_info_t pat;                   /* patten image info */
++
++    uint64_t rop_mask_addr;               /* rop4 mask addr */
++    uint64_t LUT_addr;                    /* LUT addr */
++
++    RECT clip;                            /* dst clip window default value is dst_vir */
++                                          /* value from [0, w-1] / [0, h-1]*/
++
++    int32_t sina;                         /* dst angle  default value 0  16.16 scan from table */
++    int32_t cosa;                         /* dst angle  default value 0  16.16 scan from table */
++
++    uint16_t alpha_rop_flag;              /* alpha rop process flag           */
++                                          /* ([0] = 1 alpha_rop_enable)       */
++                                          /* ([1] = 1 rop enable)             */
++                                          /* ([2] = 1 fading_enable)          */
++                                          /* ([3] = 1 PD_enable)              */
++                                          /* ([4] = 1 alpha cal_mode_sel)     */
++                                          /* ([5] = 1 dither_enable)          */
++                                          /* ([6] = 1 gradient fill mode sel) */
++                                          /* ([7] = 1 AA_enable)              */
++                                          /* ([8] = 1 nn_quantize)            */
++                                          /* ([9] = 1 Real color mode)        */
++
++    uint8_t  scale_mode;                  /* 0 nearst / 1 bilnear / 2 bicubic */
++
++    uint32_t color_key_max;               /* color key max */
++    uint32_t color_key_min;               /* color key min */
++
++    uint32_t fg_color;                    /* foreground color */
++    uint32_t bg_color;                    /* background color */
++
++    COLOR_FILL gr_color;                  /* color fill use gradient */
++
++    line_draw_t line_draw_info;
++
++    FADING fading;
++
++    uint8_t PD_mode;                      /* porter duff alpha mode sel */
++
++    uint8_t alpha_global_value;           /* global alpha value */
++
++    uint16_t rop_code;                    /* rop2/3/4 code  scan from rop code table*/
++
++    uint8_t bsfilter_flag;                /* [2] 0 blur 1 sharp / [1:0] filter_type*/
++
++    uint8_t palette_mode;                 /* (enum) color palatte  0/1bpp, 1/2bpp 2/4bpp 3/8bpp*/
++
++    uint8_t yuv2rgb_mode;                 /* (enum) BT.601 MPEG / BT.601 JPEG / BT.709  */
++
++    uint8_t endian_mode;                  /* 0/big endian 1/little endian*/
++
++    uint8_t rotate_mode;                  /* (enum) rotate mode  */
++                                          /* 0x0,     no rotate  */
++                                          /* 0x1,     rotate     */
++                                          /* 0x2,     x_mirror   */
++                                          /* 0x3,     y_mirror   */
++
++    uint8_t color_fill_mode;              /* 0 solid color / 1 patten color */
++
++    MMU mmu_info;                         /* mmu information */
++
++    uint8_t  alpha_rop_mode;              /* ([0~1] alpha mode)       */
++                                          /* ([2~3] rop   mode)       */
++                                          /* ([4]   zero  mode en)    */
++                                          /* ([5]   dst   alpha mode) (RGA1) */
++
++    uint8_t  src_trans_mode;
++
++    uint8_t  dither_mode;
++
++    full_csc_t full_csc;                  /* full color space convert */
++
++    int32_t in_fence_fd;
++    uint8_t core;
++    uint8_t priority;
++    int32_t out_fence_fd;
++
++    uint8_t handle_flag;
++
++    /* RGA2 1106 add */
++    rga_mosaic_info_t mosaic_info;
++
++    uint8_t uvhds_mode;
++    uint8_t uvvds_mode;
++
++    rga_osd_info_t osd_info;
++
++    rga_pre_intr_info_t pre_intr_info;
++
++    uint8_t reservr[59];
++};
++
++struct rga_user_request {
++    uint64_t task_ptr;
++    uint32_t task_num;
++    uint32_t id;
++    uint32_t sync_mode;
++    uint32_t release_fence_fd;
++
++    uint32_t mpi_config_flags;
++
++    uint32_t acquire_fence_fd;
++
++    uint8_t reservr[120];
++};
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* _RGA_DRIVER_IOCTL_H_ */
+diff --git a/include/uapi/misc/virtio_vop.h b/include/uapi/misc/virtio_vop.h
+new file mode 100644
+index 000000000000..8d0d00a84087
+--- /dev/null
++++ b/include/uapi/misc/virtio_vop.h
+@@ -0,0 +1,86 @@
++// SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note
++/* Driver for virtio vop device.
++ *
++ * Copyright (C) 2023 Rockchip Electronics Co., Ltd.
++ *
++ * Based on drivers drivers/video/virtio/virtio_video
++ * Copyright 2020 OpenSynergy GmbH.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef VIRTIO_VOP_H
++#define VIRTIO_VOP_H
++
++#ifdef __KERNEL__
++#include <asm/ioctl.h>
++#else
++#include <sys/ioctl.h>
++#endif
++
++#if defined(__cplusplus)
++extern "C" {
++#endif
++
++typedef struct {
++	float left;
++	float top;
++	float right;
++	float bottom;
++} vvop_frect_t;
++
++typedef struct {
++	int left;
++	int top;
++	int right;
++	int bottom;
++} vvop_rect_t;
++
++typedef struct {
++	uint32_t buf_fd;
++	uint32_t plane_id;
++	uint32_t layer_id;
++	vvop_rect_t source_crop;
++	vvop_rect_t display_frame;
++	uint64_t rotation;
++	uint64_t alpha;
++	uint64_t blend;
++	uint32_t zorder;
++	uint32_t format;
++} vvop_plane_t;
++
++#define VIRTVOP_MAX_PLANE	8
++struct vvop_plane {
++	int num_plane;
++	vvop_plane_t planes[VIRTVOP_MAX_PLANE];	
++};
++
++struct vvop_layer {
++	uint32_t layer_id;
++};
++
++/*
++ * Virtio ioctl
++ */
++#define VIRTIO_VOP_IOCTL_BASE			'v'
++
++#define VIRTIO_VOP_IOCTL_COMP			\
++	_IOWR(VIRTIO_VOP_IOCTL_BASE, 0x100, struct vvop_plane)
++
++#define VIRTIO_VOP_IOCTL_CREATE_LAYER		\
++	_IOWR(VIRTIO_VOP_IOCTL_BASE, 0x101, struct vvop_layer)
++
++#define VIRTIO_VOP_IOCTL_DESTROY_LAYER		\
++	_IOWR(VIRTIO_VOP_IOCTL_BASE, 0x102, struct vvop_layer)
++
++#if defined(__cplusplus)
++}
++#endif
++
++#endif
+-- 
+2.25.1
+

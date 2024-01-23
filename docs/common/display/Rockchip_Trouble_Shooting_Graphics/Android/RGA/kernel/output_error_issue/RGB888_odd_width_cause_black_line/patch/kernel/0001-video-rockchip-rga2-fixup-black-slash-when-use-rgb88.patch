@@ -1,0 +1,30 @@
+From 7552f8d9a9d6b2ea64f3f658e8341c92f4e89b5f Mon Sep 17 00:00:00 2001
+From: Putin Lee <putin.li@rock-chips.com>
+Date: Fri, 15 May 2020 11:47:41 +0800
+Subject: [PATCH] video/rockchip: rga2: fixup black slash when use rgb888
+ output with odd width
+
+Change-Id: I8045880559628904d320da04c8df89a34055ce99
+Signed-off-by: Putin Lee <putin.li@rock-chips.com>
+
+diff --git a/drivers/video/rockchip/rga2/rga2_reg_info.c b/drivers/video/rockchip/rga2/rga2_reg_info.c
+index 0523520..ee21347 100644
+--- a/drivers/video/rockchip/rga2/rga2_reg_info.c
++++ b/drivers/video/rockchip/rga2/rga2_reg_info.c
+@@ -423,7 +423,12 @@ static void RGA2_set_reg_dst_info(u8 *base, struct rga2_req *msg)
+     d_uv_stride = (d_stride << 2) / x_div;
+ 
+     *bRGA_DST_VIR_INFO = d_stride | (s_stride << 16);
+-    *bRGA_DST_ACT_INFO = (msg->dst.act_w - 1) | ((msg->dst.act_h - 1) << 16);
++	if ((msg->dst.vir_w % 2 != 0) &&
++		(msg->dst.act_w == msg->src.act_w) && (msg->dst.act_h == msg->src.act_h) &&
++		(msg->dst.format == RGA2_FORMAT_BGR_888 || msg->dst.format == RGA2_FORMAT_RGB_888))
++		*bRGA_DST_ACT_INFO = (msg->dst.act_w) | ((msg->dst.act_h - 1) << 16);
++	else
++		*bRGA_DST_ACT_INFO = (msg->dst.act_w - 1) | ((msg->dst.act_h - 1) << 16);
+     s_stride <<= 2;
+ 	d_stride <<= 2;
+ 
+-- 
+2.7.4
+

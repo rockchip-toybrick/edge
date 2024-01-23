@@ -1,0 +1,47 @@
+From dfe545ae5561a28536397a6be33c1ec6b34ae322 Mon Sep 17 00:00:00 2001
+From: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+Date: Wed, 15 Apr 2020 15:08:53 +0800
+Subject: [PATCH] video/rockchip/rga: Fix rgaColorFill issue when both input fd
+ and vir_addr.
+
+Change-Id: Idee53715ded6941033f7cab8e6de70a0a6d27364
+Signed-off-by: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+---
+ drivers/video/rockchip/rga/rga_drv.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/video/rockchip/rga/rga_drv.c b/drivers/video/rockchip/rga/rga_drv.c
+index 027cd94..715edb6 100644
+--- a/drivers/video/rockchip/rga/rga_drv.c
++++ b/drivers/video/rockchip/rga/rga_drv.c
+@@ -1040,6 +1040,13 @@ static int rga_convert_dma_buf(struct rga_req *req)
+ 		pr_err("RGA ERROR ion buf handle\n");
+ 		return ret;
+ 		}
++
++	if (req->src.uv_addr) {
++		if (RGA_TEST_MSG)
++			pr_err("RGA WARNING : don't input viraddrs when already input fd !");
++		req->src.uv_addr = 0;
++	}
++
+ #if RGA_DEBUGFS
+ 	if (RGA_CHECK_MODE) {
+ 		vaddr = ion_map_kernel(drvdata->ion_client, hdl);
+@@ -1076,6 +1083,13 @@ static int rga_convert_dma_buf(struct rga_req *req)
+             printk("RGA2 ERROR ion buf handle\n");
+             return ret;
+         }
++
++	if (req->dst.uv_addr) {
++		if (RGA_TEST_MSG)
++			pr_err("RGA WARNING : don't input viraddrs when already input fd !\n");
++		req->dst.uv_addr = 0;
++	}
++
+ #if RGA_DEBUGFS
+ 	if (RGA_CHECK_MODE) {
+ 		vaddr = ion_map_kernel(drvdata->ion_client, hdl);
+-- 
+2.7.4
+

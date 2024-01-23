@@ -69,6 +69,7 @@ class Flash:
     def flash_parse_args(self, argv):
         conf = self.config.get()
         bootmode = conf['bootmode']
+        chip = conf['chip']
         flash_list = []
         image_path = None
         bootmode = conf['bootmode']
@@ -110,10 +111,14 @@ class Flash:
                 break
             if option in ('-a', '--all'):
                 flash_list = flash_list_all
+                if chip in ('rk3399', 'rk3399pro'):
+                    flash_list.append('trust')
                 break
             else:
                 if option in ('-u', '--uboot'):
                     flash_list.append('uboot')
+                    if chip in ('rk3399', 'rk3399pro'):
+                        flash_list.append('trust')
                 if option in ('-k', '--kernel'):
                     if bootmode in ('fit'):
                         flash_list.append('boot')

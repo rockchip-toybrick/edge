@@ -1,5 +1,0 @@
-title Papenmeier BrailleX Live
-assign hasSingleStepBar
-assign statusKeys 0
-include bar.kti
-include keyboard.kti

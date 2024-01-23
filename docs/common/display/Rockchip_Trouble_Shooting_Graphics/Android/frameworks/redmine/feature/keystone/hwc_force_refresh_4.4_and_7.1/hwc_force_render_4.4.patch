@@ -1,0 +1,76 @@
+diff --git a/hwc.cpp b/hwc.cpp
+index c20ed54..4bbba11 100755
+--- a/hwc.cpp
++++ b/hwc.cpp
+@@ -449,6 +449,7 @@ static void hwc_registerProcs(struct hwc_composer_device_1* dev,
+ 	// the uevent & vsync threads
+ 	init_uevent_thread(ctx);
+ 	init_vsync_thread(ctx);
++	init_force_render(ctx);
+ }
+ 
+ static int hwc_getDisplayConfigs(struct hwc_composer_device_1* dev, int disp,
+diff --git a/hwc.h b/hwc.h
+index 4bb3dac..c3c80fe 100755
+--- a/hwc.h
++++ b/hwc.h
+@@ -173,6 +173,7 @@ enum TV_COMPOSER_TYPE {
+ int hwc_vsync_control(hwc_context_t* ctx, int dpy, int enable);
+ void init_vsync_thread(hwc_context_t* ctx);
+ void init_uevent_thread(hwc_context_t* ctx);
++void init_force_render(hwc_context_t* ctx);
+ void dump_fps(void);
+ void hwc_dump_layer(hwc_display_contents_1_t* list);
+ 
+diff --git a/hwc_uevents.cpp b/hwc_uevents.cpp
+index 10b8e07..a8f0f55 100755
+--- a/hwc_uevents.cpp
++++ b/hwc_uevents.cpp
+@@ -132,6 +132,15 @@ static void *uevent_loop(void *param)
+     return NULL;
+ }
+ 
++static void *force_render_loop(void *param){
++     hwc_context_t * ctx = reinterpret_cast<hwc_context_t *>(param);
++     while(1) {
++        usleep(1000000);
++	ctx->procs->invalidate(ctx->procs);
++     }
++     return NULL;
++}
++
+ void init_uevent_thread(hwc_context_t* ctx)
+ {
+     pthread_t uevent_thread;
+@@ -145,3 +154,12 @@ void init_uevent_thread(hwc_context_t* ctx)
+     }
+ }
+ 
++void init_force_render(hwc_context_t* ctx) {
++   pthread_t render_thread;
++   int ret;
++   ret = pthread_create(&render_thread, NULL,force_render_loop,(void*) ctx);
++   if (ret) {
++        ALOGE("%s: failed to create %s: %s", __FUNCTION__,
++			                  HWC_UEVENT_THREAD_NAME, strerror(ret));
++   }
++}
+diff --git a/hwc_vsync.cpp b/hwc_vsync.cpp
+index 440a048..162e29e 100755
+--- a/hwc_vsync.cpp
++++ b/hwc_vsync.cpp
+@@ -98,6 +98,14 @@ static void *vsync_loop(void *param)
+ 	fds[0].events = POLLPRI;
+ 
+ 	do {
++		char property[PROPERTY_VALUE_MAX];
++	        property_get("persist.sys.keystone.update", property, "0");
++	        int new_value = 0;
++   	        new_value = atoi(property);
++		if(new_value > 0){
++		    ALOGD("DEBUG_lb update = %d,invalidate",new_value);
++	            ctx->procs->invalidate(ctx->procs);
++		}
+ 		if (LIKELY(!ctx->vstate.fakevsync)) {
+ 			int err = poll(fds, 1, -1);
+ 			if (err > 0) {

@@ -1,0 +1,271 @@
+diff --git a/rk_hwcomposer.cpp b/rk_hwcomposer.cpp
+index df47f81..98fbb7f 100755
+--- a/rk_hwcomposer.cpp
++++ b/rk_hwcomposer.cpp
+@@ -583,6 +583,26 @@ int is_need_stereo(hwcContext* ctx, hwc_display_contents_1_t *list)
+     return 0;
+ }
+ 
++bool is_screen_changed(hwcContext* ctx, int dpyId)
++{
++    ctx->mScreenChanged = false;
++    if (!ctx)
++        return false;
++
++    if (ctx->dpyAttr[dpyId].xres != ctx->dpyAttr[dpyId].relxres) {
++        ctx->mScreenChanged = true;
++        return true;
++    }
++
++    if (ctx->dpyAttr[dpyId].yres != ctx->dpyAttr[dpyId].relyres) {
++        ctx->mScreenChanged = true;
++        return true;
++    }
++
++    return false;
++}
++
++
+ bool is_boot_skip_platform(hwcContext * context)
+ {
+     bool skipPlatform  = false;
+@@ -1054,6 +1074,13 @@ int try_hwc_vop_policy(void * ctx,hwc_display_contents_1_t *list)
+         return -1;
+     }
+ 
++    if ((list->numHwLayers - 1 > 1) && context->mScreenChanged)    // vop not support
++    {
++        if(is_out_log())
++            ALOGD("line=%d,num=%d,mScreenChanged=%d, VOP not support", __LINE__, list->numHwLayers - 1, context->mScreenChanged);
++        return -1;
++    }
++
+     for (unsigned int i = 0; i < (list->numHwLayers - 1); i++)
+     {
+         hwc_layer_1_t * layer = &list->hwLayers[i];
+@@ -1757,6 +1784,13 @@ int try_hwc_vop_gpu_policy(void * ctx,hwc_display_contents_1_t *list)
+         return -1;
+     }
+ 
++    if ((list->numHwLayers - 1 > 1) && context->mScreenChanged)    // vop not support
++    {
++        if(is_out_log())
++            ALOGD("line=%d,num=%d,mScreenChanged=%d, VOP not support", __LINE__, list->numHwLayers - 1, context->mScreenChanged);
++        return -1;
++    }
++
+     for (i = 0; i < (list->numHwLayers - 1); i++)
+     {
+         hwc_layer_1_t * layer = &list->hwLayers[i];
+@@ -2312,6 +2346,10 @@ static int hwc_prepare_primary(hwc_composer_device_1 *dev, hwc_display_contents_
+          list->numHwLayers);
+ 
+     is_need_stereo(context,list);
++    hotplug_change_screen_config(HWC_DISPLAY_PRIMARY);
++    is_screen_changed(context, HWC_DISPLAY_PRIMARY);
++    if(is_out_log())
++        ALOGD("mScreenChanged = %d", context->mScreenChanged);
+ 
+ #if ONLY_USE_ONE_VOP
+     if(is_out_log())
+@@ -2416,6 +2454,10 @@ static int hwc_prepare_external(hwc_composer_device_1 *dev, hwc_display_contents
+          list->numHwLayers);
+ 
+     is_need_stereo(context,list);
++    hotplug_change_screen_config(HWC_DISPLAY_EXTERNAL);
++    is_screen_changed(context, HWC_DISPLAY_EXTERNAL);
++    if(is_out_log())
++        ALOGD("mScreenChanged = %d", context->mScreenChanged);
+ 
+ #ifndef USE_X86
+     if(!try_prepare_first(context,list))
+@@ -3388,6 +3430,10 @@ int hwc_vop_config(hwcContext * context,hwc_display_contents_1_t *list)
+                 hotplug_reset_dstpos(&fb_info,3);
+         }
+ #endif
++        //add for screen changed
++        if (context->mScreenChanged)
++            hotplug_reset_dstpos(&fb_info, 4);
++
+         if(getHdmiMode() && context->IsRk3188 && ONLY_USE_ONE_VOP == 1)
+             sync_fbinfo_fence(&fb_info);
+ 
+@@ -4877,8 +4923,10 @@ hwc_device_open(
+     context->pmemLength   = 0;
+     context->bootCount    = 0;
+     context->scaleFd      = -1;
++    context->screenFd = -1;
+     context->mIsBootanimExit = false;
+     context->mIsFirstCallbackToHotplug = false;
++    context->mScreenChanged = false;
+     property_get("ro.rk.soc", pro_value, "0");
+     context->IsRk3188 = !!strstr(pro_value, "rk3188");
+     context->IsRk3126 = !!strstr(pro_value, "rk3126");
+@@ -5072,6 +5120,8 @@ hwc_device_open(
+         LOGD("Create hotplug_invalidate_refresh error .");
+     }
+ #endif
++    hotplug_change_screen_config(HWC_DISPLAY_PRIMARY);
++
+     return 0;
+ 
+ OnError:
+@@ -5794,6 +5844,12 @@ int hotplug_reset_dstpos(struct rk_fb_win_cfg_data * fb_info,int flag)
+         w_dstpos = ctxe->dpyAttr[HWC_DISPLAY_EXTERNAL].xres;
+         h_dstpos = ctxe->dpyAttr[HWC_DISPLAY_EXTERNAL].yres;
+         break;
++    case 4:
++        w_source = ctxp->dpyAttr[HWC_DISPLAY_PRIMARY].xres;
++        h_source = ctxp->dpyAttr[HWC_DISPLAY_PRIMARY].yres;
++        w_dstpos = ctxp->dpyAttr[HWC_DISPLAY_PRIMARY].relxres;
++        h_dstpos = ctxp->dpyAttr[HWC_DISPLAY_PRIMARY].relyres;
++        break;
+ 
+     default:
+         break;
+@@ -5802,7 +5858,7 @@ int hotplug_reset_dstpos(struct rk_fb_win_cfg_data * fb_info,int flag)
+     float w_scale = (float)w_dstpos / w_source;
+     float h_scale = (float)h_dstpos / h_source;
+ 
+-    if(w_source != w_dstpos && (flag == 0 || flag == 3))
++    if(w_source != w_dstpos && (flag == 0 || flag == 3 || flag == 4))
+     {
+         for(int i = 0;i<4;i++)
+         {
+@@ -5911,6 +5967,73 @@ void  *hotplug_init_thread(void *arg)
+     return NULL;
+ }
+ 
++void hotplug_change_screen_config(int dpy) {
++    hwcContext * context = gcontextAnchor[0];
++    if (context)
++    {
++        char buf[100];
++        int width = 0, height = 0, fd = -1;
++        long usec1 = 0;
++        struct timeval tpend1, tpend2;
++
++        gettimeofday(&tpend1, NULL);
++
++        if (context->screenFd < 0)
++        {
++            ALOGE("context->screenFd is null, open /sys/class/graphics/fb0/screen_info\n");
++            fd = open("/sys/class/graphics/fb0/screen_info", O_RDONLY);
++            if(fd < 0)
++            {
++                ALOGE("hotplug_change_screen_config:open fb0 screen_info error,fd=%d",fd);
++                return;
++            }
++            context->screenFd = fd;
++        }
++        else
++        {
++            fd = context->screenFd;
++            ALOGD_IF(is_out_log(),"fd %d is already open\n", fd);
++        }
++
++        if(read(fd,buf,sizeof(buf)) < 0)
++        {
++            close(fd);
++            ALOGE("error reading fb0 screen_info: %s", strerror(errno));
++            return;
++        }
++
++        if (lseek(fd, 0, SEEK_SET))
++        {
++            ALOGE("fd %d error to reset !\n", fd);
++        }
++
++        sscanf(buf,"xres:%d yres:%d",&width,&height);
++        ALOGD_IF(is_out_log(),"hotplug_change_screen_config: width=%d,height=%d",width,height);
++
++        context->dpyAttr[dpy].relxres = width;
++        context->dpyAttr[dpy].relyres = height;
++
++        ALOGD_IF(is_out_log(),"hotplug_change_screen_config: xres = %d, yres = %d, relxres = %d, relyres = %d",
++        context->dpyAttr[dpy].xres, context->dpyAttr[HWC_DISPLAY_PRIMARY].yres,
++        context->dpyAttr[dpy].relxres, context->dpyAttr[HWC_DISPLAY_PRIMARY].relyres);
++
++
++#if FORCE_REFRESH
++        pthread_mutex_lock(&context->mRefresh.mlk);
++        context->mRefresh.count = 0;
++        ALOGD_IF(is_out_log(),"Htg:mRefresh.count=%d",context->mRefresh.count);
++        pthread_mutex_unlock(&context->mRefresh.mlk);
++        pthread_cond_signal(&context->mRefresh.cond);
++#endif
++
++        gettimeofday(&tpend2, NULL);
++        usec1 = 1000000 * (tpend2.tv_sec - tpend1.tv_sec) + (tpend2.tv_usec - tpend1.tv_usec);
++        ALOGD_IF(is_out_log(),"change screen use time=%ld us", usec1);
++    }
++
++    return;
++}
++
+ void  *hotplug_invalidate_refresh(void *arg)
+ {
+ #if FORCE_REFRESH
+diff --git a/rk_hwcomposer.h b/rk_hwcomposer.h
+index faa2292..6e68198 100755
+--- a/rk_hwcomposer.h
++++ b/rk_hwcomposer.h
+@@ -93,7 +93,7 @@
+ #elif defined(TARGET_BOARD_PLATFORM_RK3188)
+ #define RGA_USE_FENCE     1
+ #define VIDEO_USE_PPROT   0
+-#define HOTPLUG_MODE      1
++#define HOTPLUG_MODE      0
+ #define ONLY_USE_ONE_VOP  0
+ #define FORCE_REFRESH     1
+ 
+@@ -250,6 +250,8 @@ FenceMangrRga;
+         uint32_t vsync_period; //nanos
+         uint32_t xres;
+         uint32_t yres;
++        uint32_t relxres;
++        uint32_t relyres;
+         uint32_t stride;
+         float xdpi;
+         float ydpi;
+@@ -335,6 +337,7 @@ FenceMangrRga;
+         int       fbWidth;
+         int       fbHeight;
+         bool      fb1_cflag;
++        bool      mScreenChanged;
+         char      cupcore_string[16];
+         DisplayAttributes              dpyAttr[HWC_NUM_DISPLAY_TYPES];
+         struct                         fb_var_screeninfo info;
+@@ -398,6 +401,7 @@ FenceMangrRga;
+         int     videoCnt;
+         int     bootCount;
+         int     scaleFd;
++        int     screenFd;
+         bool     vop_mbshake;
+         bool     Is_video;
+         bool     Is_Lvideo;
+diff --git a/rk_hwcomposer_hdmi.cpp b/rk_hwcomposer_hdmi.cpp
+index aaec173..66694b4 100755
+--- a/rk_hwcomposer_hdmi.cpp
++++ b/rk_hwcomposer_hdmi.cpp
+@@ -78,6 +78,7 @@ void rk_check_hdmi_state()
+ void rk_check_hdmi_uevents(const char *buf,int len)
+ {
+     ALOGI("fun[%s],line[%d],buf is [%s]",__FUNCTION__,__LINE__,buf);
++    hotplug_change_screen_config(HWC_DISPLAY_PRIMARY);
+ #ifdef USE_X86
+     if(!strcmp(buf, "change@/devices/soc0/e0000000.noc/ef010000.l2_noc/e1000000.ahb_per/vop0"))
+ #else
+diff --git a/rk_hwcomposer_hdmi.h b/rk_hwcomposer_hdmi.h
+index 58836ba..5558493 100755
+--- a/rk_hwcomposer_hdmi.h
++++ b/rk_hwcomposer_hdmi.h
+@@ -18,6 +18,8 @@ void      rk_check_hdmi_uevents(const char *buf);
+ void      rk_handle_uevents(const char *buff);
+ void     *rk_hwc_hdmi_thread(void *arg);
+ void     handle_hotplug_event(int hdmi_mode,int flag);
++void      hotplug_change_screen_config(int dpy);
++
+ extern  int         g_hdmi_mode;
+ 
+ 

@@ -1,7 +1,0 @@
-Archive: stable
-Version: 11
-Component: main
-Origin: Toybrick
-Label: debian-toybrick
-Architecture: arm64
-Description: Debian build packages for Edge computer SDK(local)

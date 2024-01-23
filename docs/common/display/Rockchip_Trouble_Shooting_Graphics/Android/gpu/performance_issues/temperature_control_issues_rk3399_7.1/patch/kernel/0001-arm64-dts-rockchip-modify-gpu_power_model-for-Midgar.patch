@@ -1,0 +1,35 @@
+From 79fe6a4cec24c3cf61c9f618c867adaa2d647ee2 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Thu, 10 May 2018 11:23:55 +0800
+Subject: [PATCH] arm64: dts: rockchip: modify 'gpu_power_model' for Midgard
+ DDK r18 on rk3399
+
+The values of the coefficients are the ones in px30.dtsi,
+according to Rocky Hao.
+
+Change-Id: I1843b999a3b93fd5791e556db8733596c75ef8ac
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index cbfb815..6687703 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1779,10 +1779,8 @@
+ 
+ 		gpu_power_model: power_model {
+ 			compatible = "arm,mali-simple-power-model";
+-			voltage = <900>;
+-			frequency = <500>;
+-			static-power = <300>;
+-			dynamic-power = <396>;
++			static-coefficient = <411000>;
++			dynamic-coefficient = <733>;
+ 			ts = <32000 4700 (-80) 2>;
+ 			thermal-zone = "gpu-thermal";
+ 		};
+-- 
+2.7.4
+

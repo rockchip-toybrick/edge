@@ -1,9 +1,0 @@
-#!/bin/sh -e
-
-PATH=$PATH:.
-
-localechooser
-
-#DEBHELPER#
-
-exit 0

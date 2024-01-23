@@ -1,0 +1,30 @@
+From ffd7b5d0816db9e3525e1868880e34a2be7d0ded Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Fri, 20 Dec 2019 11:07:29 +0800
+Subject: [PATCH] arm64: dts: rk3399: set gpu frequency conversion threshold
+
+upthreshold = <40>
+downdifferential = <10>
+
+Change-Id: I492b973ef7401699dbeeecde8df6d66650155f14
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 1e1b6f5..46e2ee1 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -2176,6 +2176,8 @@
+ 		#cooling-cells = <2>; /* min followed by max */
+ 		power-domains = <&power RK3399_PD_GPU>;
+ 		power-off-delay-ms = <200>;
++		upthreshold = <40>;
++		downdifferential = <10>;
+ 		status = "disabled";
+ 
+ 		gpu_power_model: power_model {
+-- 
+2.7.4
+

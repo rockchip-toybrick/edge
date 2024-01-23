@@ -1,5 +1,0 @@
-
-partial
-xkb_symbols "4" {
- key <AE04> { [ NoSymbol, NoSymbol, U20B9 ] };
-};

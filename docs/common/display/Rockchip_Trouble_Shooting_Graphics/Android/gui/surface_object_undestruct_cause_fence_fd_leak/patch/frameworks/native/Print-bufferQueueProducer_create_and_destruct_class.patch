@@ -1,0 +1,35 @@
+diff --git a/libs/gui/BufferQueueConsumer.cpp b/libs/gui/BufferQueueConsumer.cpp
+old mode 100644
+new mode 100755
+index 7504ed4..57095ec
+--- a/libs/gui/BufferQueueConsumer.cpp
++++ b/libs/gui/BufferQueueConsumer.cpp
+@@ -532,10 +532,13 @@ status_t BufferQueueConsumer::setMaxAcquiredBufferCount(
+ 
+ void BufferQueueConsumer::setConsumerName(const String8& name) {
+     ATRACE_CALL();
+     BQ_LOGV("setConsumerName: '%s'", name.string());
+     Mutex::Autolock lock(mCore->mMutex);
+     mCore->mConsumerName = name;
+     mConsumerName = name;
++    ALOGD("DEBUG_lb setConsumerName 2 name = %s  ",mCore->mConsumerName.string());
++    
+ }
+ 
+ status_t BufferQueueConsumer::setDefaultBufferFormat(PixelFormat defaultFormat) {
+diff --git a/libs/gui/BufferQueueProducer.cpp b/libs/gui/BufferQueueProducer.cpp
+index efb271c..899b3d5 100755
+--- a/libs/gui/BufferQueueProducer.cpp
++++ b/libs/gui/BufferQueueProducer.cpp
+@@ -47,9 +47,12 @@ BufferQueueProducer::BufferQueueProducer(const sp<BufferQueueCore>& core) :
+     FbrgraphicBuffer  = NULL;
+     bufferchanged = 0;
+     test_cnt = 0;
++
++    ALOGD("DEBUG_lb BufferQueueProducer name = %s  ",mCore->mConsumerName.string());
+ }
+ 
+ BufferQueueProducer::~BufferQueueProducer() {
++    ALOGD("DEBUG_lb ~BufferQueueProducer name = %s",mCore->mConsumerName.string());
+     FbrgraphicBuffer = NULL;
+ }

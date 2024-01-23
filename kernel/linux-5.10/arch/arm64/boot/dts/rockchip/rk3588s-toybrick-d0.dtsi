@@ -16,6 +16,22 @@
 #include "rk3588-rk806-single.dtsi"
 
 / {
+
+	/* If hdmirx node is disabled, delete the reserved-memory node here. */
+	reserved-memory {
+	   #address-cells = <2>;
+	   #size-cells = <2>;
+	   ranges;
+
+	   /* Reserve 128MB memory for hdmirx-controller@fdee0000 */
+	   cma {
+		   compatible = "shared-dma-pool";
+		   reusable;
+		   reg = <0x0 (256 * 0x100000) 0x0 (128 * 0x100000)>;
+		   linux,cma-default;
+	   };
+	};
+
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		brightness-levels = <

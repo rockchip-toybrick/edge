@@ -1,0 +1,36 @@
+From 599ee15f4ad8439b73f578c618e4af01cef2d4ec Mon Sep 17 00:00:00 2001
+From: Shaoxing Chen <csx@rock-chips.com>
+Date: Fri, 31 Dec 2021 19:28:54 +0800
+Subject: [PATCH 04/24] drivers: net: wireless: update bcmdhd driver
+
+Signed-off-by: Shaoxing Chen <csx@rock-chips.com>
+Change-Id: I0dc0d09b646d1bdd44dc6dd2e00898742bfbdde1
+---
+ .../net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
+index d2b0609b146a..8c788b05e381 100755
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_pcie_linux.c
+@@ -1520,6 +1520,7 @@ static int dhdpcie_device_scan(struct device *dev, void *data)
+ int
+ dhdpcie_bus_register(void)
+ {
++#if 0
+ 	int error = 0;
+ 
+ 	if (!(error = pci_register_driver(&dhdpcie_driver))) {
+@@ -1537,6 +1538,9 @@ dhdpcie_bus_register(void)
+ 	}
+ 
+ 	return error;
++#else
++	return pci_register_driver(&dhdpcie_driver);
++#endif
+ }
+ 
+ void
+-- 
+2.30.2
+

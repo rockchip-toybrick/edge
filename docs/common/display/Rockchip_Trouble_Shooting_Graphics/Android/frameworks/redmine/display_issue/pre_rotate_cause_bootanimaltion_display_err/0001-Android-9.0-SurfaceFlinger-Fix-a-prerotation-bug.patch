@@ -1,0 +1,46 @@
+From c0919d33038e42daa5195e5b854d8632e7dc9f76 Mon Sep 17 00:00:00 2001
+From: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+Date: Tue, 25 Jun 2019 15:24:22 +0800
+Subject: [PATCH] SurfaceFlinger: Fix a prerotation bug
+
+If set SF_PRIMARY_DISPLAY_ORIENTATION 90/270 in configstore,
+the SurfaceFlinger primary device viewport and frame must be
+rotated.
+
+Bug: Defect #212046
+Bug: Defect #209873
+
+Change-Id: Ia120e2aca7f672d0f97d092a805ce39df82e6939
+Signed-off-by: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+---
+ services/surfaceflinger/SurfaceFlinger.cpp | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
+index 9a5f618..89d8f90 100644
+--- a/services/surfaceflinger/SurfaceFlinger.cpp
++++ b/services/surfaceflinger/SurfaceFlinger.cpp
+@@ -2506,7 +2506,19 @@ sp<DisplayDevice> SurfaceFlinger::setupNewDisplayDeviceInternal(
+         hw->setActiveConfig(getHwComposer().getActiveConfigIndex(state.type));
+     }
+     hw->setLayerStack(state.layerStack);
+-    hw->setProjection(state.orientation, state.viewport, state.frame);
++
++    if(displayInstallOrientation == DisplayState::eOrientation90 ||
++       displayInstallOrientation == DisplayState::eOrientation270){
++        /*ALOGE("rk-debug[%s %d] name:%s displayInstallOrientation:%d \n",
++                __FUNCTION__,__LINE__,state.displayName.c_str(),displayInstallOrientation);*/
++        hw->setProjection(state.orientation, Rect(hw->getHeight(),
++                          hw->getWidth()), Rect(hw->getHeight(), hw->getWidth()));
++    }
++    else{
++        /*ALOGE("rk-debug[%s %d] name:%s displayInstallOrientation:%d \n",
++                __FUNCTION__,__LINE__,state.displayName.c_str(),displayInstallOrientation);*/
++        hw->setProjection(state.orientation, state.viewport, state.frame);
++    }
+     hw->setDisplayName(state.displayName);
+ 
+     return hw;
+-- 
+2.7.4
+

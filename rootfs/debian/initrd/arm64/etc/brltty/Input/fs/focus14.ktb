@@ -1,5 +1,0 @@
-title FreedomScientific Focus 14
-assign frontKeysLeft left\sselector,\sleft\srocker,\span\sleft,\sleft\sshift
-assign frontKeysRight right\sshift,\span\sright,\sright\srocker,\sright\sselector
-include focus.kti
-include rockers.kti

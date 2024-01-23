@@ -1,0 +1,174 @@
+From cb1cfde5b11ce583b66952a721a6a61cc28ad57d Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Tue, 14 Jul 2020 17:14:23 +0800
+Subject: [PATCH] HDMI connected, HW-Vsync switch to hdmi
+
+Change-Id: I233b78902644a76076147190f20e8a8d339d613e
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ rk_hwcomposer.cpp | 1351 +++++++++++++++++++++++++++--------------------------
+ rk_hwcomposer.h   |   29 +-
+ 2 files changed, 716 insertions(+), 664 deletions(-)
+
+diff --git a/rk_hwcomposer.cpp b/rk_hwcomposer.cpp
+index 6bd1964..1f21f1d 100755
+--- a/rk_hwcomposer.cpp
++++ b/rk_hwcomposer.cpp
+@@ -13486,33 +13486,57 @@ static void handle_vsync_event(hwcContext * context )
+     static int cnt = 0;
+     if (!context->procs)
+         return;
++    uint64_t timestamp = 0;
+ 
+-    int err = lseek(context->vsync_fd, 0, SEEK_SET);
+-    if (err < 0) {
+-        ALOGE("error seeking to vsync timestamp: %s", strerror(errno));
+-        return;
+-    }
++    if(getHdmiMode()){
+ 
+-    char buf[4096];
+-    err = read(context->vsync_fd, buf, sizeof(buf));
+-    if (err < 0) {
+-        ALOGE("error reading vsync timestamp: %s", strerror(errno));
+-        return;
++        int err = lseek(context->vsync_hdmi_fd, 0, SEEK_SET);
++        if (err < 0) {
++            ALOGE("error seeking to vsync timestamp: %s", strerror(errno));
++            return;
++        }
++
++        char buf[4096];
++        err = read(context->vsync_hdmi_fd, buf, sizeof(buf));
++        if (err < 0) {
++            ALOGE("error reading vsync timestamp: %s", strerror(errno));
++            return;
++        }
++        buf[sizeof(buf) - 1] = '\0';
++
++        //errno = 0;
++        timestamp = strtoull(buf, NULL, 0) ;/*+ (uint64_t)(1e9 / context->fb_fps)  ;*/
++
++    }else{
++
++        int err = lseek(context->vsync_fd, 0, SEEK_SET);
++        if (err < 0) {
++            ALOGE("error seeking to vsync timestamp: %s", strerror(errno));
++            return;
++        }
++
++        char buf[4096];
++        err = read(context->vsync_fd, buf, sizeof(buf));
++        if (err < 0) {
++            ALOGE("error reading vsync timestamp: %s", strerror(errno));
++            return;
++        }
++        buf[sizeof(buf) - 1] = '\0';
++
++        //errno = 0;
++        timestamp = strtoull(buf, NULL, 0) ;/*+ (uint64_t)(1e9 / context->fb_fps)  ;*/
+     }
+-    buf[sizeof(buf) - 1] = '\0';
+ 
+-    //errno = 0;
+-    uint64_t timestamp = strtoull(buf, NULL, 0) ;/*+ (uint64_t)(1e9 / context->fb_fps)  ;*/
+     if(context->timestamp != timestamp){
+         VsyncPeriodUs = (timestamp - context->timestamp) / 1000;
+         ALOGD_IF(log(HLLTWO),"handle_vsync_event VsyncPeriodUs[%d]",VsyncPeriodUs);
+         context->timestamp = timestamp;
+         context->procs->vsync(context->procs, 0, timestamp);
+-#if RK3399_VR      
++#if RK3399_VR
+         if(context->mHdmiSI.HdmiOn)
+         {
+             cnt ++;
+-            
++
+             if(context->is2LayerStretch_vr){
+                 context->procs->invalidate(context->procs);
+                 //ALOGD("START TO gpu____");
+@@ -13955,25 +13979,47 @@ static void *hwc_thread(void *data)
+             ALOGE("error in vsync thread: %s", strerror(errno));
+         }
+     }
+-#else 
++#else
+ 	struct pollfd fds[1];
+ 	fds[0].fd = context->vsync_fd;
+ 	fds[0].events = POLLPRI;
+ 	//fds[1].fd = uevent_get_fd();
+ 	//fds[1].events = POLLIN;
+ 
++	struct pollfd fds_hdmi[1];
++	fds_hdmi[0].fd = context->vsync_hdmi_fd;
++	fds_hdmi[0].events = POLLPRI;
++	//fds[1].fd = uevent_get_fd();
++	//fds[1].events = POLLIN;
++
++
+ 	while (true) {
+-	    int err = poll(fds, 1, -1);
+-	    if (err > 0) {
+-	        if (fds[0].revents & POLLPRI) {
+-	            handle_vsync_event(context);
+-	        }
++	    if(getHdmiMode()){
++    	    int err = poll(fds_hdmi, 1, -1);
++    	    if (err > 0) {
++    	        if (fds_hdmi[0].revents & POLLPRI) {
++    	            handle_vsync_event(context);
++    	        }
+ 
+-	    }
+-	    else if (err == -1) {
+-	        if (errno == EINTR)
+-	            break;
+-	        ALOGE("error in vsync thread: %s", strerror(errno));
++    	    }
++    	    else if (err == -1) {
++    	        if (errno == EINTR)
++    	            break;
++    	        ALOGE("error in vsync thread: %s", strerror(errno));
++    	    }
++	    }else{
++    	    int err = poll(fds, 1, -1);
++    	    if (err > 0) {
++    	        if (fds[0].revents & POLLPRI) {
++    	            handle_vsync_event(context);
++    	        }
++
++    	    }
++    	    else if (err == -1) {
++    	        if (errno == EINTR)
++    	            break;
++    	        ALOGE("error in vsync thread: %s", strerror(errno));
++    	    }
+ 	    }
+ 	}
+ #endif
+@@ -14728,6 +14774,11 @@ hwc_device_open(
+         hwcONERROR(hwcSTATUS_IO_ERR);
+     }
+ 
++    err = context->vsync_hdmi_fd = open("/sys/class/graphics/fb5/vsync", O_RDONLY, 0);
++    if (context->vsync_hdmi_fd < 0) {
++        ALOGE("Open /sys/class/graphics/fb5/vsync fail, err = %d",err);
++    }
++
+     if (pthread_mutex_init(&context->lock, NULL))
+     {
+         hwcONERROR(hwcMutex_ERR);
+@@ -708,6 +708,7 @@ typedef struct _hwcContext
+     int                             fbFd;
+     int                             fbFd1;
+     int                             vsync_fd;
++    int                             vsync_hdmi_fd;
+     int                             ddrFd;
+     int                             screenFd;
+     uint64_t                        timestamp;
+ 
+ /******************************************************************************\
+  ********************************* Blitters ***********************************
+-- 
+2.7.4
+

@@ -1,6 +1,0 @@
-#! /bin/sh
-. /usr/share/debconf/confmodule
-db_get rescue/enable
-if [ "$RET" = true ]; then
-	db_info rescue/info
-fi

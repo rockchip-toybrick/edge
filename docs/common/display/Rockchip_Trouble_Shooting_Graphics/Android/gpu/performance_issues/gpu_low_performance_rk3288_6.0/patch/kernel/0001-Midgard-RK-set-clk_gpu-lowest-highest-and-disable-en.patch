@@ -1,0 +1,119 @@
+From 8109523d4e7f9795f6b20e90bf9dc6198ca8ae0f Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Fri, 23 Aug 2019 09:56:08 +0800
+Subject: [PATCH] Midgard: RK: set clk_gpu lowest/highest and disable/enable
+ DVFS in right place
+
+Before this commit, I sets clk_gpu lowest and disable DVFS in
+rk_pm_callback_power_off().
+In some scenes, such as entering "Apps table" from launcher,
+rk_pm_callback_power_off() is called very frequently by "common part" of Midgard
+device driver, resulting in too frequent and unnecessary operations of setting
+clk_gpu lowest and disabling DVFS, resulting in a worse UI performance (lower
+FPS) in such scenes.
+
+So, I move these operations into rk_pm_callback_runtime_off(), which is called
+by runtime_suspend callback of Mali platform device when GPU hardware is really
+going to be turned off.
+
+It's similar to move "setting clk_gpu highest and enabling DVFS" from
+rk_pm_callback_power_on() to rk_pm_callback_runtime_on().
+
+Change-Id: Ia5d92571ef2dfa8874fec4ea00f7a24fd1f20520
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ .../arm/midgard/platform/rk/mali_kbase_config_rk.c |   44 ++++++++++----------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/gpu/arm/midgard/platform/rk/mali_kbase_config_rk.c b/drivers/gpu/arm/midgard/platform/rk/mali_kbase_config_rk.c
+index 983661a..e89d8a3 100755
+--- a/drivers/gpu/arm/midgard/platform/rk/mali_kbase_config_rk.c
++++ b/drivers/gpu/arm/midgard/platform/rk/mali_kbase_config_rk.c
+@@ -66,12 +66,32 @@ static int rk_pm_callback_runtime_on(struct kbase_device *kbdev)
+ 		goto EXIT;
+ 	}
+ 
++	if (!is_dvfs_disabled_via_sysfs(kbdev)) {
++		int err = 0;
++
++		D("to enable DVFS and set clk_gpu highest.");
++		kbase_platform_dvfs_enable(kbdev);
++		err = kbase_platform_dvfs_set_clk_highest(kbdev);
++		if (err)
++			E("fail to set dvfs_level highest. err : %d.", err);
++	}
++
+ EXIT:
+ 	return ret;
+ }
+ 
+ static void rk_pm_callback_runtime_off(struct kbase_device *kbdev)
+ {
++	if (!is_dvfs_disabled_via_sysfs(kbdev)) {
++		int err = 0;
++
++		D("to set clk_gpu lowest and disable DVFS.");
++		err = kbase_platform_dvfs_set_clk_lowest(kbdev);
++		if (err)
++			E("fail to set dvfs_level lowest. err : %d.", err);
++		kbase_platform_dvfs_disable(kbdev);
++	}
++
+ 	D("to turn off pd_gpu and clk_gpu.");
+ 	kbase_platform_turn_off_gpu(kbdev);
+ }
+@@ -90,7 +110,7 @@ static int rk_pm_callback_power_on(struct kbase_device *kbdev)
+ 	}
+ 
+ 	if (pm_runtime_enabled(kbdev->dev)) {
+-		D("runtime_pm is enabled, to resume mali_dev.");
++		V("runtime_pm is enabled, to resume mali_dev.");
+ 		error = pm_runtime_get_sync(kbdev->dev);
+ 		if (error < 0) {
+ 			dev_err(kbdev->dev,
+@@ -100,7 +120,7 @@ static int rk_pm_callback_power_on(struct kbase_device *kbdev)
+ 		} else if (error == 1) {
+ 			/* runtime_pm_status of mali_dev is active */
+ 
+-			D("has NOT been powered off, no need to re-init.");
++			V("has NOT been powered off, no need to re-init.");
+ 			ret = 0;
+ 		}
+ 	} else {
+@@ -117,16 +137,6 @@ static int rk_pm_callback_power_on(struct kbase_device *kbdev)
+ 	 * namely GPU is powered on.
+ 	 */
+ 
+-	if (!is_dvfs_disabled_via_sysfs(kbdev)) {
+-		int err = 0;
+-
+-		D("to enable DVFS and set clk_gpu highest.");
+-		kbase_platform_dvfs_enable(kbdev);
+-		err = kbase_platform_dvfs_set_clk_highest(kbdev);
+-		if (err)
+-			E("fail to set dvfs_level highest. err : %d.", err);
+-	}
+-
+ 	platform->is_powered = true;
+ 	KBASE_TIMELINE_GPU_POWER(kbdev, 1);
+ 
+@@ -147,16 +157,6 @@ static void rk_pm_callback_power_off(struct kbase_device *kbdev)
+ 	platform->is_powered = false;
+ 	KBASE_TIMELINE_GPU_POWER(kbdev, 0);
+ 
+-	if (!is_dvfs_disabled_via_sysfs(kbdev)) {
+-		int err = 0;
+-
+-		D("to set clk_gpu lowest and disable DVFS.");
+-		err = kbase_platform_dvfs_set_clk_lowest(kbdev);
+-		if (err)
+-			E("fail to set dvfs_level lowest. err : %d.", err);
+-		kbase_platform_dvfs_disable(kbdev);
+-	}
+-
+ 	if (pm_runtime_enabled(kbdev->dev)) {
+ 		pm_runtime_mark_last_busy(kbdev->dev);
+ 		pm_runtime_put_autosuspend(kbdev->dev);
+-- 
+1.7.9.5
+

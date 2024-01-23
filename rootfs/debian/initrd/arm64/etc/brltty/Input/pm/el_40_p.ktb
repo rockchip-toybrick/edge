@@ -1,5 +1,0 @@
-title Papenmeier BrailleX EL 40 P
-assign noRightKey
-assign statusKeys 0
-include bar.kti
-include switches.kti

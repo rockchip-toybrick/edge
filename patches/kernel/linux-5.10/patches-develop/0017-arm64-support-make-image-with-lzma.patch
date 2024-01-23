@@ -1,0 +1,29 @@
+From 22beca6043f0119d0d115924259d87c4376e2a1d Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Tue, 8 Nov 2022 18:13:48 +0800
+Subject: [PATCH 17/31] arm64: support make image with lzma
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I9f4a7b2824577103ab22d564388244a053ed3fa7
+---
+ arch/arm64/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
+index 7e2f0c346bbe..588d59cef25c 100644
+--- a/arch/arm64/Makefile
++++ b/arch/arm64/Makefile
+@@ -212,8 +212,10 @@ MAKE_MODULES ?= y
+ %.img:
+ ifeq ("$(CONFIG_MODULES)$(MAKE_MODULES)$(srctree)","yy$(objtree)")
+ 	$(Q)$(MAKE) rockchip/$*.dtb Image.lz4 modules
++	$(Q)$(MAKE) rockchip/$*.dtb Image.lzma modules
+ else
+ 	$(Q)$(MAKE) rockchip/$*.dtb Image.lz4
++	$(Q)$(MAKE) rockchip/$*.dtb Image.lzma
+ endif
+ 	$(Q)$(srctree)/scripts/mkimg --dtb $*.dtb
+ 
+-- 
+2.25.1
+

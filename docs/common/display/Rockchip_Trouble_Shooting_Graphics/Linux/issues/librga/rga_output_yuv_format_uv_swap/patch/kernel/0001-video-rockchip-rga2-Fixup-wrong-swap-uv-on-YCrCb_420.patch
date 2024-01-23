@@ -1,0 +1,29 @@
+From b791aba486285310aa9c2ced04df5ecd080a4548 Mon Sep 17 00:00:00 2001
+From: Li Huang <putin.li@rock-chips.com>
+Date: Thu, 14 Nov 2019 09:17:13 +0800
+Subject: [PATCH] video/rockchip: rga2: Fixup wrong swap uv on YCrCb_420_P
+
+Change-Id: I907c8687c5736fb489a21d16e87addf1f67e07c1
+Signed-off-by: Li Huang <putin.li@rock-chips.com>
+
+diff --git a/drivers/video/rockchip/rga2/rga2_reg_info.c b/drivers/video/rockchip/rga2/rga2_reg_info.c
+index 46c220e..0523520 100644
+--- a/drivers/video/rockchip/rga2/rga2_reg_info.c
++++ b/drivers/video/rockchip/rga2/rga2_reg_info.c
+@@ -388,11 +388,11 @@ static void RGA2_set_reg_dst_info(u8 *base, struct rga2_req *msg)
+         case RGA2_FORMAT_YCbCr_422_SP : dst_format = 0x8; x_div = 1; y_div = 1; break;
+         case RGA2_FORMAT_YCbCr_422_P  : dst_format = 0x9; x_div = 2; y_div = 1; break;
+         case RGA2_FORMAT_YCbCr_420_SP : dst_format = 0xa; x_div = 1; y_div = 2; break;
+-        case RGA2_FORMAT_YCbCr_420_P  : dst_format = 0xb; x_div = 2; y_div = 2; break;
++        case RGA2_FORMAT_YCbCr_420_P  : dst_format = 0xb; dst_cbcr_swp = 1; x_div = 2; y_div = 2; break;
+         case RGA2_FORMAT_YCrCb_422_SP : dst_format = 0x8; dst_cbcr_swp = 1; x_div = 1; y_div = 1; break;
+         case RGA2_FORMAT_YCrCb_422_P  : dst_format = 0x9; dst_cbcr_swp = 1; x_div = 2; y_div = 1; break;
+         case RGA2_FORMAT_YCrCb_420_SP : dst_format = 0xa; dst_cbcr_swp = 1; x_div = 1; y_div = 2; break;
+-        case RGA2_FORMAT_YCrCb_420_P  : dst_format = 0xb; dst_cbcr_swp = 1; x_div = 2; y_div = 2; break;
++        case RGA2_FORMAT_YCrCb_420_P  : dst_format = 0xb; x_div = 2; y_div = 2; break;
+ 
+ 	case RGA2_FORMAT_YUYV_422     : dst_format = 0xc; dpw = 2; break;
+ 	case RGA2_FORMAT_YVYU_422     : dst_format = 0xc; dpw = 2; dst_cbcr_swp = 1; break;
+-- 
+2.7.4
+

@@ -1,0 +1,107 @@
+From ce32fc655d2475dd56d4d3b2dbbc75291723a48a Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Wed, 10 Jun 2020 14:15:15 +0800
+Subject: [PATCH] Add vendor.hwc.hdr_video_by_gles to choose hdr video
+ compose-way between overlay and GLES compose.
+
+Bug:
+    Defect #254008
+
+Change-Id: Ide2957ffbe475154b9030a377b128702a0392c0f
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ hwc_util.cpp   | 23 +++++++++++++++++++++++
+ hwc_util.h     |  1 +
+ hwcomposer.cpp |  8 +++++---
+ 3 files changed, 29 insertions(+), 3 deletions(-)
+
+diff --git a/hwc_util.cpp b/hwc_util.cpp
+index 79d233b..84f89f9 100755
+--- a/hwc_util.cpp
++++ b/hwc_util.cpp
+@@ -217,6 +217,27 @@ int hwc_get_int_property(const char* pcProperty,const char* default_value)
+     return new_value;
+ }
+ 
++bool hwc_get_bool_property(const char* pcProperty,const char* default_value)
++{
++    char value[PROPERTY_VALUE_MAX];
++    bool result = false;
++
++    if(pcProperty == NULL || default_value == NULL)
++    {
++        ALOGE("hwc_get_int_property: invalid param");
++        return -1;
++    }
++
++    property_get(pcProperty, value, default_value);
++    if(!strcmp(value,"true"))
++        result = true;
++    else
++        result = false;
++
++    return result;
++}
++
++
+ int hwc_get_string_property(const char* pcProperty,const char* default_value,char* retult)
+ {
+     if(pcProperty == NULL || default_value == NULL || retult == NULL)
+@@ -230,6 +251,8 @@ int hwc_get_string_property(const char* pcProperty,const char* default_value,cha
+     return 0;
+ }
+ 
++
++
+ static int CompareLines(int *da,int w)
+ {
+     int i,j;
+diff --git a/hwc_util.h b/hwc_util.h
+index 891203b..69d377e 100755
+--- a/hwc_util.h
++++ b/hwc_util.h
+@@ -105,6 +105,7 @@ typedef enum
+ #define ALIGN_DOWN( value, base)	(value & (~(base-1)) )
+ 
+ int hwc_get_int_property(const char* pcProperty,const char* default_value);
++bool hwc_get_bool_property(const char* pcProperty,const char* default_value);
+ int hwc_get_string_property(const char* pcProperty,const char* default_value,char* retult);
+ int DetectValidData(int *data,int w,int h);
+ void ctl_gpu_performance(int on);
+diff --git a/hwcomposer.cpp b/hwcomposer.cpp
+index e8e8a0d..5dc0ea2 100755
+--- a/hwcomposer.cpp
++++ b/hwcomposer.cpp
+@@ -486,6 +486,7 @@ struct hwc_context_t {
+     //int fd_3d;
+     //threadPamaters mControlStereo;
+ #endif
++    bool hdr_video_compose_by_gles = false;
+ 
+     std::vector<DrmCompositionDisplayPlane> comp_plane_group;
+     std::vector<DrmHwcDisplayContents> layer_contents;
+@@ -1828,10 +1829,9 @@ static bool is_use_gles_comp(struct hwc_context_t *ctx, DrmConnector *connector,
+                 ALOGD_IF(log_level(DBG_DEBUG),"layer's format=0x%x is not support,go to GPU GLES at line=%d", format, __LINE__);
+                 return true;
+             }
+-//From System Product 1 Fang XingWen: Give priority to frame rate stability, regardless of the HDR effect
+-#if 0
++#if 1 // vendor.hwc.hdr_video_compose_by_gles property to enable/disable hdr_video_compose_by_gles
+ #if  (defined TARGET_BOARD_PLATFORM_RK3399) || (defined TARGET_BOARD_PLATFORM_RK3288)
+-            if(hd->isHdr)
++            if(hd->isHdr && ctx->hdr_video_compose_by_gles)
+             {
+                 if(connector && !connector->is_hdmi_support_hdr()
+                     && crtc && !ctx->drm.is_plane_support_hdr2sdr(crtc))
+@@ -4385,6 +4385,8 @@ static int hwc_device_open(const struct hw_module_t *module, const char *name,
+ 
+   hwc_init_version();
+ 
++    ctx->hdr_video_compose_by_gles = hwc_get_bool_property( PROPERTY_TYPE ".hwc.hdr_video_by_gles","false");
++    ALOGI("HWC property : hdr_video_by_gles = %s",ctx->hdr_video_compose_by_gles ? "True" : "False");
+ 
+ #if RK_INVALID_REFRESH
+     ctx->mOneWinOpt = false;
+-- 
+2.7.4
+

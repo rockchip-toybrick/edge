@@ -1,0 +1,31 @@
+From 5226661ad030ddc93879a8194a35a4330bc96a76 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Tue, 18 Dec 2018 09:41:55 +0800
+Subject: [PATCH 3/3] Revert "arm64: dts: rockchip: modify 'gpu_power_model'
+ for Midgard DDK r18 on rk3399"
+
+This reverts commit 98d4505e1bd62ff028bd79fbd8284d64b6f468f8.
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 124a911..eccccd8 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1742,8 +1742,10 @@
+ 
+ 		gpu_power_model: power_model {
+ 			compatible = "arm,mali-simple-power-model";
+-			static-coefficient = <411000>;
+-			dynamic-coefficient = <733>;
++			voltage = <900>;
++			frequency = <500>;
++			static-power = <300>;
++			dynamic-power = <396>;
+ 			ts = <32000 4700 (-80) 2>;
+ 			thermal-zone = "gpu-thermal";
+ 		};
+-- 
+2.7.4
+

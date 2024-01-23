@@ -1,0 +1,25 @@
+From 2a2bd1e413e5a51bc77cc4cf580f54c7279d008a Mon Sep 17 00:00:00 2001
+From: Putin Lee <putin.li@rock-chips.com>
+Date: Tue, 19 Feb 2019 09:06:38 +0800
+Subject: [PATCH] ARM: dts: rockchip: rk3288-android: add assigned clocks for
+ rga
+
+Change-Id: Ice88b6a58b2f7c766b5cd42291bddbdbfb50cb2d
+Signed-off-by: Putin Lee <putin.li@rock-chips.com>
+
+diff --git a/arch/arm/boot/dts/rk3288-android.dtsi b/arch/arm/boot/dts/rk3288-android.dtsi
+index 98f642c..3dabd18 100644
+--- a/arch/arm/boot/dts/rk3288-android.dtsi
++++ b/arch/arm/boot/dts/rk3288-android.dtsi
+@@ -297,6 +297,8 @@
+ 	compatible = "rockchip,rga2";
+ 	clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
+ 	clock-names = "aclk_rga", "hclk_rga", "clk_rga";
++	assigned-clocks = <&cru ACLK_RGA>, <&cru SCLK_RGA>;
++	assigned-clock-rates = <300000000>, <300000000>;
+ 	dma-coherent;
+ 	status = "okay";
+ };
+-- 
+2.7.4
+

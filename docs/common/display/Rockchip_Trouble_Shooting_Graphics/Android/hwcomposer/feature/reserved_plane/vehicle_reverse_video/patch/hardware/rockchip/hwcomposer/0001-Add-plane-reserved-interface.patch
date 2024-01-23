@@ -1,0 +1,170 @@
+From e9155e4dcffcf708ea47c825ca430317e996356e Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Tue, 25 Dec 2018 15:53:44 +0800
+Subject: [PATCH] Add plane reserved interface:
+
+Android 8.1 or lower:
+  sys.hwc.win1.reserved    1-Enable / 0-Disable
+  sys.hwc.win1.zpos        Set Win1 zpos 0-4
+
+Android 9.0 or higher:
+  vendor.hwc.win1.reserved 1-Enable / 0-Disable
+  vendor.hwc.win1.zpos     Set Win1 zpos 0-4
+
+Change-Id: Ic623ca22d772c8f07c4c592de6289ad666502088
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ Android.mk               |  5 ++++-
+ drmdisplaycompositor.cpp | 15 +++++++++------
+ hwc_rockchip.cpp         | 12 ++++++++++++
+ hwcomposer.cpp           | 19 ++++++++-----------
+ 4 files changed, 33 insertions(+), 18 deletions(-)
+
+diff --git a/Android.mk b/Android.mk
+index de3f78f..37a0cbd 100755
+--- a/Android.mk
++++ b/Android.mk
+@@ -204,7 +204,7 @@ ifeq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)),vr)
+ LOCAL_CPPFLAGS += -DRK3368_VR
+ endif
+ ifeq ($(strip $(PRODUCT_BUILD_MODULE)),px5car)
+-LOCAL_CPPFLAGS += -DRK3368_PX5CAR
++LOCAL_CPPFLAGS += -DUSE_PLANE_RESERVED
+ endif
+ endif
+ 
+@@ -377,6 +377,9 @@ else
+ LOCAL_CPPFLAGS += -DDUAL_VIEW_MODE=0
+ endif
+ 
++#USE_PLANE_RESERVED enable
++#LOCAL_CPPFLAGS += -DUSE_PLANE_RESERVED
++
+ # RK_RGA_PREPARE_ASYNC and RK_RGA_COMPSITE_SYNC are exclusive.
+ # 	RK_RGA_PREPARE_ASYNC: use async rga in hwc_prepare.
+ #	RK_RGA_COMPSITE_SYNC: use sync rga in composite thread.
+diff --git a/drmdisplaycompositor.cpp b/drmdisplaycompositor.cpp
+index 3a0f61a..fda949c 100755
+--- a/drmdisplaycompositor.cpp
++++ b/drmdisplaycompositor.cpp
+@@ -842,16 +842,17 @@ int DrmDisplayCompositor::DisablePlanes(DrmDisplayComposition *display_comp) {
+   }
+ 
+   int ret;
+-#ifdef RK3368_PX5CAR
++#ifdef USE_PLANE_RESERVED
+   int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
+ #endif
+   std::vector<DrmCompositionPlane> &comp_planes =
+       display_comp->composition_planes();
+   for (DrmCompositionPlane &comp_plane : comp_planes) {
+     DrmPlane *plane = comp_plane.plane();
+-#ifdef RK3368_PX5CAR
+-    if (win1_reserved > 0 && plane->is_reserved())
++#ifdef USE_PLANE_RESERVED
++    if (win1_reserved > 0 && plane->is_reserved()){
+         continue;
++    }
+ #endif
+     ret = drmModeAtomicAddProperty(pset, plane->id(),
+                                    plane->crtc_property().id(), 0) < 0 ||
+@@ -1168,7 +1169,7 @@ int DrmDisplayCompositor::CommitFrame(DrmDisplayComposition *display_comp,
+ 
+     //Find out the fb target for clone layer.
+     int fb_target_fb_id = -1;
+-#ifdef RK3368_PX5CAR
++#ifdef USE_PLANE_RESERVED
+     int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
+ #endif
+ 
+@@ -1338,10 +1339,12 @@ int DrmDisplayCompositor::CommitFrame(DrmDisplayComposition *display_comp,
+     }
+ 
+     // Disable the plane if there's no framebuffer
+-#ifdef RK3368_PX5CAR
+-    if (fb_id < 0 && win1_reserved > 0 && plane->is_reserved())
++#ifdef USE_PLANE_RESERVED
++    if (fb_id < 0 && win1_reserved > 0 && plane->is_reserved()){
+         continue;
++    }
+ #endif
++
+     if (fb_id < 0) {
+       ret = drmModeAtomicAddProperty(pset, plane->id(),
+                                      plane->crtc_property().id(), 0) < 0 ||
+diff --git a/hwc_rockchip.cpp b/hwc_rockchip.cpp
+index 51038bc..575548f 100755
+--- a/hwc_rockchip.cpp
++++ b/hwc_rockchip.cpp
+@@ -1671,6 +1671,12 @@ bool MatchPlanes(
+     uint64_t last_zpos=0;
+     bool bMatch = false;
+ 
++#ifdef USE_PLANE_RESERVED
++        uint64_t win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
++        uint64_t win1_zpos = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.zpos", "0");
++#endif
++
++
+     //set use flag to false.
+     for (std::vector<PlaneGroup *> ::const_iterator iter = plane_groups.begin();
+        iter != plane_groups.end(); ++iter) {
+@@ -1687,6 +1693,12 @@ bool MatchPlanes(
+ 
+     for (LayerMap::iterator iter = layer_map.begin();
+         iter != layer_map.end(); ++iter) {
++#ifdef USE_PLANE_RESERVED
++        if(win1_reserved > 0 && win1_zpos == last_zpos)
++        {
++            last_zpos++;
++        }
++#endif
+         if(iter == layer_map.begin())
+         {
+             DrmHwcLayer* first_layer = (iter->second)[0];
+diff --git a/hwcomposer.cpp b/hwcomposer.cpp
+index 5d61dc4..5d752fa 100755
+--- a/hwcomposer.cpp
++++ b/hwcomposer.cpp
+@@ -2351,7 +2351,7 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
+   struct hwc_context_t *ctx = (struct hwc_context_t *)&dev->common;
+   int ret = -1;
+ 
+-#ifdef RK3368_PX5CAR
++#ifdef USE_PLANE_RESERVED
+   int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
+ #endif
+ 
+@@ -2456,22 +2456,19 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
+     for (std::vector<PlaneGroup *> ::const_iterator iter = plane_groups.begin();
+         iter != plane_groups.end(); ++iter)
+     {
+-#ifdef RK3368_PX5CAR
+-        if (win1_reserved > 0 &&
+-            ((*iter)->planes.at(0)->type() == DRM_PLANE_TYPE_OVERLAY) &&
+-            (*iter)->planes.at(0)->get_yuv())
++#ifdef USE_PLANE_RESERVED
++        if (win1_reserved > 0 && GetCrtcSupported(*crtc, (*iter)->possible_crtcs) &&
++          ((*iter)->planes.at(0)->type() == DRM_PLANE_TYPE_OVERLAY) &&
++          (*iter)->planes.at(0)->get_yuv())
+         {
+             (*iter)->b_reserved = true;
+             for(std::vector<DrmPlane*> ::const_iterator iter_plane = (*iter)->planes.begin();
+-               iter_plane != (*iter)->planes.end(); ++iter_plane)
++              iter_plane != (*iter)->planes.end(); ++iter_plane)
+             {
+                 (*iter_plane)->set_reserved(true);
+             }
+-            static bool reserved_win_debug = true;
+-            if (reserved_win_debug)
+-                ALOGE("reserved plane share_id = %d", (*iter)->share_id);
+-            reserved_win_debug = false;
+-           // continue;
++            ALOGD_IF(log_level(DBG_DEBUG),"Enable USE_PLANE_RESERVED, plane share_id = %" PRIu64 "", (*iter)->share_id);
++            continue;
+         }
+ #endif
+         if(hd->is_interlaced && (*iter)->planes.size() > 2)
+-- 
+2.7.4
+

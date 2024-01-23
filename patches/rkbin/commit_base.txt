@@ -1,0 +1,23 @@
+commit cf04d2f1699570344d189b0e6ff2eeb3f532f16c (HEAD -> master, rockchip/master, m/master)
+Author: Zhihuan He <huan.he@rock-chips.com>
+Date:   Fri Apr 14 11:01:38 2023 +0800
+
+    rk3528: ddr: update ddrbin to v1.05
+    
+    build from:
+            2eef4a672d dram_init: rk3528: Update to v1.05
+    
+    update feature:
+            faf928be04 dram_init: rk3568: rk3562: add support 4rank diff row
+            59eb9f8ae9 drivers: ram: rk3528: add 4bit PCB config
+            c3cd13fb48 drivers: ram: rk3528: rk3562: fix DDR3 RAS 2T phase err
+            6521d72cee drivers: ram: rk3528: add max freq limit
+            78e25c2de1 drivers: ram: rk3528: update DDR PCB config for better SI
+            8f5e4156d7 dirvers: ram: rk3528: lp4x TX 1.1V output when odt en
+            b9c108a4eb dirvers: ram: rk3528: rk3562: fix LP3 multi-rank ODT err in
+    wr train
+            c9b3a27362 dirvers: ram: rk3528: fix lp3 ca skew config by loader_param
+            a404c50a77 dirvers: ram: rk3528: add lp3 ca train support
+    
+    Signed-off-by: Zhihuan He <huan.he@rock-chips.com>
+    Change-Id: Idbaa6ff707efdcadda9f7f9765563b6dced7fb7e

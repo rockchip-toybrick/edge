@@ -1,5 +1,0 @@
-title Papenmeier BrailleX Elba 20
-assign keyEmulation
-assign statusKeys 0
-include bar.kti
-include switches.kti

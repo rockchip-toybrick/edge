@@ -1,0 +1,33 @@
+From 683baa315ef4fbe1c5bb72470062206e506bca68 Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Tue, 7 Apr 2020 10:48:23 +0800
+Subject: [PATCH] Multi areas format limit, multi areas not support YUV format.
+
+Change-Id: I45dd83ce85bf8f0640c824c6e56ef0e65ec15345
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ rk_hwcomposer.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/rk_hwcomposer.cpp b/rk_hwcomposer.cpp
+index 4cad9e5..9428940 100755
+--- a/rk_hwcomposer.cpp
++++ b/rk_hwcomposer.cpp
+@@ -1287,6 +1287,14 @@ int is_x_intersect(hwc_rect_t * rec,hwc_rect_t * rec2)
+ 
+ int is_zone_combine(ZoneInfo * zf,ZoneInfo * zf2)
+ {
++    if(zf->format >= HAL_PIXEL_FORMAT_YCbCr_422_SP ||
++       zf2->format >= HAL_PIXEL_FORMAT_YCbCr_422_SP)
++    {
++        ALOGV("line=%d",__LINE__);
++        ALOGV("format:%x=>%x",zf->format,zf2->format);
++        return 0;
++    }
++
+     if(zf->format != zf2->format)
+     {
+         ALOGV("line=%d",__LINE__);
+-- 
+2.7.4
+

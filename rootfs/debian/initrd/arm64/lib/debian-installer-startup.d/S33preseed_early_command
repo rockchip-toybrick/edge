@@ -1,2 +1,0 @@
-#!/bin/sh
-preseed_command preseed/early_command

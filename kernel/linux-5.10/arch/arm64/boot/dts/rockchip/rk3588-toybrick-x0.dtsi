@@ -205,7 +205,7 @@
 
 	vcc_mipidcphy0: vcc-mipidcphy0-regulator {
 		compatible = "regulator-fixed";
-		regulator-name = "vcc_mipicsi1";
+		regulator-name = "vcc_mipidcphy0";
 		enable-active-high;
 	};
 

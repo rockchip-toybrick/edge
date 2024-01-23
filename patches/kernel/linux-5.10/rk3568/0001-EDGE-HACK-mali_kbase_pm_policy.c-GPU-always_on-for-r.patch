@@ -1,0 +1,28 @@
+From 45f78f020ebd3e7594addb4da08f68da2c244dac Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Mon, 10 Jan 2022 15:17:30 +0800
+Subject: [PATCH 1/2] [EDGE] HACK: mali_kbase_pm_policy.c: GPU always_on for
+ rk3568
+
+Change-Id: I6c0681d483d5333f0a95ce63c2d77614c4734c41
+---
+ drivers/gpu/arm/bifrost/backend/gpu/mali_kbase_pm_policy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/arm/bifrost/backend/gpu/mali_kbase_pm_policy.c b/drivers/gpu/arm/bifrost/backend/gpu/mali_kbase_pm_policy.c
+index 306266cf075b..0c2929408261 100644
+--- a/drivers/gpu/arm/bifrost/backend/gpu/mali_kbase_pm_policy.c
++++ b/drivers/gpu/arm/bifrost/backend/gpu/mali_kbase_pm_policy.c
+@@ -40,8 +40,8 @@ static const struct kbase_pm_policy *const all_policy_list[] = {
+ 	&kbase_pm_always_on_policy_ops,
+ 	&kbase_pm_coarse_demand_policy_ops,
+ #else /* CONFIG_MALI_BIFROST_NO_MALI */
+-	&kbase_pm_coarse_demand_policy_ops,
+ 	&kbase_pm_always_on_policy_ops,
++	&kbase_pm_coarse_demand_policy_ops,
+ #endif /* CONFIG_MALI_BIFROST_NO_MALI */
+ };
+ 
+-- 
+2.30.2
+

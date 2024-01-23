@@ -1,0 +1,43 @@
+diff --git a/services/core/java/com/android/server/am/ActivityManagerDebugConfig.java b/services/core/java/com/android/server/am/ActivityManagerDebugConfig.java
+index 276f0ef..362d6a6 100644
+--- a/services/core/java/com/android/server/am/ActivityManagerDebugConfig.java
++++ b/services/core/java/com/android/server/am/ActivityManagerDebugConfig.java
+@@ -54,7 +54,7 @@ class ActivityManagerDebugConfig {
+     static final boolean DEBUG_BROADCAST_BACKGROUND = DEBUG_BROADCAST || false;
+     static final boolean DEBUG_BROADCAST_LIGHT = DEBUG_BROADCAST || false;
+     static final boolean DEBUG_CLEANUP = DEBUG_ALL || false;
+-    static final boolean DEBUG_CONFIGURATION = DEBUG_ALL || false;
++    static final boolean DEBUG_CONFIGURATION = DEBUG_ALL || true;
+     static final boolean DEBUG_CONTAINERS = DEBUG_ALL_ACTIVITIES || false;
+     static final boolean DEBUG_FOCUS = false;
+     static final boolean DEBUG_IDLE = DEBUG_ALL_ACTIVITIES || false;
+diff --git a/services/core/java/com/android/server/am/ActivityRecord.java b/services/core/java/com/android/server/am/ActivityRecord.java
+index ee23d63..530c312 100644
+--- a/services/core/java/com/android/server/am/ActivityRecord.java
++++ b/services/core/java/com/android/server/am/ActivityRecord.java
+@@ -2426,8 +2426,24 @@ final class ActivityRecord extends ConfigurationContainer implements AppWindowCo
+             return true;
+         }
+ 
++
++        if (Configuration.configurationDiffToString(changes).contains("{CONFIG_KEYBOARD, CONFIG_KEYBOARD_HIDDEN}")||
++                 Configuration.configurationDiffToString(changes).contains("{CONFIG_KEYBOARD_HIDDEN, CONFIG_NAVIGATION}")) {
++            if (DEBUG_SWITCH || DEBUG_CONFIGURATION) Slog.v(TAG_CONFIGURATION,
++                    "Configuration no differences in " + this);
++            // There are no significant differences, so we won't relaunch but should still deliver
++            // the new configuration to the client process.
++            if (displayChanged) {
++                scheduleActivityMovedToDisplay(newDisplayId, newMergedOverrideConfig);
++            } else {
++                scheduleConfigurationChanged(newMergedOverrideConfig);
++            }
++            return true;
++        }
++
++
+         if (DEBUG_SWITCH || DEBUG_CONFIGURATION) Slog.v(TAG_CONFIGURATION,
+-                "Configuration changes for " + this + ", allChanges="
++                "===+++++----------Configuration changes for " + this + ", allChanges="
+                         + Configuration.configurationDiffToString(changes));
+ 
+         // If the activity isn't currently running, just leave the new configuration and it will

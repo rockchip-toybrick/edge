@@ -1,0 +1,28 @@
+From 28d0dc5479d75f30903ca56996e6492734e26d6f Mon Sep 17 00:00:00 2001
+From: Shaoxing Chen <csx@rock-chips.com>
+Date: Thu, 9 Mar 2023 10:04:07 +0800
+Subject: [PATCH 20/31] drivers: net: wireless: Fixed ifid error
+
+Change-Id: Id252cc5ff0f6ad9495844f316b639add16ea117c
+Signed-off-by: Shaoxing Chen <csx@rock-chips.com>
+---
+ drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_wlfc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_wlfc.c b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_wlfc.c
+index 11283aa94db8..914b8212b6d8 100755
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_wlfc.c
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/dhd_wlfc.c
+@@ -1059,6 +1059,9 @@ _dhd_wlfc_flow_control_check(athost_wl_status_info_t* ctx, struct pktq* pq, uint
+ 	dhdp = (dhd_pub_t *)ctx->dhdp;
+ 	ASSERT(dhdp);
+ 
++	if (if_id >= 255)
++		return;
++
+ 	if (dhdp->skip_fc && dhdp->skip_fc((void *)dhdp, if_id))
+ 		return;
+ 
+-- 
+2.25.1
+

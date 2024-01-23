@@ -1,0 +1,45 @@
+From fea4205830aa78fc5445faacb8c4c593c339db7c Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Thu, 19 May 2022 16:06:02 +0800
+Subject: [PATCH 17/24] MALI: bifrost: prevent a rare null pointer exception in
+ update_on_slot_queues_offsets()
+
+The most recent situation is that the null pointer exception
+is only reported from repeated reboot test on rk3588_EDGE_SDK,
+not on rk3588_Linux_SDK or rk3588_Android_SDK.
+
+Change-Id: I1e5ce9eb9fd32c29294e115e6014a8114c896754
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ .../gpu/arm/bifrost/csf/mali_kbase_csf_scheduler.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/arm/bifrost/csf/mali_kbase_csf_scheduler.c b/drivers/gpu/arm/bifrost/csf/mali_kbase_csf_scheduler.c
+index 930c26e57862..625e099e3380 100644
+--- a/drivers/gpu/arm/bifrost/csf/mali_kbase_csf_scheduler.c
++++ b/drivers/gpu/arm/bifrost/csf/mali_kbase_csf_scheduler.c
+@@ -442,10 +442,18 @@ static void update_on_slot_queues_offsets(struct kbase_device *kbdev)
+ 			struct kbase_queue *const queue = group->bound_queues[j];
+ 
+ 			if (queue) {
+-				u64 const *const output_addr =
+-					(u64 const *)(queue->user_io_addr + PAGE_SIZE);
++				if (queue->user_io_addr) {
++					u64 const *const output_addr =
++						(u64 const *)(queue->user_io_addr + PAGE_SIZE);
+ 
+-				queue->extract_ofs = output_addr[CS_EXTRACT_LO / sizeof(u64)];
++					queue->extract_ofs =
++						output_addr[CS_EXTRACT_LO / sizeof(u64)];
++				} else {
++					dev_warn(kbdev->dev,
++						 "%s(): queue->user_io_addr is NULL, queue: %p",
++						 __func__,
++						 queue);
++				}
+ 			}
+ 		}
+ 	}
+-- 
+2.30.2
+

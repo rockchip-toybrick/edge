@@ -1,0 +1,8 @@
+commit 0dfde98ba6aa1fa87a0efb0315b534b0742014d1 (HEAD -> master, rockchip/master, m/master)
+Author: Addy Ke <addy.ke@rock-chips.com>
+Date:   Wed Jun 29 15:37:24 2022 +0800
+
+    boot_recovery: reboot after clean userdata
+    
+    Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+    Change-Id: I62f1b44ca188d9aa098a439037b87164d883caa6

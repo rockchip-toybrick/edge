@@ -1,0 +1,62 @@
+From 8e4f21b8aedcce05b94795e1c8022b55191b18d9 Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Sun, 29 Sep 2019 14:36:34 +0800
+Subject: [PATCH] RK3288 RK3326 multi region format must be the same.
+
+Bug:
+  Defect #223454
+
+Change-Id: I5278bc1d914645ed2aefe62e073b4bfc115b7248
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ Android.mk       | 2 ++
+ hwc_rockchip.cpp | 6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/Android.mk b/Android.mk
+index 6671304..7b8c2f9 100755
+--- a/Android.mk
++++ b/Android.mk
+@@ -273,6 +273,7 @@ RGA_VER = 3
+ RK_CTS_WORKROUND = 0
+ LOCAL_CPPFLAGS += -DTARGET_BOARD_PLATFORM_RK3288  -DRK_DRM_GRALLOC=1 \
+                -DMALI_AFBC_GRALLOC=1
++LOCAL_CPPFLAGS += -DRK_MULTI_AREAS_FORMAT_LIMIT
+ RK_SORT_AREA_BY_XPOS = 0
+ RK_HOR_INTERSECT_LIMIT = 1
+ RK_ROTATE_VIDEO_MODE = 1
+@@ -343,6 +344,7 @@ USE_AFBC_LAYER = 1
+ RGA_VER = 2
+ LOCAL_CPPFLAGS += -DTARGET_BOARD_PLATFORM_RK3326  -DRK_DRM_GRALLOC=1 \
+                -DMALI_AFBC_GRALLOC=1
++LOCAL_CPPFLAGS += -DRK_MULTI_AREAS_FORMAT_LIMIT
+ RK_SORT_AREA_BY_XPOS = 0
+ RK_HOR_INTERSECT_LIMIT = 1
+ ifeq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)),tablet)
+diff --git a/hwc_rockchip.cpp b/hwc_rockchip.cpp
+index 2d68ca7..ed69dff 100755
+--- a/hwc_rockchip.cpp
++++ b/hwc_rockchip.cpp
+@@ -1065,6 +1065,10 @@ static bool is_layer_combine(DrmHwcLayer * layer_one,DrmHwcLayer * layer_two)
+     //multi region only support RGBA888 RGBX8888 RGB888 565 BGRA888
+     if(layer_one->format >= HAL_PIXEL_FORMAT_YCrCb_NV12
+         || layer_two->format >= HAL_PIXEL_FORMAT_YCrCb_NV12
++    //RK3288 Rk3326 multi region format must be the same
++#if RK_MULTI_AREAS_FORMAT_LIMIT
++        || (layer_one->format != layer_two->format)
++#endif
+         || layer_one->alpha!= layer_two->alpha
+         || layer_one->is_scale || layer_two->is_scale
+         || is_rec1_intersect_rec2(&layer_one->display_frame,&layer_two->display_frame)
+@@ -2297,7 +2301,7 @@ AllMatch:
+             {
+                 ALOGD_IF(log_level(DBG_DEBUG), "%s:line=%d vop band with is too big,fail match layers.size=%zu",__FUNCTION__,__LINE__,layers.size());
+                 goto FailMatch;
+-            } 
++            }
+         }
+     }
+ #endif
+-- 
+2.7.4
+

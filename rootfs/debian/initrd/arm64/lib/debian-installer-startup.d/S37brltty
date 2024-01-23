@@ -1,5 +1,0 @@
-#!/bin/sh
-if grep -q brltty /proc/cmdline 
-then
-  /lib/brltty/brltty.sh -E
-fi

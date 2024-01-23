@@ -1,4 +1,0 @@
-DISTRIB_ID=Debian
-DISTRIB_DESCRIPTION="Debian GNU/Linux installer"
-DISTRIB_RELEASE="11 (bullseye) - installer build 20210731+deb11u2"
-X_INSTALLATION_MEDIUM=cdrom

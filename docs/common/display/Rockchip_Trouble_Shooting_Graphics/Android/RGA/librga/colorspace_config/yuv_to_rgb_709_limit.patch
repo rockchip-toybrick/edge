@@ -1,0 +1,13 @@
+diff --git a/normal/NormalRga.cpp b/normal/NormalRga.cpp
+index d27ed44..0291b7e 100755
+--- a/normal/NormalRga.cpp
++++ b/normal/NormalRga.cpp
+@@ -916,7 +916,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
+ 	/* special config for yuv to rgb */
+ 	if (NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
+ 			NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relDstRect.format)))
+-		yuvToRgbMode |= 0x1 << 0;
++		yuvToRgbMode |= 0x3 << 0;
+ 
+ 	/* special config for rgb to yuv */
+ 	if (NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&

@@ -16,8 +16,8 @@ class Config:
         self.root_path = root_path
         self.common_items = ['board', 'chip', 'arch', 'bootmode', 'hyper']
         self.secureboot_items = ['enable', 'rollback', 'burnkey']
-        self.part_extlinux_items = ['uboot', 'misc', 'boot_linux:bootable', 'recovery', 'resource', 'rootfs:grow']
-        self.part_fit_items = ['uboot', 'misc', 'boot', 'recovery', 'backup', 'rootfs', 'oem', 'userdata:grow']
+        self.part_extlinux_items = ['uboot', 'trust', 'misc', 'boot_linux:bootable', 'recovery', 'resource', 'rootfs:grow']
+        self.part_fit_items = ['uboot', 'trust', 'misc', 'boot', 'recovery', 'backup', 'rootfs', 'oem', 'userdata:grow']
         self.part_flash_items = ['vnvm', 'uboot', 'boot']
         self.uboot_items = ['config']
         self.kernel_items = ['version', 'config', 'dtbname', 'size', 'docker', 'debug']

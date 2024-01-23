@@ -1,0 +1,171 @@
+From f64a14011f43b147b4f4560105bece2165dc9e43 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Thu, 23 Mar 2023 11:58:10 +0800
+Subject: [PATCH 23/31] virtio_video: syc QNX modify
+
+https://gitlab.com/qnx/hypervisor/aosp/kernel_common-modules_virtual-device/-/blob/android13-qpr1-release-qnx/kernel_common-modules_virtual-device.diff
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I3cd84317728cea2bde99e421eefab2431888ce2e
+---
+ drivers/video/virtio/virtio_video.h        |  1 +
+ drivers/video/virtio/virtio_video_cam.c    |  2 +-
+ drivers/video/virtio/virtio_video_dec.c    | 17 ++++++++++++++++-
+ drivers/video/virtio/virtio_video_device.c | 14 ++++++++++++--
+ drivers/video/virtio/virtio_video_driver.c | 11 ++++++++++-
+ include/uapi/linux/virtio_video.h          |  3 ++-
+ 6 files changed, 42 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/video/virtio/virtio_video.h b/drivers/video/virtio/virtio_video.h
+index 9ece57db81f3..2c5fa9995f4a 100644
+--- a/drivers/video/virtio/virtio_video.h
++++ b/drivers/video/virtio/virtio_video.h
+@@ -37,6 +37,7 @@
+ #define VIRTIO_ID_VIDEO_DEC 31
+ #define VIRTIO_ID_VIDEO_ENC 30
+ #define VIRTIO_ID_VIDEO_CAM 100
++#define VIRTIO_ID_VIDEO_HDMIIN 101
+ 
+ #define MIN_BUFS_MIN 0
+ #define MIN_BUFS_MAX VIDEO_MAX_FRAME
+diff --git a/drivers/video/virtio/virtio_video_cam.c b/drivers/video/virtio/virtio_video_cam.c
+index d657ba8a5a32..cc04a6c20c78 100644
+--- a/drivers/video/virtio/virtio_video_cam.c
++++ b/drivers/video/virtio/virtio_video_cam.c
+@@ -121,7 +121,7 @@ int virtio_video_cam_init_queues(void *priv, struct vb2_queue *src_vq,
+ 		vq_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 
+ 	dst_vq->type = vq_type;
+-	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF | VB2_USERPTR;;
+ 	dst_vq->drv_priv = stream;
+ 	dst_vq->buf_struct_size = sizeof(struct virtio_video_buffer);
+ 	dst_vq->ops = &virtio_video_cam_qops;
+diff --git a/drivers/video/virtio/virtio_video_dec.c b/drivers/video/virtio/virtio_video_dec.c
+index 301a9a161a37..d2bbd0b1ef9b 100644
+--- a/drivers/video/virtio/virtio_video_dec.c
++++ b/drivers/video/virtio/virtio_video_dec.c
+@@ -141,18 +141,33 @@ int virtio_video_dec_init_queues(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->lock = &stream->vq_mutex;
+ 	src_vq->gfp_flags = virtio_video_gfp_flags(vvd);
+ 	src_vq->dev = dev;
++	src_vq->allow_zero_bytesused = 1; // On QNX, allow size 0 EOS indication.
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+ 		return ret;
+ 
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF | VB2_USERPTR;;
+ 	dst_vq->drv_priv = stream;
+ 	dst_vq->buf_struct_size = sizeof(struct virtio_video_buffer);
+ 	dst_vq->ops = &virtio_video_dec_qops;
+ 	dst_vq->mem_ops = virtio_video_mem_ops(vvd);
+ 	dst_vq->min_buffers_needed = stream->out_info.min_buffers;
++	// On QNX we override this to 1 for a slight improvement in latency when
++	// video playback first starts, or resumes after a seek. Right now the value
++	// configured in the vdev for out_info.min_buffers is 9 output buffers. That
++	// plus the 4 "extra" output buffers gives us 13 in total. We don't need to
++	// set min_buffers_needed to 9 for this queue. A value of 1 is perfectly
++	// fine and will result in slightly lower latency. The min_buffers_needed
++	// value is used in vb2_core_qbuf(). It waits to call vb2_start_streaming()
++	// until this many output buffers have been received. There is no reason
++	// to wait though. Waiting just increases latency. See kernel source file
++	// videobuf2-core.c for the vb2_core_qbuf() function and min_buffers_needed
++	// check before vb2_start_streaming() gets called to start sending output
++	// buffers to the vdev to be filled. We don't need to do anything for
++	// input buffers (above) because min_buffers_needed already ends up being 1.
++	dst_vq->min_buffers_needed = 1;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &stream->vq_mutex;
+ 	dst_vq->gfp_flags = virtio_video_gfp_flags(vvd);
+diff --git a/drivers/video/virtio/virtio_video_device.c b/drivers/video/virtio/virtio_video_device.c
+index 2e1f90ae2949..2c5ee094b7d1 100644
+--- a/drivers/video/virtio/virtio_video_device.c
++++ b/drivers/video/virtio/virtio_video_device.c
+@@ -522,6 +522,7 @@ int virtio_video_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct video_format_info info;
+ 	struct video_format_info *p_info;
+ 	uint32_t queue;
++	bool resolution_is_invalid = (pix_mp->width == UINT_MAX && pix_mp->height == UINT_MAX) || (pix_mp->width == 0 && pix_mp->height == 0);
+ 
+ 	ret = virtio_video_try_fmt(stream, f);
+ 	if (ret)
+@@ -535,8 +536,17 @@ int virtio_video_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ 		queue = VIRTIO_VIDEO_QUEUE_TYPE_OUTPUT;
+ 	}
+ 
+-	info.frame_width = pix_mp->width;
+-	info.frame_height = pix_mp->height;
++	// On QNX we treat clearly invalid resolution values as zero. Otherwise the
++	// virtio_video_try_fmt() call above will have changed these to the nearest
++	// valid supported resolution. For example, UINT_MAX x UINT_MAX becomes
++	// 1920x1080, and 0x0 becomes 128x96, making it impossible for the vdev to
++	// know that the resolution passed is actually invalid. These invalid values
++	// are passed for VIRTIO_VIDEO_QUEUE_TYPE_OUTPUT (which from the vdev's
++	// point of view is the input queue) because in v4l2_codec2 code the
++	// V4L2Decoder::setupInputFormat() function uses the ui::Size() default
++	// constructor as the resolution passed to mInputQueue->setFormat().
++	info.frame_width = resolution_is_invalid ? 0 : pix_mp->width;
++	info.frame_height = resolution_is_invalid ? 0 : pix_mp->height;
+ 	info.num_planes = pix_mp->num_planes;
+ 	info.fourcc_format = pix_mp->pixelformat;
+ 
+diff --git a/drivers/video/virtio/virtio_video_driver.c b/drivers/video/virtio/virtio_video_driver.c
+index 734c5b73899f..35f38a725f37 100644
+--- a/drivers/video/virtio/virtio_video_driver.c
++++ b/drivers/video/virtio/virtio_video_driver.c
+@@ -45,7 +45,11 @@ static int vid_nr_cam = -1;
+ module_param(vid_nr_cam, int, 0644);
+ MODULE_PARM_DESC(vid_nr_cam, "videoN start number, -1 is autodetect");
+ 
+-static bool mplane_cam = true;
++static int vid_nr_hdmiin = -1;
++module_param(vid_nr_hdmiin, int, 0644);
++MODULE_PARM_DESC(vid_nr_cam, "videoN start number, -1 is autodetect");
++
++static bool mplane_cam = false;
+ module_param(mplane_cam, bool, 0644);
+ MODULE_PARM_DESC(mplane_cam,
+ 	"1 (default) - multiplanar camera, 0 - single planar camera");
+@@ -82,6 +86,10 @@ static int virtio_video_probe(struct virtio_device *vdev)
+ 		vvd->is_mplane_cam = mplane_cam;
+ 		vvd->type = VIRTIO_VIDEO_DEVICE_CAMERA;
+ 		break;
++	case VIRTIO_ID_VIDEO_HDMIIN:
++		vvd->vid_dev_nr = vid_nr_hdmiin;
++		vvd->type = VIRTIO_VIDEO_DEVICE_HDMIIN;
++		break;
+ 	case VIRTIO_ID_VIDEO_ENC:
+ 		vvd->vid_dev_nr = vid_nr_enc;
+ 		vvd->type = VIRTIO_VIDEO_DEVICE_ENCODER;
+@@ -216,6 +224,7 @@ static struct virtio_device_id id_table[] = {
+ 	{ VIRTIO_ID_VIDEO_DEC, VIRTIO_DEV_ANY_ID },
+ 	{ VIRTIO_ID_VIDEO_ENC, VIRTIO_DEV_ANY_ID },
+ 	{ VIRTIO_ID_VIDEO_CAM, VIRTIO_DEV_ANY_ID },
++	{ VIRTIO_ID_VIDEO_HDMIIN, VIRTIO_DEV_ANY_ID },
+ 	{ 0 },
+ };
+ 
+diff --git a/include/uapi/linux/virtio_video.h b/include/uapi/linux/virtio_video.h
+index 70247e8744e0..f8a0f66c3876 100644
+--- a/include/uapi/linux/virtio_video.h
++++ b/include/uapi/linux/virtio_video.h
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: GPL-2.0+ */
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note*/
+ /*
+  * Virtio Video Device
+  *
+@@ -42,6 +42,7 @@ enum virtio_video_device_type {
+ 	VIRTIO_VIDEO_DEVICE_ENCODER = 0x0100,
+ 	VIRTIO_VIDEO_DEVICE_DECODER,
+ 	VIRTIO_VIDEO_DEVICE_CAMERA,
++	VIRTIO_VIDEO_DEVICE_HDMIIN,
+ };
+ 
+ /*
+-- 
+2.25.1
+

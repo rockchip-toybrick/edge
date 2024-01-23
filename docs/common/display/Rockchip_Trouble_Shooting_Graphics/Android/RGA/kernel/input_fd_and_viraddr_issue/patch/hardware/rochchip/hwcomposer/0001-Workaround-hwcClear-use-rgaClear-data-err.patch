@@ -1,0 +1,27 @@
+From 4541dccea990382a898c05c64a3ec0a1d35ac0d1 Mon Sep 17 00:00:00 2001
+From: libin <bin.li@rock-chips.com>
+Date: Fri, 10 Apr 2020 18:01:33 +0800
+Subject: [PATCH] Workaround: hwcClear use rgaClear data err
+
+Change-Id: I2b576b3c5741a10d39506596b1b0bf4be4a21c19
+Signed-off-by: libin <bin.li@rock-chips.com>
+---
+ rk_hwcomposer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rk_hwcomposer.cpp b/rk_hwcomposer.cpp
+index 8a96a22..55183c1 100755
+--- a/rk_hwcomposer.cpp
++++ b/rk_hwcomposer.cpp
+@@ -5800,7 +5800,7 @@ hwc_device_open(
+ 
+             for (int  i = 0;i < FB_BUFFERS_NUM;i++)
+             {
+-                err = context->mAllocDev->alloc(context->mAllocDev,rkmALIGN(info.xres,32), \
++                err = context->mAllocDev->alloc(context->mAllocDev,rkmALIGN(info.xres,32)*1.2, \
+                                                 info.yres, context->fbhandle.format, \
+                                                 GRALLOC_USAGE_HW_COMPOSER | GRALLOC_USAGE_HW_RENDER, \
+                                                 (buffer_handle_t*)(&context->phd_bk[i]), &stride_gr);
+-- 
+2.7.4
+

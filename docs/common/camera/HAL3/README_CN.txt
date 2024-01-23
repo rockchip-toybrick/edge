@@ -26,6 +26,9 @@
        |-  ISP30                                   // ISP30 for RK3588
           |- CN                                     // 中文版
                |- v3.0.0
+       |-  ISP32-lite                                   // ISP32-lite for RK3562
+          |- CN                                     // 中文版
+               |- v3.1.0
 
 9) Rockchip_Development_Guide_ISP              // ISP 开发文档
         |-  ISP21                                   // ISP21 for RK356X
@@ -34,10 +37,13 @@
         |-  ISP30                                   // ISP30 for RK3588
           |- CN                                     // 中文版
                |- v1.2.3
+        |-  ISP32-lite                                   // ISP32-lite for RK3562
+          |- CN                                     // 中文版
+               |- v1.0.0
 
-10) Rockchip_Driver_Guide_VI          // VI 驱动开发文档   for RV1109/RV1126/RK356X/RK3588
+10) Rockchip_Driver_Guide_VI          // VI 驱动开发文档   for RV1109/RV1126/RK356X/RK3588/RK3562
         |- CN                                       // 中文版
-          |- v1.1.1
+          |- v1.1.4
         |- EN                                       // 英文版
           |- v1.0.7
 
@@ -48,12 +54,17 @@
         |-  ISP30                                   // ISP30 for RK3588
           |- CN                                     // 中文版
                |- v2.0.4
+        |-  ISP32-lite                                   // ISP32-lite for RK3562
+          |- CN                                     // 中文版
+               |- v2.0.7
 
 12) Rockchip_Tuning_Guide_ISP                   // ISP2X调试文档
         |-  ISP21                                   // ISP21 for RK3566/RK3568
           |- CN                                     // 中文版
               |- v2.1.0
         |-  ISP30                                   // ISP30 for RK3588
+          |- CN                                     // 中文版
+        |-  ISP32-lite                                   // ISP32-lite for RK3562
           |- CN                                     // 中文版
 
 备注：https://redmine.rock-chips.com/documents/53中可以查看最新相关文档

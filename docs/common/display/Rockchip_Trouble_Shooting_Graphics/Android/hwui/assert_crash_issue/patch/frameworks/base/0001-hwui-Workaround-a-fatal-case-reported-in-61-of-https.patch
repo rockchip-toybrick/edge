@@ -1,0 +1,81 @@
+From 15de9c1a104c2f87f689e9a75c38a71adfbc5d10 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Wed, 27 Mar 2019 09:54:42 +0800
+Subject: [PATCH] hwui: Workaround a fatal case reported in #61 of
+ https://redmine.rockchip.com.cn/issues/189373
+
+Change-Id: Ie7b3eb3c0292985e814000cc125df893dbaf2c38
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ libs/hwui/renderthread/EglManager.cpp     | 13 ++++++++++++-
+ libs/hwui/renderthread/EglManager.h       |  2 +-
+ libs/hwui/renderthread/OpenGLPipeline.cpp |  6 +++++-
+ 3 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/libs/hwui/renderthread/EglManager.cpp b/libs/hwui/renderthread/EglManager.cpp
+index 16d7736..5ccabf2 100644
+--- a/libs/hwui/renderthread/EglManager.cpp
++++ b/libs/hwui/renderthread/EglManager.cpp
+@@ -394,17 +394,28 @@ Frame EglManager::beginFrame(EGLSurface surface) {
+     return frame;
+ }
+ 
+-void EglManager::damageFrame(const Frame& frame, const SkRect& dirty) {
++/**
++ * 若有异常发生, 返回 false;
++ * 否则, 返回 true.
++ */
++bool EglManager::damageFrame(const Frame& frame, const SkRect& dirty) {
+ #ifdef EGL_KHR_partial_update
+     if (EglExtensions.setDamage && mSwapBehavior == SwapBehavior::BufferAge) {
+         EGLint rects[4];
+         frame.map(dirty, rects);
+         if (!eglSetDamageRegionKHR(mEglDisplay, frame.mSurface, rects, 1)) {
++#if 0
+             LOG_ALWAYS_FATAL("Failed to set damage region on surface %p, error=%s",
+                     (void*)frame.mSurface, eglErrorString());
++#else
++            ALOGW("Failed to set damage region on surface %p, error=%s",
++                    (void*)frame.mSurface, eglErrorString());
++            return false;
++#endif
+         }
+     }
+ #endif
++    return true;
+ }
+ 
+ bool EglManager::damageRequiresSwap() {
+diff --git a/libs/hwui/renderthread/EglManager.h b/libs/hwui/renderthread/EglManager.h
+index 2982c23..4d7949f 100644
+--- a/libs/hwui/renderthread/EglManager.h
++++ b/libs/hwui/renderthread/EglManager.h
+@@ -48,7 +48,7 @@ public:
+     // Returns true if the current surface changed, false if it was already current
+     bool makeCurrent(EGLSurface surface, EGLint* errOut = nullptr);
+     Frame beginFrame(EGLSurface surface);
+-    void damageFrame(const Frame& frame, const SkRect& dirty);
++    bool damageFrame(const Frame& frame, const SkRect& dirty);
+     // If this returns true it is mandatory that swapBuffers is called
+     // if damageFrame is called without subsequent calls to damageFrame().
+     // See EGL_KHR_partial_update for more information
+diff --git a/libs/hwui/renderthread/OpenGLPipeline.cpp b/libs/hwui/renderthread/OpenGLPipeline.cpp
+index 7283eb1..aafc674 100644
+--- a/libs/hwui/renderthread/OpenGLPipeline.cpp
++++ b/libs/hwui/renderthread/OpenGLPipeline.cpp
+@@ -63,7 +63,11 @@ bool OpenGLPipeline::draw(const Frame& frame, const SkRect& screenDirty, const S
+         const std::vector< sp<RenderNode> >& renderNodes,
+         FrameInfoVisualizer* profiler) {
+ 
+-    mEglManager.damageFrame(frame, dirty);
++    if ( !(mEglManager.damageFrame(frame, dirty) ) )
++    {
++        ALOGW("failed in damageFrame().");
++        return false;
++    }
+ 
+     bool drew = false;
+ 
+-- 
+2.7.4
+

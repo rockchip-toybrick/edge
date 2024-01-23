@@ -1,0 +1,39 @@
+From 062c01a88e793c218eaad2e601d75ea0c05dbf4b Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Sat, 24 Feb 2018 11:40:56 +0800
+Subject: [PATCH] TMP: arm64: rockchip_defconfig: set CONFIG_MALI_MIDGARD to y.
+
+set CONFIG_MALI_BIFROST to n, in addition.
+
+Change-Id: If49743fa8d135607fc2945e00b5c5d284e8841be
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ arch/arm64/configs/rockchip_defconfig | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/arch/arm64/configs/rockchip_defconfig b/arch/arm64/configs/rockchip_defconfig
+index 5cf50ca..bf56460 100644
+--- a/arch/arm64/configs/rockchip_defconfig
++++ b/arch/arm64/configs/rockchip_defconfig
+@@ -513,17 +513,12 @@ CONFIG_MALI450=y
+ CONFIG_MALI_SHARED_INTERRUPTS=y
+ CONFIG_MALI_DT=y
+ CONFIG_MALI_DEVFREQ=y
+-CONFIG_MALI_MIDGARD=m
++CONFIG_MALI_MIDGARD=y
+ CONFIG_MALI_EXPERT=y
+ CONFIG_MALI_PLATFORM_THIRDPARTY=y
+ CONFIG_MALI_PLATFORM_THIRDPARTY_NAME="rk"
+ CONFIG_MALI_DEBUG=y
+ CONFIG_MALI_PWRSOFT_765=y
+-CONFIG_MALI_BIFROST=m
+-CONFIG_MALI_BIFROST_DEVFREQ=y
+-CONFIG_MALI_PLATFORM_NAME="rk"
+-CONFIG_MALI_BIFROST_EXPERT=y
+-CONFIG_MALI_BIFROST_DEBUG=y
+ CONFIG_BACKLIGHT_LCD_SUPPORT=y
+ # CONFIG_LCD_CLASS_DEVICE is not set
+ CONFIG_BACKLIGHT_CLASS_DEVICE=y
+-- 
+2.7.4
+

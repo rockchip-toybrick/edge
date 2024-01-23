@@ -1,0 +1,36 @@
+From 6874ccdde235e45684b1b2fd2d5174bf6108ca7d Mon Sep 17 00:00:00 2001
+From: Elaine Zhang <zhangqing@rock-chips.com>
+Date: Wed, 10 Jun 2020 15:54:08 +0800
+Subject: [PATCH] drm/rockchip: add more clock protect for loader logo
+
+Signed-off-by: Elaine Zhang <zhangqing@rock-chips.com>
+Change-Id: Ibc3fd06b2f59d7f21e8e3567478e765b1c518ff2
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+index d3b3573..b3f5637 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+@@ -962,16 +962,20 @@ static void show_loader_logo(struct drm_device *drm_dev)
+ 
+ static const char *const loader_protect_clocks[] __initconst = {
+ 	"hclk_vio",
++	"hclk_vop",
+ 	"hclk_vopb",
+ 	"hclk_vopl",
+ 	"aclk_vio",
+ 	"aclk_vio0",
+ 	"aclk_vio1",
++	"aclk_vop",
+ 	"aclk_vopb",
+ 	"aclk_vopl",
+ 	"aclk_vo_pre",
+ 	"aclk_vio_pre",
+ 	"dclk_vop",
++	"dclk_vop0",
++	"dclk_vop1",
+ 	"dclk_vopb",
+ 	"dclk_vopl",
+ };
+-- 
+2.7.4
+

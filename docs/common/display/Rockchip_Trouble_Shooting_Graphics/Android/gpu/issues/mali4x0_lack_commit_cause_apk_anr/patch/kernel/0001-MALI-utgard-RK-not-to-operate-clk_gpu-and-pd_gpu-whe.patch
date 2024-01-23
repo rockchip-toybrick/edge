@@ -1,0 +1,123 @@
+From e9a8cbead7f26125d5614302299bc6319956ee40 Mon Sep 17 00:00:00 2001
+From: chenzhen <chenzhen@rock-chips.com>
+Date: Thu, 30 Mar 2017 15:50:03 +0800
+Subject: [PATCH] MALI: utgard: RK: not to operate clk_gpu and pd_gpu when
+ rebooting
+
+Change-Id: Iaa0268e252a681ad67a4d5fed6e417319d2f8ab9
+Signed-off-by: chenzhen <chenzhen@rock-chips.com>
+---
+ .../arm/mali400/mali/platform/rk30/mali_platform.c | 43 ++++++++++++++++++++--
+ .../arm/mali400/mali/platform/rk30/mali_platform.h |  7 ++++
+ 2 files changed, 46 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.c b/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.c
+index 6fd33fd..db9b26c 100644
+--- a/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.c
++++ b/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.c
+@@ -252,10 +252,16 @@ static ssize_t error_count_show(struct device *dev,
+ 	return sprintf(buf, "%d\n", mali_group_error);
+ }
+ 
+-static DEVICE_ATTR(available_frequencies, S_IRUGO, show_available_frequencies, NULL);
+-static DEVICE_ATTR(clock, S_IRUGO | S_IWUSR, show_clock, set_clock);
+-static DEVICE_ATTR(dvfs_enable, S_IRUGO | S_IWUSR, show_dvfs_enable, set_dvfs_enable);
+-static DEVICE_ATTR(utilisation, S_IRUGO, show_utilisation, NULL);
++static DEVICE_ATTR(available_frequencies,
++		   0644,
++		   show_available_frequencies,
++		   NULL);
++static DEVICE_ATTR(clock, 0644, show_clock, set_clock);
++static DEVICE_ATTR(dvfs_enable,
++		   0644,
++		   show_dvfs_enable,
++		   set_dvfs_enable);
++static DEVICE_ATTR(utilisation, 0644, show_utilisation, NULL);
+ static DEVICE_ATTR(error_count, 0644, error_count_show, NULL);
+ 
+ static struct attribute *mali_sysfs_entries[] = {
+@@ -290,6 +296,22 @@ static void mali_remove_sysfs(struct device *dev)
+ 	sysfs_remove_group(&dev->kobj, &mali_attr_group);
+ }
+ 
++static int notify_reboot_event(struct notifier_block *this,
++			       unsigned long event,
++			       void *ptr)
++{
++	struct mali_platform_drv_data *drv_data
++		= container_of(this,
++			       struct mali_platform_drv_data,
++			       reboot_event_notifier);
++
++	mali_dvfs_disable(mali_dev);
++
++	drv_data->is_in_reboot_session = true;
++
++	return NOTIFY_OK;
++}
++
+ /*---------------------------------------------------------------------------*/
+ 
+ /**
+@@ -331,6 +353,12 @@ _mali_osk_errcode_t mali_platform_init(struct platform_device *pdev)
+ 		_mali_osk_mutex_init(_MALI_OSK_LOCKFLAG_ORDERED,
+ 				     _MALI_OSK_LOCK_ORDER_UTILIZATION);
+ 
++	mali_drv_data->reboot_event_notifier.notifier_call
++		= notify_reboot_event;
++	register_reboot_notifier(&mali_drv_data->reboot_event_notifier);
++
++	mali_drv_data->is_in_reboot_session = false;
++
+ 	return 0;
+ term_clk:
+ 	mali_clock_term(dev);
+@@ -343,6 +371,9 @@ _mali_osk_errcode_t mali_platform_deinit(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct mali_platform_drv_data *drv_data = dev_get_drvdata(dev);
+ 
++	drv_data->is_in_reboot_session = false;
++	unregister_reboot_notifier(&drv_data->reboot_event_notifier);
++
+ 	mali_remove_sysfs(dev);
+ 
+ 	mali_clock_term(dev);
+@@ -363,6 +394,10 @@ static _mali_osk_errcode_t mali_power_domain_control(bool bpower_off)
+ {
+ 	struct mali_platform_drv_data *drv_data = dev_get_drvdata(mali_dev);
+ 
++	if (drv_data->is_in_reboot_session) {
++		return 0;
++	}
++
+ 	/* 若要 上电, 则 ... */
+ 	if (!bpower_off) {
+ 		if (!drv_data->power_state) {
+diff --git a/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.h b/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.h
+index b97a31e..cafbe52 100644
+--- a/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.h
++++ b/drivers/gpu/arm/mali400/mali/platform/rk30/mali_platform.h
+@@ -18,6 +18,8 @@
+ 
+ #include "mali_dvfs.h"
+ #include "mali_osk.h"
++
++#include <linux/reboot.h>
+ #include <linux/mali/mali_utgard.h>
+ #include <linux/rockchip/dvfs.h>
+ #include <linux/cpufreq.h>
+@@ -113,6 +115,11 @@ struct mali_platform_drv_data {
+ 	bool power_state;
+ 
+ 	_mali_osk_mutex_t *clock_set_lock;
++
++	/* to prevent operating clk_gpu/pd_gpu in reboot_session. */
++	struct notifier_block reboot_event_notifier;
++
++	bool is_in_reboot_session;
+ };
+ 
+ /** @brief Platform specific setup and initialisation of MALI
+-- 
+2.7.4
+

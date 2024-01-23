@@ -1,0 +1,51 @@
+diff --git a/Android.mk b/Android.mk
+index 9b00310..e328793 100755
+--- a/Android.mk
++++ b/Android.mk
+@@ -362,9 +362,9 @@ endif #box
+ endif #tablet
+ 
+ ifeq ($(strip $(TARGET_BOARD_PLATFORM)),rk3126c)
+-RK_INVALID_REFRESH = 0
++RK_INVALID_REFRESH = 1
+ else
+-RK_INVALID_REFRESH = 0
++RK_INVALID_REFRESH = 1
+ endif
+ 
+ ifeq ($(TARGET_USES_HWC2),true)
+diff --git a/hwc_rockchip.cpp b/hwc_rockchip.cpp
+index 2d68ca7..98c0398 100755
+--- a/hwc_rockchip.cpp
++++ b/hwc_rockchip.cpp
+@@ -171,7 +171,7 @@ int hwc_static_screen_opt_set(bool isGLESComp)
+ {
+     struct itimerval tv = {{0,0},{0,0}};
+     if (!isGLESComp) {
+-        int interval_value = hwc_get_int_property( PROPERTY_TYPE ".vwb.time", "2500");
++        int interval_value = hwc_get_int_property( PROPERTY_TYPE ".vwb.time", "500");
+         interval_value = interval_value > 5000? 5000:interval_value;
+         interval_value = interval_value < 250? 250:interval_value;
+         TimeInt2Obj(interval_value,&tv.it_value);
+@@ -2297,7 +2297,7 @@ AllMatch:
+             {
+                 ALOGD_IF(log_level(DBG_DEBUG), "%s:line=%d vop band with is too big,fail match layers.size=%zu",__FUNCTION__,__LINE__,layers.size());
+                 goto FailMatch;
+-            } 
++            }
+         }
+     }
+ #endif
+diff --git a/hwcomposer.cpp b/hwcomposer.cpp
+index 487b2dd..ead631d 100755
+--- a/hwcomposer.cpp
++++ b/hwcomposer.cpp
+@@ -3688,7 +3688,7 @@ static int hwc_set(hwc_composer_device_1_t *dev, size_t num_displays,
+   composition = NULL;
+ 
+ #if RK_INVALID_REFRESH
+-  hwc_static_screen_opt_set(ctx->isGLESComp);
++  hwc_static_screen_opt_set(false);
+ #endif
+   ALOGD_IF(log_level(DBG_VERBOSE),"----------------------------frame=%d end----------------------------",get_frame());
+ 

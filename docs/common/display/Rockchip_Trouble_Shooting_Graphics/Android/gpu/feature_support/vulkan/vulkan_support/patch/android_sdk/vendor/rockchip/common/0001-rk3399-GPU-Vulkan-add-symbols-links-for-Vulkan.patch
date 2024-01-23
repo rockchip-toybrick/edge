@@ -1,0 +1,28 @@
+From ca10a338399eb3023437588dbbb10fffac4dfc7a Mon Sep 17 00:00:00 2001
+From: chenzhen <chenzhen@rock-chips.com>
+Date: Thu, 13 Jul 2017 17:27:34 +0800
+Subject: [PATCH 1/2] rk3399: GPU: Vulkan: add symbols links for Vulkan
+
+Change-Id: I0ee59f8a9f932cfacc45d47f2103c804737f6ea5
+---
+ gpu/Android.mk | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/gpu/Android.mk b/gpu/Android.mk
+index 16f4f2c..6e25d5a 100755
+--- a/gpu/Android.mk
++++ b/gpu/Android.mk
+@@ -17,7 +17,9 @@ LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/egl
+ # Create symlinks.
+ LOCAL_POST_INSTALL_CMD := \
+ 	if [ -f $(LOCAL_MODULE_PATH_32)/libGLES_mali.so ];then cd $(TARGET_OUT_VENDOR)/lib; ln -sf egl/libGLES_mali.so libGLES_mali.so; cd -; fi; \
+-	if [ -f $(LOCAL_MODULE_PATH_64)/libGLES_mali.so ];then cd $(TARGET_OUT_VENDOR)/lib64; ln -sf egl/libGLES_mali.so libGLES_mali.so; cd -; fi;
++	if [ -f $(LOCAL_MODULE_PATH_64)/libGLES_mali.so ];then cd $(TARGET_OUT_VENDOR)/lib64; ln -sf egl/libGLES_mali.so libGLES_mali.so; cd -; fi; \
++	mkdir -p $(TARGET_OUT_VENDOR)/lib/hw; cd $(TARGET_OUT_VENDOR)/lib/hw; ln -sf ../libGLES_mali.so vulkan.rk3399.so; cd -; \
++	mkdir -p $(TARGET_OUT_VENDOR)/lib64/hw; cd $(TARGET_OUT_VENDOR)/lib64/hw; ln -sf ../libGLES_mali.so vulkan.rk3399.so; cd -;
+ 
+ include $(BUILD_PREBUILT)
+ endif
+-- 
+2.7.4
+

@@ -1,0 +1,71 @@
+From ed870f2d9db0814af0f57e9269aa01e1ab17aaad Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Fri, 31 Mar 2023 14:30:58 +0800
+Subject: [PATCH 09/31] drivers: net: ethernet: r8168: get mac address from
+ vendor
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: Ia4b1dd7ac5d6778ffb0647d3eb64831638b3798d
+---
+ drivers/net/ethernet/realtek/r8168/r8168_n.c | 23 +++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/realtek/r8168/r8168_n.c b/drivers/net/ethernet/realtek/r8168/r8168_n.c
+index 84c4d0970673..68b11566a688 100644
+--- a/drivers/net/ethernet/realtek/r8168/r8168_n.c
++++ b/drivers/net/ethernet/realtek/r8168/r8168_n.c
+@@ -95,6 +95,8 @@
+ #include <linux/seq_file.h>
+ #endif
+ 
++#include <linux/soc/rockchip/rk_vendor_storage.h>
++
+ #define FIRMWARE_8168D_1    "rtl_nic/rtl8168d-1.fw"
+ #define FIRMWARE_8168D_2    "rtl_nic/rtl8168d-2.fw"
+ #define FIRMWARE_8168E_1    "rtl_nic/rtl8168e-1.fw"
+@@ -24055,6 +24057,21 @@ rtl8168_release_board(struct pci_dev *pdev,
+         free_netdev(dev);
+ }
+ 
++static void
++get_mac_address_from_vendor(struct net_device *dev)
++{
++	u8 mac_addrs[MAC_ADDR_LEN * 2] = { 0 };
++	
++	ret = rk_vendor_read(LAN_MAC_ID, mac_addrs, MAC_ADDR_LEN * 2);
++	if (ret <= 0 || !is_valid_ether_addr(&mac_addrs[MAC_ADDR_LEN])) {
++		eth_hw_addr_random(dev);
++		ether_addr_copy(&mac_addr[MAC_ADDR_LEN], dev->dev_addr);
++		rk_vendor_write(LAN_MAC_ID, mac_addrs, MAC_ADDR_LEN * 2);
++	} else {
++		ether_addr_copy(dev->dev_addr, &mac_addrs[MAC_ADDR_LEN]);
++	}
++}
++
+ static int
+ rtl8168_get_mac_address(struct net_device *dev)
+ {
+@@ -24119,7 +24136,7 @@ rtl8168_get_mac_address(struct net_device *dev)
+         if (!is_valid_ether_addr(mac_addr)) {
+                 netif_err(tp, probe, dev, "Invalid ether addr %pM\n",
+                           mac_addr);
+-                eth_hw_addr_random(dev);
++		get_mac_address_from_vendor(net);
+                 ether_addr_copy(mac_addr, dev->dev_addr);
+                 netif_info(tp, probe, dev, "Random ether addr %pM\n",
+                            mac_addr);
+@@ -24160,7 +24177,11 @@ rtl8168_set_mac_address(struct net_device *dev,
+ 
+         spin_lock_irqsave(&tp->lock, flags);
+ 
++#if 0
+         memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
++#else
++	get_mac_address_from_vendor(net);
++#endif
+ 
+         rtl8168_rar_set(tp, dev->dev_addr);
+ 
+-- 
+2.25.1
+

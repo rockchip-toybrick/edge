@@ -1,0 +1,16 @@
+diff --git a/core/java/android/view/ViewRootImpl.java b/core/java/android/view/ViewRootImpl.java
+index f761b9b..6a93251 100644
+--- a/core/java/android/view/ViewRootImpl.java
++++ b/core/java/android/view/ViewRootImpl.java
+@@ -833,6 +833,11 @@ public final class ViewRootImpl implements ViewParent,
+     private void enableHardwareAcceleration(WindowManager.LayoutParams attrs) {
+         mAttachInfo.mHardwareAccelerated = false;
+         mAttachInfo.mHardwareAccelerationRequested = false;
++        if (null!=attrs && null != attrs.getTitle()
++                  && attrs.getTitle().toString().contains("com.jide.filemanager.DocumentsActivity")) {
++            Slog.d(mTag, "rk-debug com.jide.filemanager.DocumentsActivity");
++            attrs.flags &= ~WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
++        }
+ 
+         // Don't enable hardware acceleration when the application is in compatibility mode
+         if (mTranslator != null) return;

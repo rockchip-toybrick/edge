@@ -1,9 +1,0 @@
-#! /bin/sh
-set -e
-
-. /usr/share/debconf/confmodule
-
-#db_capb backup
-#db_input high di-utils-shell/do-shell || [ $? -eq 30 ]
-
-ota_update tb-ota-update/do-shell /bin/sh || true

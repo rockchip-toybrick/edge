@@ -1,0 +1,40 @@
+From fcad64510bf7a24a81c39800c10f56d74d4ea5b8 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Fri, 29 May 2020 10:34:42 +0800
+Subject: [PATCH 1/2] Revert "arm64: dts: rockchip: add 'gpu_power_model'
+ feature with DDK r14 for linux"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This reverts commit bf14d07061b46604781fe23a9a2f62b7853e4407.
+将使用针对 Midgard DDK r18 的 dts, 而不是 r14 的.
+
+Change-Id: I8439de1af92c7791608245609fb76e4601e2f8cd
+---
+ arch/arm64/boot/dts/rockchip/rk3399-linux.dtsi | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-linux.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-linux.dtsi
+index 45e9575..db45778 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-linux.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-linux.dtsi
+@@ -189,15 +189,6 @@
+ 	};
+ };
+ 
+-/* HACK: keep MALI version on linux */
+-&gpu_power_model {
+-	// for DDK r14.
+-	voltage = <900>;
+-	frequency = <500>;
+-	static-power = <300>;
+-	dynamic-power = <396>;
+-};
+-
+ &pvtm {
+ 	status = "okay";
+ };
+-- 
+2.7.4
+

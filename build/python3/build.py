@@ -151,7 +151,12 @@ class Build:
     
     def build_uboot_secure_boot_config(self, old):
         conf = self.config.get()
-        uboot_path = '%s/uboot' % self.root_path
+        board = conf['board']
+
+        if board.find('SD0') >= 0:
+            uboot_path = '%s/uboot-sd0' % self.root_path
+        else:
+            uboot_path = '%s/uboot' % self.root_path
 
         # make secure boot config
         new = '%s/configs/%s-s.config' % (uboot_path, old)
@@ -168,8 +173,15 @@ class Build:
         
     def build_uboot(self):
         conf = self.config.get()
-        uboot_path = '%s/uboot' % self.root_path
-        rkbin_path = '%s/rkbin' % self.root_path
+        board = conf['board']
+
+        if board.find('SD0') >= 0:
+            uboot_path = '%s/uboot-sd0' % self.root_path
+            rkbin_path = '%s/rkbin-sd0' % self.root_path
+        else:
+            uboot_path = '%s/uboot' % self.root_path
+            rkbin_path = '%s/rkbin' % self.root_path
+
         out_path = conf['out_path']
         chip = conf['chip']
         bootmode = conf['bootmode']
@@ -221,9 +233,14 @@ class Build:
             EDGE_ERR('Copy uboot.img failed')
             sys.exit(1)
 
+        if os.path.exists('%s/trust.img' % uboot_path) == True:
+            edge_cmd('cp %s/trust.img %s/' % (uboot_path, out_path), None)
+
         # Copy MinLoader to output directory
         if chip == 'rk3568' or chip == 'rk3566':
             cmd = 'cp %s/%s_*.bin %s/MiniLoaderAll.bin' % (uboot_path, 'rk356x', out_path)
+        elif chip == 'rk3399pro':
+            cmd = 'cp %s/%s_*.bin %s/MiniLoaderAll.bin' % (uboot_path, 'rk3399', out_path)
         else:
             cmd = 'cp %s/%s_*.bin %s/MiniLoaderAll.bin' % (uboot_path, chip, out_path)
         if edge_cmd(cmd, None) != 0:
@@ -402,11 +419,16 @@ class Build:
     def build_fit_image(self, target_name, image, dtb, initrd, compress_type):
         conf = self.config.get()
         root_path = self.root_path
+        board = conf['board']
         out_path = conf['out_path']
         arch = conf['arch']
         kernel_version = conf['kernel_version']
         kernel_path = '%s/kernel/linux-%s' % (root_path, kernel_version)
-        initrd_path = "%s/rootfs/debian/initrd" % root_path
+
+        if board.find('SD0') >= 0:
+            initrd_path = "%s/rootfs/debian/initrd-sd0" % root_path
+        else:
+            initrd_path = "%s/rootfs/debian/initrd" % root_path
 
         EDGE_DBG('Start build %s ...' % target_name)
 

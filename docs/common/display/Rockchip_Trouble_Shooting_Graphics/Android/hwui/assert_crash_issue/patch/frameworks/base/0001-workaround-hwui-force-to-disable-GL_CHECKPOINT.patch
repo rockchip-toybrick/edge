@@ -1,0 +1,54 @@
+From d3df7d1948841311fa674a0508411e7f945de824 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Mon, 13 May 2019 20:39:34 +0800
+Subject: [PATCH] workaround: hwui: force to disable GL_CHECKPOINT
+
+Change-Id: If1594af2a178be057b702d5735e69ad320d31462
+---
+ libs/hwui/Debug.h                        | 3 ++-
+ libs/hwui/renderthread/CanvasContext.cpp | 2 +-
+ libs/hwui/utils/GLUtils.h                | 1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/libs/hwui/Debug.h b/libs/hwui/Debug.h
+index 748edef..9c4b6e8 100644
+--- a/libs/hwui/Debug.h
++++ b/libs/hwui/Debug.h
+@@ -27,7 +27,8 @@
+ // HWUI_ENABLE_OPENGL_VALIDATION when building HWUI. Similarly if
+ // HWUI_ENABLE_OPENGL_VALIDATION is set then this is always DEBUG_LEVEL_HIGH
+ #ifndef DEBUG_OPENGL
+-#define DEBUG_OPENGL DEBUG_LEVEL_LOW
++// #define DEBUG_OPENGL DEBUG_LEVEL_LOW
++#define DEBUG_OPENGL DEBUG_LEVEL_NONE
+ #endif
+ 
+ // Turn on to enable initialization information
+diff --git a/libs/hwui/renderthread/CanvasContext.cpp b/libs/hwui/renderthread/CanvasContext.cpp
+index 975ac83..9ca4c48 100644
+--- a/libs/hwui/renderthread/CanvasContext.cpp
++++ b/libs/hwui/renderthread/CanvasContext.cpp
+@@ -547,7 +547,7 @@ void CanvasContext::draw() {
+ 
+     waitOnFences();
+ 
+-    GL_CHECKPOINT(LOW);
++    GL_CHECKPOINT(LOW); // .CP : 
+ 
+     // Even if we decided to cancel the frame, from the perspective of jank
+     // metrics the frame was swapped at this point
+diff --git a/libs/hwui/utils/GLUtils.h b/libs/hwui/utils/GLUtils.h
+index b49c1eb..cec8839 100644
+--- a/libs/hwui/utils/GLUtils.h
++++ b/libs/hwui/utils/GLUtils.h
+@@ -26,6 +26,7 @@ namespace uirenderer {
+ 
+ #if DEBUG_OPENGL
+ #define GL_CHECKPOINT(LEVEL) \
++#error
+     do { if (DEBUG_OPENGL >= DEBUG_LEVEL_##LEVEL) {\
+     LOG_ALWAYS_FATAL_IF(GLUtils::dumpGLErrors(),\
+             "GL errors! %s:%d", __FILE__, __LINE__);\
+-- 
+2.7.4
+

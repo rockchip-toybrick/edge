@@ -1,0 +1,22 @@
+diff --git a/libs/gui/BufferQueueProducer.cpp b/libs/gui/BufferQueueProducer.cpp
+index 0701340..c4f2ccb 100755
+--- a/libs/gui/BufferQueueProducer.cpp
++++ b/libs/gui/BufferQueueProducer.cpp
+@@ -621,7 +621,7 @@ status_t BufferQueueProducer::dequeueBuffer(int* outSlot, sp<android::Fence>* ou
+             } // Autolock scope
+ 
+         }
+-        else 
++        else
+ #else
+         {
+         BQ_LOGV("dequeueBuffer: allocating a new buffer for slot %d", *outSlot);
+@@ -1113,6 +1113,8 @@ status_t BufferQueueProducer::queueBuffer(int slot,
+         lastQueuedFence = std::move(mLastQueueBufferFence);
+ 
+         mLastQueueBufferFence = std::move(acquireFence);
++        mLastQueueBufferFence = Fence::NO_FENCE;
++
+         mLastQueuedCrop = item.mCrop;
+         mLastQueuedTransform = item.mTransform;
+ 

@@ -1,0 +1,51 @@
+From 5767e2a1deb898cb5bdfcbacf1de2bbb61d937e7 Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Thu, 2 Nov 2017 10:04:27 +0800
+Subject: [PATCH] MALI Utgard: RK: fix some potential problems about pm_runtime
+
+Including:
+	not to call pm_runtime_suspend() in mali_runtime_idle();
+	make it more strict to power off the GPU.
+
+Change-Id: I96e9b88ffbb217f88b0ab59f7f085be99b10ff92
+Signed-off-by: Zhen Chen <chenzhen@rock-chips.com>
+---
+ drivers/gpu/arm/mali400/mali/platform/rk30/rk3066.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/arm/mali400/mali/platform/rk30/rk3066.c b/drivers/gpu/arm/mali400/mali/platform/rk30/rk3066.c
+index f6c1438..c278814 100644
+--- a/drivers/gpu/arm/mali400/mali/platform/rk30/rk3066.c
++++ b/drivers/gpu/arm/mali400/mali/platform/rk30/rk3066.c
+@@ -53,7 +53,8 @@ static int mali_runtime_suspend(struct device *device)
+ 		ret = device->driver->pm->runtime_suspend(device);
+ 	}
+ 
+-	mali_platform_power_mode_change(MALI_POWER_MODE_LIGHT_SLEEP);
++	if (!ret)
++		mali_platform_power_mode_change(MALI_POWER_MODE_LIGHT_SLEEP);
+ 
+ 	return ret;
+ }
+@@ -91,8 +92,6 @@ static int mali_runtime_idle(struct device *device)
+ 			return ret;
+ 	}
+ 
+-	pm_runtime_suspend(device);
+-
+ 	return 0;
+ }
+ #endif
+@@ -110,7 +109,8 @@ static int mali_os_suspend(struct device *device)
+ 		ret = device->driver->pm->suspend(device);
+ 	}
+ 
+-	mali_platform_power_mode_change(MALI_POWER_MODE_DEEP_SLEEP);
++	if (!ret)
++		mali_platform_power_mode_change(MALI_POWER_MODE_DEEP_SLEEP);
+ 
+ 	return ret;
+ }
+-- 
+2.7.4
+

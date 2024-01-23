@@ -1,4 +1,0 @@
-devpts		/dev/pts	devpts	defaults        0	0
-tmpfs		/run		tmpfs	nosuid,size=10%,mode=755	0	0
-proc		/proc		proc	defaults        0	0
-sysfs		/sys		sysfs	noauto		0	0

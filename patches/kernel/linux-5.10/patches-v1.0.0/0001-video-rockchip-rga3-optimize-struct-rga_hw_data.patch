@@ -1,0 +1,267 @@
+From 00f2f6f483244be79a7f64694a89ac3fe0a2583d Mon Sep 17 00:00:00 2001
+From: Yu Qiaowei <cerf.yu@rock-chips.com>
+Date: Tue, 21 Jun 2022 15:56:23 +0800
+Subject: [PATCH 1/2] video: rockchip: rga3: optimize struct rga_hw_data
+
+Signed-off-by: Yu Qiaowei <cerf.yu@rock-chips.com>
+Change-Id: If48f4748409226dc73bdf0822eb832ca09bca86e
+---
+ .../rockchip/rga3/include/rga_hw_config.h     | 23 ++++++----
+ drivers/video/rockchip/rga3/rga_hw_config.c   | 42 +++++++----------
+ drivers/video/rockchip/rga3/rga_policy.c      | 46 +++++++++----------
+ 3 files changed, 51 insertions(+), 60 deletions(-)
+
+diff --git a/drivers/video/rockchip/rga3/include/rga_hw_config.h b/drivers/video/rockchip/rga3/include/rga_hw_config.h
+index 74f27328113e..ea5669521c02 100644
+--- a/drivers/video/rockchip/rga3/include/rga_hw_config.h
++++ b/drivers/video/rockchip/rga3/include/rga_hw_config.h
+@@ -16,11 +16,6 @@ enum rga_mmu {
+ 	RGA_IOMMU	= 2,
+ };
+ 
+-struct rga_rect {
+-	int w;
+-	int h;
+-};
+-
+ struct rga_win_data {
+ 	const char *name;
+ 	const uint32_t *raster_formats;
+@@ -37,6 +32,16 @@ struct rga_win_data {
+ 
+ };
+ 
++struct rga_rect {
++	int width;
++	int height;
++};
++
++struct rga_rect_range {
++	struct rga_rect min;
++	struct rga_rect max;
++};
++
+ struct rga_hw_data {
+ 	uint32_t version;
+ 	uint32_t feature;
+@@ -44,15 +49,13 @@ struct rga_hw_data {
+ 	uint32_t csc_r2y_mode;
+ 	uint32_t csc_y2r_mode;
+ 
+-	struct rga_rect max_input;
+-	struct rga_rect max_output;
+-	struct rga_rect min_input;
+-	struct rga_rect min_output;
++	struct rga_rect_range input_range;
++	struct rga_rect_range output_range;
+ 
+ 	unsigned int max_upscale_factor;
+ 	unsigned int max_downscale_factor;
+ 
+-	uint32_t byte_stride;
++	uint32_t byte_stride_align;
+ 
+ 	const struct rga_win_data *win;
+ 	unsigned int win_size;
+diff --git a/drivers/video/rockchip/rga3/rga_hw_config.c b/drivers/video/rockchip/rga3/rga_hw_config.c
+index f8e7f611b052..51dffdd46d9d 100644
+--- a/drivers/video/rockchip/rga3/rga_hw_config.c
++++ b/drivers/video/rockchip/rga3/rga_hw_config.c
+@@ -253,10 +253,8 @@ const struct rga_win_data rga2e_win_data[] = {
+ 
+ const struct rga_hw_data rga3_data = {
+ 	.version = 0,
+-	.min_input = { 68, 2 },
+-	.min_output = { 68, 2 },
+-	.max_input = { 8176, 8176 },
+-	.max_output = { 8128, 8128 },
++	.input_range = {{68, 2}, {8176, 8176}},
++	.output_range = {{68, 2}, {8128, 8128}},
+ 
+ 	.win = rga3_win_data,
+ 	.win_size = ARRAY_SIZE(rga3_win_data),
+@@ -264,24 +262,20 @@ const struct rga_hw_data rga3_data = {
+ 	.max_upscale_factor = 3,
+ 	.max_downscale_factor = 3,
+ 
+-	.byte_stride = 16,
++	.byte_stride_align = 16,
+ 
+ 	.feature = RGA_COLOR_KEY,
+-	.csc_r2y_mode = RGA_MODE_CSC_BT601L |
+-		RGA_MODE_CSC_BT601F | RGA_MODE_CSC_BT709 |
+-		RGA_MODE_CSC_BT2020,
+-	.csc_y2r_mode = RGA_MODE_CSC_BT601L |
+-		RGA_MODE_CSC_BT601F | RGA_MODE_CSC_BT709 |
+-		RGA_MODE_CSC_BT2020,
++	.csc_r2y_mode = RGA_MODE_CSC_BT601L | RGA_MODE_CSC_BT601F |
++			RGA_MODE_CSC_BT709 | RGA_MODE_CSC_BT2020,
++	.csc_y2r_mode = RGA_MODE_CSC_BT601L | RGA_MODE_CSC_BT601F |
++			RGA_MODE_CSC_BT709 | RGA_MODE_CSC_BT2020,
+ 	.mmu = RGA_IOMMU,
+ };
+ 
+ const struct rga_hw_data rga2e_data = {
+ 	.version = 0,
+-	.min_input = { 2, 2 },
+-	.min_output = { 2, 2 },
+-	.max_input = { 8192, 8192 },
+-	.max_output = { 4096, 4096 },
++	.input_range = {{2, 2}, {8192, 8192}},
++	.output_range = {{2, 2}, {4096, 4096}},
+ 
+ 	.win = rga2e_win_data,
+ 	.win_size = ARRAY_SIZE(rga2e_win_data),
+@@ -289,24 +283,22 @@ const struct rga_hw_data rga2e_data = {
+ 	.max_upscale_factor = 4,
+ 	.max_downscale_factor = 4,
+ 
+-	.byte_stride = 4,
++	.byte_stride_align = 4,
+ 
+ 	.feature = RGA_COLOR_FILL | RGA_COLOR_PALETTE |
+-			RGA_COLOR_KEY | RGA_ROP_CALCULATE |
+-			RGA_NN_QUANTIZE | RGA_DITHER,
++		   RGA_COLOR_KEY | RGA_ROP_CALCULATE |
++		   RGA_NN_QUANTIZE | RGA_DITHER,
+ 	.csc_r2y_mode = RGA_MODE_CSC_BT601L | RGA_MODE_CSC_BT601F |
+-					RGA_MODE_CSC_BT709,
++			RGA_MODE_CSC_BT709,
+ 	.csc_y2r_mode = RGA_MODE_CSC_BT601L | RGA_MODE_CSC_BT601F |
+-					RGA_MODE_CSC_BT709,
++			RGA_MODE_CSC_BT709,
+ 	.mmu = RGA_MMU,
+ };
+ 
+ const struct rga_hw_data rga2e_1106_data = {
+ 	.version = 0,
+-	.min_input = { 2, 2 },
+-	.min_output = { 2, 2 },
+-	.max_input = { 8192, 8192 },
+-	.max_output = { 4096, 4096 },
++	.input_range = {{2, 2}, {8192, 8192}},
++	.output_range = {{2, 2}, {4096, 4096}},
+ 
+ 	.win = rga2e_win_data,
+ 	.win_size = ARRAY_SIZE(rga2e_win_data),
+@@ -314,7 +306,7 @@ const struct rga_hw_data rga2e_1106_data = {
+ 	.max_upscale_factor = 4,
+ 	.max_downscale_factor = 4,
+ 
+-	.byte_stride = 4,
++	.byte_stride_align = 4,
+ 
+ 	.feature = RGA_COLOR_FILL | RGA_COLOR_PALETTE |
+ 		   RGA_COLOR_KEY | RGA_ROP_CALCULATE |
+diff --git a/drivers/video/rockchip/rga3/rga_policy.c b/drivers/video/rockchip/rga3/rga_policy.c
+index 31f4ec231fa2..4ff8e20b2bca 100644
+--- a/drivers/video/rockchip/rga3/rga_policy.c
++++ b/drivers/video/rockchip/rga3/rga_policy.c
+@@ -45,6 +45,17 @@ static int rga_set_feature(struct rga_req *rga_base)
+ 	return feature;
+ }
+ 
++static bool rga_check_resolution(const struct rga_rect_range *range, int width, int height)
++{
++	if (width > range->max.width || height > range->max.height)
++		return false;
++
++	if (width < range->min.width || height < range->min.height)
++		return false;
++
++	return true;
++}
++
+ static bool rga_check_format(const struct rga_hw_data *data,
+ 		int rd_mode, int format, int win_num)
+ {
+@@ -77,7 +88,7 @@ static bool rga_check_format(const struct rga_hw_data *data,
+ 	return matched;
+ }
+ 
+-static bool rga_check_align(uint32_t byte_stride, uint32_t format, uint16_t w_stride)
++static bool rga_check_align(uint32_t byte_stride_align, uint32_t format, uint16_t w_stride)
+ {
+ 	uint32_t bit_stride = 0, pixel_stride = 0, align = 0, gcd = 0;
+ 
+@@ -87,11 +98,11 @@ static bool rga_check_align(uint32_t byte_stride, uint32_t format, uint16_t w_st
+ 
+ 	bit_stride = pixel_stride * w_stride;
+ 
+-	if (bit_stride % (byte_stride * 8) == 0)
++	if (bit_stride % (byte_stride_align * 8) == 0)
+ 		return true;
+ 
+-	gcd = GET_GCD(pixel_stride, byte_stride * 8);
+-	align = GET_LCM(pixel_stride, byte_stride * 8, gcd) / pixel_stride;
++	gcd = GET_GCD(pixel_stride, byte_stride_align * 8);
++	align = GET_LCM(pixel_stride, byte_stride_align * 8, gcd) / pixel_stride;
+ 	if (DEBUGGER_EN(MSG))
+ 		pr_info("unsupported width stride %d, 0x%x should be %d aligned!",
+ 				w_stride, format, align);
+@@ -102,18 +113,13 @@ static bool rga_check_align(uint32_t byte_stride, uint32_t format, uint16_t w_st
+ static bool rga_check_src0(const struct rga_hw_data *data,
+ 			 struct rga_img_info_t *src0)
+ {
+-	if (src0->act_w < data->min_input.w ||
+-		src0->act_h < data->min_input.h)
+-		return false;
+-
+-	if (src0->act_w > data->max_input.w ||
+-		src0->act_h > data->max_input.h)
++	if (!rga_check_resolution(&data->input_range, src0->act_w, src0->act_h))
+ 		return false;
+ 
+ 	if (!rga_check_format(data, src0->rd_mode, src0->format, 0))
+ 		return false;
+ 
+-	if (!rga_check_align(data->byte_stride, src0->format, src0->vir_w))
++	if (!rga_check_align(data->byte_stride_align, src0->format, src0->vir_w))
+ 		return false;
+ 
+ 	return true;
+@@ -122,18 +128,13 @@ static bool rga_check_src0(const struct rga_hw_data *data,
+ static bool rga_check_src1(const struct rga_hw_data *data,
+ 			 struct rga_img_info_t *src1)
+ {
+-	if (src1->act_w < data->min_input.w ||
+-		src1->act_h < data->min_input.h)
+-		return false;
+-
+-	if (src1->act_w > data->max_input.w ||
+-		src1->act_h > data->max_input.h)
++	if (!rga_check_resolution(&data->input_range, src1->act_w, src1->act_h))
+ 		return false;
+ 
+ 	if (!rga_check_format(data, src1->rd_mode, src1->format, 1))
+ 		return false;
+ 
+-	if (!rga_check_align(data->byte_stride, src1->format, src1->vir_w))
++	if (!rga_check_align(data->byte_stride_align, src1->format, src1->vir_w))
+ 		return false;
+ 
+ 	return true;
+@@ -142,18 +143,13 @@ static bool rga_check_src1(const struct rga_hw_data *data,
+ static bool rga_check_dst(const struct rga_hw_data *data,
+ 			 struct rga_img_info_t *dst)
+ {
+-	if (dst->act_w < data->min_output.w ||
+-		dst->act_h < data->min_output.h)
+-		return false;
+-
+-	if (dst->act_w > data->max_output.w ||
+-		dst->act_h > data->max_output.h)
++	if (!rga_check_resolution(&data->output_range, dst->act_w, dst->act_h))
+ 		return false;
+ 
+ 	if (!rga_check_format(data, dst->rd_mode, dst->format, 2))
+ 		return false;
+ 
+-	if (!rga_check_align(data->byte_stride, dst->format, dst->vir_w))
++	if (!rga_check_align(data->byte_stride_align, dst->format, dst->vir_w))
+ 		return false;
+ 
+ 	return true;
+-- 
+2.30.2
+

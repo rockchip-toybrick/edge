@@ -1,0 +1,27 @@
+From 795636f532b06b57cc4bf4f6c348c11f2b81eb4d Mon Sep 17 00:00:00 2001
+From: Addy Ke <addy.ke@rock-chips.com>
+Date: Mon, 6 Jun 2022 09:45:12 +0800
+Subject: [PATCH 12/24] arm64: dts: rockchip: rk3588s: enable 8K HDMI display
+
+Signed-off-by: Addy Ke <addy.ke@rock-chips.com>
+Change-Id: Ifb8585e4b75c9abbd4ef3189f3cef980e5cd6d33
+---
+ arch/arm64/boot/dts/rockchip/rk3588s.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+index b5af080e6dbd..dc336b1cfd54 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+@@ -2241,7 +2241,7 @@ cru: clock-controller@fd7c0000 {
+ 			<400000000>, <500000000>,
+ 			<800000000>, <100000000>,
+ 			<400000000>, <100000000>,
+-			<200000000>, <500000000>,
++			<200000000>, <800000000>,
+ 			<375000000>, <150000000>,
+ 			<200000000>;
+ 	};
+-- 
+2.30.2
+

@@ -1,5 +1,0 @@
-# Cleanup after the first init, which leaves the initrd mounted
-# on /initrd (if we're not using initramfs)
-umount /initrd/dev 2>/dev/null
-umount /initrd 2>/dev/null
-freeramdisk /dev/ram0 2>/dev/null

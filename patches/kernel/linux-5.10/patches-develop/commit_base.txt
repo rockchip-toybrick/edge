@@ -1,0 +1,61 @@
+commit 2938e413fda6516c1e22a398ba09827b5b12e3cf (HEAD -> develop-5.10, rk29/develop-5.10)
+Author: Chandler Chen <chandler.chen@rock-chips.com>
+Date:   Mon Feb 20 20:00:27 2023 +0800
+
+    video: rockchip: mpp: fix dma buffer use-after-free issue
+    
+    refcount_t: underflow; use-after-free.
+    WARNING: CPU: 0 PID: 1806 at lib/refcount.c:28
+    refcount_warn_saturate+0xf8/0x134
+    Call trace:
+     refcount_warn_saturate+0xf8/0x134
+     kref_put+0x108/0x10c
+     mpp_dma_release+0x2c/0x48
+     mpp_task_finalize+0x8c/0xb4
+     rkvdec2_free_task+0x18/0x34
+     rkvdec2_link_free_task+0x78/0x144
+     mpp_session_pop_pending+0x78/0xb4
+     rkvdec2_link_wait_result+0x180/0x1f8
+     mpp_dev_ioctl+0x53c/0x5dc
+     __arm64_compat_sys_ioctl+0x104/0x158
+     el0_svc_common+0xac/0x1ac
+     do_el0_svc_compat+0x1c/0x28
+     el0_svc_compat+0x10/0x1c
+     el0_sync_compat_handler+0x60/0x8c
+     el0_sync_compat+0x164/0x180
+    
+    Signed-off-by: Chandler Chen <chandler.chen@rock-chips.com>
+    Change-Id: I14c1ace207282341799bb43092f54a901eef2921
+
+patch:
+0001-arm64-configs-rk3588_edge.config-update-configure.patch
+0002-arm64-dts-rockchip-rk3588-evb1-disable-dp0-sound-car.patch
+0003-arm64-dts-rockchip-rk3588s-evb1-lp4x-v10-linux-enabl.patch
+0004-arm64-configs-add-rockchip_docker.config.patch
+0005-arm64-configs-add-rk3588_toybrick.config-for-toybric.patch
+0006-driver-hdmi-filter-the-fps-isn-t-int-of-8k.patch
+0007-arm64-dts-rockchip-add-dts-for-TB-RK3568SD0.patch
+0008-rfkill-default-unblock-bluetooth.patch
+0009-drivers-net-ethernet-r8168-get-mac-address-from-vend.patch
+0010-drivers-net-wireless-bcmdhd-buildin-and-fix-compile-.patch
+0011-arm64-configs-add-rk3568_toybrick.config-for-toybric.patch
+0012-arm64-dts-rockchip-keep-on-vdd_log-with-suspend-on.patch
+0013-arm64-dts-rockchip-keep-on-vdd_log-with-suspend-on-r.patch
+0014-arm64-dts-rockchip-keep-the-logic-for-rk3588s-evb1.patch
+0015-arm64-dts-rockchip-add-dts-for-TB-RK3568X.patch
+0016-power-supply-add-sc888x_charger.patch
+0017-arm64-support-make-image-with-lzma.patch
+0018-arm64-dts-rockchip-add-for-imx415-power-io-must-be-h.patch
+0019-arm64-dts-rockchip-add-imx415-and-ov50c40-for-TB-RK3.patch
+0020-drivers-net-wireless-Fixed-ifid-error.patch
+0021-merge-virtual-device-from-google-sourcecode.patch
+0022-Update-for-xen-dom0-and-domu-build.patch
+0023-virtio_video-syc-QNX-modify.patch
+0024-i2c-virtio-add-i2c-frontend-driver.patch
+0025-gpio-add-a-new-driver-for-virtio-based-GPIO-driver.patch
+0026-arm64-dts-rockchip-rk3588s-enable-8K-HDMI-display.patch
+0027-misc-virtio-add-for-vop-and-rga.patch
+0028-clk-rockchip-change-for-guest-passthrough.patch
+0029-drivers-net-wireless-change-for-hyper-pass.patch
+0030-arm64-dts-rockchip-rk3588s-update-for-note-reference.patch
+0031-drivers-wireless-update-cywdhd-to-100.10.80.patch

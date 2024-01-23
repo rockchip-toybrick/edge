@@ -1,8 +1,0 @@
-#! /bin/sh
-# This is where the installer actually interacts with the user
-set -e
-
-export MENU=${MENU:-${1:-/usr/bin/main-menu}}
-for script in /lib/debian-installer.d/S[0-9][0-9]*; do
-	. $script
-done

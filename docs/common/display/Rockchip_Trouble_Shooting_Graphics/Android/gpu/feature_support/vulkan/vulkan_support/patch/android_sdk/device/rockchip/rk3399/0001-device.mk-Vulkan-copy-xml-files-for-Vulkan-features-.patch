@@ -1,0 +1,31 @@
+From c4ac9b765c0735bdfeac3c0ad4d7797267dad8b7 Mon Sep 17 00:00:00 2001
+From: chenzhen <chenzhen@rock-chips.com>
+Date: Thu, 13 Jul 2017 15:18:48 +0800
+Subject: [PATCH] device.mk: Vulkan: copy xml files for Vulkan features to
+ build output
+
+Change-Id: I4cc767f110976898c8f35fecbd49090acc8a0a9e
+---
+ device.mk | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/device.mk b/device.mk
+index 4e1f880..5d0d500 100755
+--- a/device.mk
++++ b/device.mk
+@@ -212,6 +212,12 @@ PRODUCT_COPY_FILES += \
+     frameworks/native/data/etc/android.software.verified_boot.xml:system/etc/permissions/android.software.verified_boot.xml
+ endif
+ 
++# copy xml files for Vulkan features.
++PRODUCT_COPY_FILES += \
++    frameworks/native/data/etc/android.hardware.vulkan.level-0.xml:system/etc/permissions/android.hardware.vulkan.level-0.xml \
++    frameworks/native/data/etc/android.hardware.vulkan.level-1.xml:system/etc/permissions/android.hardware.vulkan.level-1.xml \
++    frameworks/native/data/etc/android.hardware.vulkan.version-1_0_3.xml:system/etc/permissions/android.hardware.vulkan.version-1_0_3.xml
++
+ PRODUCT_COPY_FILES += \
+     device/rockchip/rk3399/public.libraries.txt:system/vendor/etc/public.libraries.txt
+ 
+-- 
+2.7.4
+

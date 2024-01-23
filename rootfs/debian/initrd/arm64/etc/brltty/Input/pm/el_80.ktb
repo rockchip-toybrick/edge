@@ -1,4 +1,0 @@
-title Papenmeier BrailleX EL 80
-assign statusKeys 2
-include bar.kti
-include switches.kti

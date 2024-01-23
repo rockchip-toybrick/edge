@@ -150,7 +150,7 @@
 		};
 	};
 };
-
+#if 0
 &csi2_dcphy0 {
 	status = "okay";
 	ports {
@@ -321,3 +321,4 @@
 		};
 	};
 };
+#endif

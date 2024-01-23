@@ -1,0 +1,30 @@
+From a4c3d552981e4fa0555696fc350f7f6800c99de2 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Fri, 31 Mar 2023 14:27:08 +0800
+Subject: [PATCH 06/31] driver: hdmi: filter the fps isn't int of 8k
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I0f693bd412d7ec7fcb9cbfe8377fc2a3bca54e1c
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
+index d9054dfa3e75..d032c249b2fc 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi-qp.c
+@@ -2577,6 +2577,11 @@ dw_hdmi_qp_bridge_mode_valid(struct drm_bridge *bridge,
+ 			     const struct drm_display_info *info,
+ 			     const struct drm_display_mode *mode)
+ {
++	if (mode->hdisplay == 7680) {
++		if (mode->clock == 1186813 || mode->clock == 2373626)
++			return MODE_ERROR;
++	}
++
+ 	if (mode->clock <= 25000)
+ 		return MODE_CLOCK_RANGE;
+ 
+-- 
+2.25.1
+

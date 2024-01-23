@@ -1,6 +1,0 @@
-if lsmod | grep -q "speakup_"; then
-	DEBIAN_FRONTEND=text
-	export DEBIAN_FRONTEND
-	DEBCONF_TEXT_HORIZ=1
-	export DEBCONF_TEXT_HORIZ
-fi

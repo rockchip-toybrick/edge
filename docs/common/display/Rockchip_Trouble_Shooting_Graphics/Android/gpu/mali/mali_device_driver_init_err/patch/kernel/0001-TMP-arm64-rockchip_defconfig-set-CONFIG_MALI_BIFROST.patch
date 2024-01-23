@@ -1,0 +1,35 @@
+From d95b1c2a3a642773bd5e44f74407a7f1e48b6019 Mon Sep 17 00:00:00 2001
+From: Bian Jin chen <kenjc.bian@rock-chips.com>
+Date: Tue, 27 Aug 2019 10:59:16 +0800
+Subject: [PATCH] TMP: arm64: rockchip_defconfig: set CONFIG_MALI_BIFROST to y.
+
+set CONFIG_MALI_MIDGARD to n, in addition.
+
+Change-Id: Ic563c78e32e577d77b6e1bdc1f240805e99e2b39
+Signed-off-by: Bian Jin chen <kenjc.bian@rock-chips.com>
+---
+ arch/arm64/configs/rockchip_defconfig | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/arch/arm64/configs/rockchip_defconfig b/arch/arm64/configs/rockchip_defconfig
+index 6ca017b..f419485 100644
+--- a/arch/arm64/configs/rockchip_defconfig
++++ b/arch/arm64/configs/rockchip_defconfig
+@@ -532,13 +532,8 @@ CONFIG_MALI450=y
+ CONFIG_MALI_SHARED_INTERRUPTS=y
+ CONFIG_MALI_DT=y
+ CONFIG_MALI_DEVFREQ=y
+-CONFIG_MALI_MIDGARD=m
+-CONFIG_MALI_EXPERT=y
+-CONFIG_MALI_PLATFORM_THIRDPARTY=y
+-CONFIG_MALI_PLATFORM_THIRDPARTY_NAME="rk"
+-CONFIG_MALI_DEBUG=y
+ CONFIG_MALI_PWRSOFT_765=y
+-CONFIG_MALI_BIFROST=m
++CONFIG_MALI_BIFROST=y
+ CONFIG_MALI_BIFROST_DEVFREQ=y
+ CONFIG_MALI_PLATFORM_NAME="rk"
+ CONFIG_MALI_BIFROST_EXPERT=y
+-- 
+2.7.4
+

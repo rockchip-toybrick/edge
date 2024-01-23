@@ -1,0 +1,73 @@
+diff --git a/Android.mk b/Android.mk
+index b475ccd..48a4711 100755
+--- a/Android.mk
++++ b/Android.mk
+@@ -413,7 +413,7 @@ LOCAL_CPPFLAGS += -DDUAL_VIEW_MODE=0
+ endif
+ 
+ #USE_PLANE_RESERVED enable
+-#LOCAL_CPPFLAGS += -DUSE_PLANE_RESERVED
++LOCAL_CPPFLAGS += -DUSE_PLANE_RESERVED
+ 
+ # RK_RGA_PREPARE_ASYNC and RK_RGA_COMPSITE_SYNC are exclusive.
+ # 	RK_RGA_PREPARE_ASYNC: use async rga in hwc_prepare.
+diff --git a/drmdisplaycompositor.cpp b/drmdisplaycompositor.cpp
+index be13b4e..608f6b6 100755
+--- a/drmdisplaycompositor.cpp
++++ b/drmdisplaycompositor.cpp
+@@ -844,7 +844,7 @@ int DrmDisplayCompositor::DisablePlanes(DrmDisplayComposition *display_comp) {
+ 
+   int ret;
+ #ifdef USE_PLANE_RESERVED
+-  int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
++  int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "1");
+ #endif
+   std::vector<DrmCompositionPlane> &comp_planes =
+       display_comp->composition_planes();
+@@ -1170,7 +1170,7 @@ int DrmDisplayCompositor::CommitFrame(DrmDisplayComposition *display_comp,
+     //Find out the fb target for clone layer.
+     int fb_target_fb_id = -1;
+ #ifdef USE_PLANE_RESERVED
+-    int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
++    int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "1");
+ #endif
+ 
+ #if RK_3D_VIDEO
+diff --git a/hwc_rockchip.cpp b/hwc_rockchip.cpp
+index 84b7ea7..f10a192 100755
+--- a/hwc_rockchip.cpp
++++ b/hwc_rockchip.cpp
+@@ -1694,8 +1694,8 @@ bool MatchPlanes(
+     bool bMatch = false;
+ 
+ #ifdef USE_PLANE_RESERVED
+-        uint64_t win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
+-        uint64_t win1_zpos = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.zpos", "0");
++        uint64_t win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "1");
++        uint64_t win1_zpos = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.zpos", "2");
+ #endif
+ 
+ 
+diff --git a/hwcomposer.cpp b/hwcomposer.cpp
+index 3ff99a2..4d6e727 100755
+--- a/hwcomposer.cpp
++++ b/hwcomposer.cpp
+@@ -2479,7 +2479,7 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
+   char trace_name[30] = {0};
+   bool target_layer = false;
+ #ifdef USE_PLANE_RESERVED
+-  int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "0");
++  int win1_reserved = hwc_get_int_property( PROPERTY_TYPE ".hwc.win1.reserved", "1");
+ #endif
+ 
+ #ifdef USE_HWC2
+@@ -2600,8 +2600,7 @@ static int hwc_prepare(hwc_composer_device_1_t *dev, size_t num_displays,
+     {
+ #ifdef USE_PLANE_RESERVED
+         if (win1_reserved > 0 && GetCrtcSupported(*crtc, (*iter)->possible_crtcs) &&
+-          ((*iter)->planes.at(0)->type() == DRM_PLANE_TYPE_OVERLAY) &&
+-          (*iter)->planes.at(0)->get_yuv())
++          ((*iter)->planes.at(0)->type() == DRM_PLANE_TYPE_CURSOR))
+         {
+             (*iter)->b_reserved = true;
+             for(std::vector<DrmPlane*> ::const_iterator iter_plane = (*iter)->planes.begin();

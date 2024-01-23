@@ -1,3 +1,0 @@
-if debconf-loadtemplate d-i /var/lib/dpkg/info/*.templates; then
-	rm -f /var/lib/dpkg/info/*.templates # saves some memory
-fi

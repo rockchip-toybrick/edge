@@ -1,0 +1,359 @@
+From 2b41b50986b28ab69048990168427abbe8f4c752 Mon Sep 17 00:00:00 2001
+From: Yu Qiaowei <cerf.yu@rock-chips.com>
+Date: Wed, 22 Jun 2022 16:27:51 +0800
+Subject: [PATCH 2/2] video: rockchip: rga3: modify the check of virtual stride
+
+Signed-off-by: Yu Qiaowei <cerf.yu@rock-chips.com>
+Change-Id: I6c955fc1c746629142494c4c6d6f2f49c94d0d7c
+---
+ .../rockchip/rga3/include/rga_hw_config.h     |   8 ++
+ drivers/video/rockchip/rga3/rga2_reg_info.c   |  62 ++++-----
+ drivers/video/rockchip/rga3/rga3_reg_info.c   | 124 +++++++++---------
+ drivers/video/rockchip/rga3/rga_hw_config.c   |   6 +
+ 4 files changed, 105 insertions(+), 95 deletions(-)
+
+diff --git a/drivers/video/rockchip/rga3/include/rga_hw_config.h b/drivers/video/rockchip/rga3/include/rga_hw_config.h
+index ea5669521c02..5b56ef5e42dc 100644
+--- a/drivers/video/rockchip/rga3/include/rga_hw_config.h
++++ b/drivers/video/rockchip/rga3/include/rga_hw_config.h
+@@ -56,6 +56,7 @@ struct rga_hw_data {
+ 	unsigned int max_downscale_factor;
+ 
+ 	uint32_t byte_stride_align;
++	uint32_t max_byte_stride;
+ 
+ 	const struct rga_win_data *win;
+ 	unsigned int win_size;
+@@ -67,4 +68,11 @@ extern const struct rga_hw_data rga3_data;
+ extern const struct rga_hw_data rga2e_data;
+ extern const struct rga_hw_data rga2e_1106_data;
+ 
++/* Returns false if in range, true otherwise */
++#define RGA_HW_OUT_OF_RANGE(range, w, h) ((w) > (range)->max.width || \
++					  (h) > (range)->max.height || \
++					  (w) < (range)->min.width || \
++					  (h) < (range)->min.height)
++
++
+ #endif /* __LINUX_RGA_HW_CONFIG_H_ */
+diff --git a/drivers/video/rockchip/rga3/rga2_reg_info.c b/drivers/video/rockchip/rga3/rga2_reg_info.c
+index 235f8b38c971..69a55932eff7 100644
+--- a/drivers/video/rockchip/rga3/rga2_reg_info.c
++++ b/drivers/video/rockchip/rga3/rga2_reg_info.c
+@@ -2078,55 +2078,47 @@ void rga2_soft_reset(struct rga_scheduler_t *scheduler)
+ 		pr_err("soft reset timeout.\n");
+ }
+ 
+-static int rga2_check_param(const struct rga2_req *req)
++static int rga2_check_param(const struct rga_hw_data *data, const struct rga2_req *req)
+ {
+ 	if (!((req->render_mode == COLOR_FILL_MODE))) {
+-		if (unlikely
+-			((req->src.act_w <= 0) || (req->src.act_w > 8192)
+-			 || (req->src.act_h <= 0) || (req->src.act_h > 8192))) {
++		if (unlikely(RGA_HW_OUT_OF_RANGE(&data->input_range,
++						 req->src.act_w, req->src.act_h))) {
+ 			pr_err("invalid src resolution act_w = %d, act_h = %d\n",
+ 				 req->src.act_w, req->src.act_h);
+ 			return -EINVAL;
+ 		}
+-	}
+ 
+-	if (!((req->render_mode == COLOR_FILL_MODE))) {
+-		if (unlikely
+-			((req->src.vir_w <= 0) || (req->src.vir_w > 8192)
+-			 || (req->src.vir_h <= 0) || (req->src.vir_h > 8192))) {
+-			pr_err("invalid src resolution vir_w = %d, vir_h = %d\n",
+-				 req->src.vir_w, req->src.vir_h);
++		if (unlikely(req->src.vir_w * rga_get_pixel_stride_from_format(req->src.format) >
++			     data->max_byte_stride * 8)) {
++			pr_err("invalid src stride, stride = %d, max_byte_stride = %d\n",
++			       req->src.vir_w, data->max_byte_stride);
++			return -EINVAL;
++		}
++
++		if (unlikely(req->src.vir_w < req->src.act_w)) {
++			pr_err("invalid src_vir_w act_w = %d, vir_w = %d\n",
++			       req->src.act_w, req->src.vir_w);
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+-	/* check dst width and height */
+-	if (unlikely
+-		((req->dst.act_w <= 0) || (req->dst.act_w > 4096)
+-		 || (req->dst.act_h <= 0) || (req->dst.act_h > 4096))) {
++	if (unlikely(RGA_HW_OUT_OF_RANGE(&data->output_range, req->dst.act_w, req->dst.act_h))) {
+ 		pr_err("invalid dst resolution act_w = %d, act_h = %d\n",
+-			 req->dst.act_w, req->dst.act_h);
++		       req->dst.act_w, req->dst.act_h);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (unlikely
+-		((req->dst.vir_w <= 0) || (req->dst.vir_w > 4096)
+-		 || (req->dst.vir_h <= 0) || (req->dst.vir_h > 4096))) {
+-		pr_err("invalid dst resolution vir_w = %d, vir_h = %d\n",
+-			 req->dst.vir_w, req->dst.vir_h);
++	if (unlikely(req->dst.vir_w * rga_get_pixel_stride_from_format(req->dst.format) >
++		     data->max_byte_stride * 8)) {
++		pr_err("invalid dst stride, stride = %d, max_byte_stride = %d\n",
++		       req->dst.vir_w, data->max_byte_stride);
+ 		return -EINVAL;
+ 	}
+-	//check src_vir_w
+-	if (unlikely(req->src.vir_w < req->src.act_w)) {
+-		pr_err("invalid src_vir_w act_w = %d, vir_w = %d\n",
+-			 req->src.act_w, req->src.vir_w);
+-		return -EINVAL;
+-	}
+-	//check dst_vir_w
++
+ 	if (unlikely(req->dst.vir_w < req->dst.act_w)) {
+ 		if (req->rotate_mode != 1) {
+ 			pr_err("invalid dst_vir_w act_h = %d, vir_h = %d\n",
+-				 req->dst.act_w, req->dst.vir_w);
++			       req->dst.act_w, req->dst.vir_w);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -2216,12 +2208,10 @@ int rga2_init_reg(struct rga_job *job)
+ 	int ret = 0;
+ 	struct rga_scheduler_t *scheduler = NULL;
+ 
+-	scheduler = rga_job_get_scheduler(job);
+-	if (scheduler == NULL) {
+-		pr_err("failed to get scheduler, %s(%d)\n", __func__,
+-				__LINE__);
+-		ret = -EINVAL;
+-		return ret;
++	scheduler = job->scheduler;
++	if (unlikely(scheduler == NULL)) {
++		pr_err("failed to get scheduler, %s(%d)\n", __func__, __LINE__);
++		return -EINVAL;
+ 	}
+ 
+ 	memset(&req, 0x0, sizeof(req));
+@@ -2232,7 +2222,7 @@ int rga2_init_reg(struct rga_job *job)
+ 	       sizeof(job->pre_intr_info));
+ 
+ 	/* check value if legal */
+-	ret = rga2_check_param(&req);
++	ret = rga2_check_param(scheduler->data, &req);
+ 	if (ret == -EINVAL) {
+ 		pr_err("req argument is inval\n");
+ 		return ret;
+diff --git a/drivers/video/rockchip/rga3/rga3_reg_info.c b/drivers/video/rockchip/rga3/rga3_reg_info.c
+index d7eb3f91b200..297fd8766630 100644
+--- a/drivers/video/rockchip/rga3/rga3_reg_info.c
++++ b/drivers/video/rockchip/rga3/rga3_reg_info.c
+@@ -10,6 +10,7 @@
+ #include "rga3_reg_info.h"
+ #include "rga_common.h"
+ #include "rga_debugger.h"
++#include "rga_hw_config.h"
+ 
+ #define FACTOR_MAX ((int)(2 << 15))
+ 
+@@ -1709,82 +1710,80 @@ static int rga3_scale_check(const struct rga3_req *req)
+ 	return 0;
+ }
+ 
+-static int rga3_check_param(const struct rga3_req *req)
++static int rga3_check_param(const struct rga_hw_data *data, const struct rga3_req *req)
+ {
+-	if (!((req->render_mode == COLOR_FILL_MODE))) {
+-		if (unlikely((req->win0.src_act_w <= 0) ||
+-			(req->win0.src_act_w > 8176)
+-			 || (req->win0.src_act_h <= 0)
+-			 || (req->win0.src_act_h > 8176)
+-			 || (req->win0.dst_act_w <= 0)
+-			 || (req->win0.dst_act_w > 8128)
+-			 || (req->win0.dst_act_h <= 0)
+-			 || (req->win0.dst_act_h > 8128))) {
+-			pr_err("invalid win0 act sw = %d, sh = %d, dw = %d, dh = %d\n",
+-				 req->win0.src_act_w, req->win0.src_act_h,
+-				 req->win0.dst_act_w, req->win0.dst_act_h);
+-			return -EINVAL;
+-		}
++	if (unlikely(RGA_HW_OUT_OF_RANGE(&(data->input_range),
++					 req->win0.src_act_w, req->win0.src_act_h) ||
++		     RGA_HW_OUT_OF_RANGE(&(data->input_range),
++					 req->win0.dst_act_w, req->win0.dst_act_h) ||
++		     RGA_HW_OUT_OF_RANGE(&(data->input_range),
++					 req->win0.src_act_w + req->win0.x_offset,
++					 req->win0.src_act_h + req->win0.y_offset))) {
++		pr_err("invalid win0, src[w,h] = [%d, %d], dst[w,h] = [%d, %d], off[x,y] = [%d,%d]\n",
++		       req->win0.src_act_w, req->win0.src_act_h,
++		       req->win0.dst_act_w, req->win0.dst_act_h,
++		       req->win0.x_offset, req->win0.y_offset);
++		return -EINVAL;
++	}
++
++	if (unlikely(req->win0.vir_w * rga_get_pixel_stride_from_format(req->win0.format) >
++		     data->max_byte_stride * 8)) {
++		pr_err("invalid win0 stride, stride = %d, pixel_stride = %d, max_byte_stride = %d\n",
++		       req->win0.vir_w, rga_get_pixel_stride_from_format(req->win0.format),
++		       data->max_byte_stride);
++		return -EINVAL;
++	}
++
++	if (unlikely(RGA_HW_OUT_OF_RANGE(&(data->output_range),
++					 req->wr.dst_act_w, req->wr.dst_act_h))) {
++		pr_err("invalid wr, [w,h] = [%d, %d]\n", req->wr.dst_act_w, req->wr.dst_act_h);
++		return -EINVAL;
++	}
++
++	if (unlikely(req->wr.vir_w * rga_get_pixel_stride_from_format(req->wr.format) >
++		     data->max_byte_stride * 8)) {
++		pr_err("invalid wr stride, stride = %d, pixel_stride = %d, max_byte_stride = %d\n",
++		       req->wr.vir_w, rga_get_pixel_stride_from_format(req->wr.format),
++		       data->max_byte_stride);
++		return -EINVAL;
+ 	}
+ 
+ 	if (req->win1.yrgb_addr != 0) {
+-		if (unlikely((req->win1.src_act_w <= 0) ||
+-			(req->win1.src_act_w > 8176)
+-			 || (req->win1.src_act_h <= 0)
+-			 || (req->win1.src_act_h > 8176)
+-			 || (req->win1.dst_act_w <= 0)
+-			 || (req->win1.dst_act_w > 8128)
+-			 || (req->win1.dst_act_h <= 0)
+-			 || (req->win1.dst_act_h > 8128))) {
+-			pr_err("invalid win1 act sw = %d, sh = %d, dw = %d, dh = %d\n",
+-				 req->win1.src_act_w, req->win1.src_act_h,
+-				 req->win1.dst_act_w, req->win1.dst_act_h);
++		if (unlikely(RGA_HW_OUT_OF_RANGE(&(data->input_range),
++						 req->win1.src_act_w, req->win1.src_act_h) ||
++			     RGA_HW_OUT_OF_RANGE(&(data->input_range),
++						 req->win1.dst_act_w, req->win1.dst_act_h) ||
++			     RGA_HW_OUT_OF_RANGE(&(data->input_range),
++						 req->win1.src_act_w + req->win1.x_offset,
++						 req->win1.src_act_h + req->win1.y_offset))) {
++			pr_err("invalid win1, src[w,h] = [%d, %d], dst[w,h] = [%d, %d], off[x,y] = [%d,%d]\n",
++			       req->win1.src_act_w, req->win1.src_act_h,
++			       req->win1.dst_act_w, req->win1.dst_act_h,
++			       req->win1.x_offset, req->win1.y_offset);
+ 			return -EINVAL;
+ 		}
+ 
+-		if (unlikely
+-			((req->win1.vir_w <= 0) || (req->win1.vir_w > 8192 * 2)
+-			 || (req->win1.vir_h <= 0)
+-			 || (req->win1.vir_h > 8192 * 2))) {
+-			pr_err("invalid win1 stride vir_w = %d, vir_h = %d\n",
+-				 req->win1.vir_w, req->win1.vir_h);
++		if (unlikely(req->win1.vir_w * rga_get_pixel_stride_from_format(req->win1.format) >
++			     data->max_byte_stride * 8)) {
++			pr_err("invalid win1 stride, stride = %d, pixel_stride = %d, max_byte_stride = %d\n",
++			       req->win1.vir_w, rga_get_pixel_stride_from_format(req->win1.format),
++			       data->max_byte_stride);
+ 			return -EINVAL;
+ 		}
+ 
+ 		/* warning: rotate mode skip this judge */
+ 		if (req->rotate_mode == 0) {
+ 			/* check win0 dst size > win1 dst size */
+-			if (unlikely
+-				((req->win1.dst_act_w > req->win0.dst_act_w)
+-				|| (req->win1.dst_act_h > req->win0.dst_act_h))) {
+-				pr_err("invalid win1.dst size = %d x %d\n",
+-					req->win1.dst_act_w, req->win1.dst_act_h);
+-				pr_err("invalid win0.dst size = %d x %d\n",
+-					req->win0.dst_act_w, req->win0.dst_act_h);
++			if (unlikely((req->win1.dst_act_w > req->win0.dst_act_w) ||
++				     (req->win1.dst_act_h > req->win0.dst_act_h))) {
++				pr_err("invalid output param win0[w,h] = [%d, %d], win1[w,h] = [%d, %d]\n",
++				       req->win0.dst_act_w, req->win0.dst_act_h,
++				       req->win1.dst_act_w, req->win1.dst_act_h);
+ 				return -EINVAL;
+ 			}
+ 		}
+ 	}
+ 
+-	if (!((req->render_mode == COLOR_FILL_MODE))) {
+-		if (unlikely
+-			((req->win0.vir_w <= 0) || (req->win0.vir_w > 8192)
+-			 || (req->win0.vir_h <= 0)
+-			 || (req->win0.vir_h > 8192))) {
+-			pr_err("invalid win0 vir_w = %d, vir_h = %d\n",
+-				 req->win0.vir_w, req->win0.vir_h);
+-			return -EINVAL;
+-		}
+-	}
+-
+-	if (unlikely
+-		((req->wr.vir_w <= 0) || (req->wr.vir_w > 8192 * 2)
+-		 || (req->wr.vir_h <= 0) || (req->wr.vir_h > 8192 * 2))) {
+-		pr_err("invalid wr vir_w = %d, vir_h = %d\n",
+-			 req->wr.vir_w, req->wr.vir_h);
+-		return -EINVAL;
+-	}
+-
+ 	if (rga3_scale_check(req) < 0)
+ 		return -EINVAL;
+ 
+@@ -1874,13 +1873,20 @@ int rga3_init_reg(struct rga_job *job)
+ {
+ 	struct rga3_req req;
+ 	int ret = 0;
++	struct rga_scheduler_t *scheduler = NULL;
++
++	scheduler = job->scheduler;
++	if (unlikely(scheduler == NULL)) {
++		pr_err("failed to get scheduler, %s(%d)\n", __func__, __LINE__);
++		return -EINVAL;
++	}
+ 
+ 	memset(&req, 0x0, sizeof(req));
+ 
+ 	rga_cmd_to_rga3_cmd(&job->rga_command_base, &req);
+ 
+ 	/* check value if legal */
+-	ret = rga3_check_param(&req);
++	ret = rga3_check_param(scheduler->data, &req);
+ 	if (ret == -EINVAL) {
+ 		pr_err("req argument is inval\n");
+ 		return ret;
+diff --git a/drivers/video/rockchip/rga3/rga_hw_config.c b/drivers/video/rockchip/rga3/rga_hw_config.c
+index 51dffdd46d9d..797ab676b053 100644
+--- a/drivers/video/rockchip/rga3/rga_hw_config.c
++++ b/drivers/video/rockchip/rga3/rga_hw_config.c
+@@ -8,6 +8,9 @@
+ 
+ #include "rga_hw_config.h"
+ 
++/* RGA 1Word = 4Byte */
++#define WORD_TO_BYTE(w) ((w) * 4)
++
+ const uint32_t rga3_input_raster_format[] = {
+ 	RGA_FORMAT_RGBA_8888,
+ 	RGA_FORMAT_BGRA_8888,
+@@ -263,6 +266,7 @@ const struct rga_hw_data rga3_data = {
+ 	.max_downscale_factor = 3,
+ 
+ 	.byte_stride_align = 16,
++	.max_byte_stride = WORD_TO_BYTE(8192),
+ 
+ 	.feature = RGA_COLOR_KEY,
+ 	.csc_r2y_mode = RGA_MODE_CSC_BT601L | RGA_MODE_CSC_BT601F |
+@@ -284,6 +288,7 @@ const struct rga_hw_data rga2e_data = {
+ 	.max_downscale_factor = 4,
+ 
+ 	.byte_stride_align = 4,
++	.max_byte_stride = WORD_TO_BYTE(8192),
+ 
+ 	.feature = RGA_COLOR_FILL | RGA_COLOR_PALETTE |
+ 		   RGA_COLOR_KEY | RGA_ROP_CALCULATE |
+@@ -307,6 +312,7 @@ const struct rga_hw_data rga2e_1106_data = {
+ 	.max_downscale_factor = 4,
+ 
+ 	.byte_stride_align = 4,
++	.max_byte_stride = WORD_TO_BYTE(8192),
+ 
+ 	.feature = RGA_COLOR_FILL | RGA_COLOR_PALETTE |
+ 		   RGA_COLOR_KEY | RGA_ROP_CALCULATE |
+-- 
+2.30.2
+

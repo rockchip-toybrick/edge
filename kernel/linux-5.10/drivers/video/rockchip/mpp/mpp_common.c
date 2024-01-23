@@ -36,12 +36,6 @@
 #include "mpp_common.h"
 #include "mpp_iommu.h"
 
-/* Use 'v' as magic number */
-#define MPP_IOC_MAGIC		'v'
-
-#define MPP_IOC_CFG_V1	_IOW(MPP_IOC_MAGIC, 1, unsigned int)
-#define MPP_IOC_CFG_V2	_IOW(MPP_IOC_MAGIC, 2, unsigned int)
-
 /* input parmater structure for version 1 */
 struct mpp_msg_v1 {
 	__u32 cmd;
@@ -49,14 +43,6 @@ struct mpp_msg_v1 {
 	__u32 size;
 	__u32 offset;
 	__u64 data_ptr;
-};
-
-#define MPP_BAT_MSG_DONE		(0x00000001)
-
-struct mpp_bat_msg {
-	__u64 flag;
-	__u32 fd;
-	__s32 ret;
 };
 
 #ifdef CONFIG_ROCKCHIP_MPP_PROC_FS
@@ -586,6 +572,7 @@ static void mpp_task_timeout_work(struct work_struct *work_s)
 	mpp_dev_reset(mpp);
 	mpp_power_off(mpp);
 
+	mpp_iommu_dev_deactivate(mpp->iommu_info, mpp);
 	set_bit(TASK_STATE_TIMEOUT, &task->state);
 	set_bit(TASK_STATE_DONE, &task->state);
 	/* Wake up the GET thread */
@@ -715,10 +702,6 @@ mpp_reset_control_get(struct mpp_dev *mpp, enum MPP_RESET_TYPE type, const char 
 		group->resets[type] = rst;
 		group->queue = mpp->queue;
 	}
-	/* if reset not in the same queue, it means different device
-	 * may reset in the same time, then rw_sem_on should set true.
-	 */
-	group->rw_sem_on |= (group->queue != mpp->queue) ? true : false;
 	dev_info(mpp->dev, "reset_group->rw_sem_on=%d\n", group->rw_sem_on);
 	up_write(&group->rw_sem);
 
@@ -819,12 +802,19 @@ static int mpp_task_run(struct mpp_dev *mpp,
 		mpp_set_grf(mpp->grf_info);
 	}
 	/*
+	 * Lock the reader locker of the device resource lock here,
+	 * release at the finish operation
+	 */
+	mpp_reset_down_read(mpp->reset_group);
+
+	/*
 	 * for iommu share hardware, should attach to ensure
 	 * working in current device
 	 */
 	ret = mpp_iommu_attach(mpp->iommu_info);
 	if (ret) {
 		dev_err(mpp->dev, "mpp_iommu_attach failed\n");
+		mpp_reset_up_read(mpp->reset_group);
 		return -ENODATA;
 	}
 
@@ -834,11 +824,6 @@ static int mpp_task_run(struct mpp_dev *mpp,
 
 	if (mpp->auto_freq_en && mpp->hw_ops->set_freq)
 		mpp->hw_ops->set_freq(mpp, task);
-	/*
-	 * TODO: Lock the reader locker of the device resource lock here,
-	 * release at the finish operation
-	 */
-	mpp_reset_down_read(mpp->reset_group);
 
 	mpp_iommu_dev_activate(mpp->iommu_info, mpp);
 	if (mpp->dev_ops->run)
@@ -1003,6 +988,10 @@ static int mpp_attach_service(struct mpp_dev *mpp, struct device *dev)
 			return -ENODEV;
 		} else {
 			mpp->reset_group = mpp->srv->reset_groups[reset_group_node];
+			if (!mpp->reset_group->queue)
+				mpp->reset_group->queue = queue;
+			if (mpp->reset_group->queue != mpp->queue)
+				mpp->reset_group->rw_sem_on = true;
 		}
 	}
 

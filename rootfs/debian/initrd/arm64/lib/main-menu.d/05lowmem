@@ -1,5 +1,0 @@
-#! /bin/sh
-. /usr/share/debconf/confmodule
-if [ -e /var/lib/lowmem ]; then
-	db_info lowmem/info
-fi

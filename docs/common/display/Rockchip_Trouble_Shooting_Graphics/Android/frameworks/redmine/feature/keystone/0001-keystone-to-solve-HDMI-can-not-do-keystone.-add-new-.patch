@@ -1,0 +1,127 @@
+From 832f1d57c378c85314352798ca797b083053f9ac Mon Sep 17 00:00:00 2001
+From: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+Date: Thu, 10 Jan 2019 21:23:16 +0800
+Subject: [PATCH] keystone:to solve HDMI can not do keystone. add new
+ param:(hw_w & hw_h) on beginGroup()
+
+Change-Id: I9c83d14b71c3c04096d1fec5e609e84638cbfde9
+Signed-off-by: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+---
+ services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp | 2 +-
+ services/surfaceflinger/RenderEngine/GLES11RenderEngine.h   | 2 +-
+ services/surfaceflinger/RenderEngine/GLES20RenderEngine.cpp | 8 ++++----
+ services/surfaceflinger/RenderEngine/GLES20RenderEngine.h   | 2 +-
+ services/surfaceflinger/RenderEngine/RenderEngine.h         | 2 +-
+ services/surfaceflinger/SurfaceFlinger_hwc1.cpp             | 2 +-
+ 6 files changed, 9 insertions(+), 9 deletions(-)
+ mode change 100644 => 100755 services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp
+ mode change 100644 => 100755 services/surfaceflinger/RenderEngine/GLES11RenderEngine.h
+ mode change 100644 => 100755 services/surfaceflinger/RenderEngine/RenderEngine.h
+
+diff --git a/services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp b/services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp
+old mode 100644
+new mode 100755
+index bd1e545..9da5bf4
+--- a/services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp
++++ b/services/surfaceflinger/RenderEngine/GLES11RenderEngine.cpp
+@@ -314,7 +314,7 @@ void GLES11RenderEngine::dump(String8& result) {
+ }
+ 
+ #ifdef ENABLE_KEYSTONE_EFFECT
+-void GLES11RenderEngine::beginGroup(const mat4& /*colorTransform*/) {
++void GLES11RenderEngine::beginGroup(const mat4& /*colorTransform*/,int hw_w,int hw_h) {
+     // doesn't do anything in GLES 1.1
+ }
+ 
+diff --git a/services/surfaceflinger/RenderEngine/GLES11RenderEngine.h b/services/surfaceflinger/RenderEngine/GLES11RenderEngine.h
+old mode 100644
+new mode 100755
+index 2948a3f..6893ab8
+--- a/services/surfaceflinger/RenderEngine/GLES11RenderEngine.h
++++ b/services/surfaceflinger/RenderEngine/GLES11RenderEngine.h
+@@ -77,7 +77,7 @@ protected:
+     virtual size_t getMaxTextureSize() const;
+     virtual size_t getMaxViewportDims() const;
+ #ifdef ENABLE_KEYSTONE_EFFECT
+-    virtual void beginGroup(const mat4& colorTransform);
++    virtual void beginGroup(const mat4& colorTransform,int hw_w,int hw_h);
+     virtual void endGroup();
+ #endif
+ };
+diff --git a/services/surfaceflinger/RenderEngine/GLES20RenderEngine.cpp b/services/surfaceflinger/RenderEngine/GLES20RenderEngine.cpp
+index dfebf0e..953cac0 100755
+--- a/services/surfaceflinger/RenderEngine/GLES20RenderEngine.cpp
++++ b/services/surfaceflinger/RenderEngine/GLES20RenderEngine.cpp
+@@ -397,7 +397,7 @@ int GLES20RenderEngine::setTargetDpyXY(int32_t displayType, int32_t displayId, i
+     return mKeystone.setTargetDpyXY(displayType, displayId, x, y);
+ }
+ 
+-void GLES20RenderEngine::beginGroup(const mat4& colorTransform) {
++void GLES20RenderEngine::beginGroup(const mat4& colorTransform, int hw_w, int hw_h) {
+ 
+     GLuint tname, name;
+ 
+@@ -408,7 +408,7 @@ void GLES20RenderEngine::beginGroup(const mat4& colorTransform) {
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mVpWidth, mVpHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
++    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hw_w, hw_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+     glBindTexture(GL_TEXTURE_2D, 0);
+ 
+     // create a Framebuffer Object to render into
+@@ -422,8 +422,8 @@ void GLES20RenderEngine::beginGroup(const mat4& colorTransform) {
+     Group group;
+     group.texture = tname;
+     group.fbo = name;
+-    group.width = mVpWidth;
+-    group.height = mVpHeight;
++    group.width = hw_w;
++    group.height = hw_h;
+ 
+     group.colorTransform = colorTransform;
+ 
+diff --git a/services/surfaceflinger/RenderEngine/GLES20RenderEngine.h b/services/surfaceflinger/RenderEngine/GLES20RenderEngine.h
+index b51bc4e..7c20392 100755
+--- a/services/surfaceflinger/RenderEngine/GLES20RenderEngine.h
++++ b/services/surfaceflinger/RenderEngine/GLES20RenderEngine.h
+@@ -105,7 +105,7 @@ protected:
+ 
+ #ifdef ENABLE_KEYSTONE_EFFECT
+     Keystone mKeystone;
+-    virtual void beginGroup(const mat4& colorTransform);
++    virtual void beginGroup(const mat4& colorTransform,int hw_w,int hw_h);
+     virtual void endGroup();
+     virtual int setTargetDpyXY(int32_t displayType, int32_t displayId, int x, int y);
+ #endif
+diff --git a/services/surfaceflinger/RenderEngine/RenderEngine.h b/services/surfaceflinger/RenderEngine/RenderEngine.h
+old mode 100644
+new mode 100755
+index 8b2de61..82be041
+--- a/services/surfaceflinger/RenderEngine/RenderEngine.h
++++ b/services/surfaceflinger/RenderEngine/RenderEngine.h
+@@ -131,7 +131,7 @@ public:
+     // grouping
+     // creates a color-transform group, everything drawn in the group will be
+     // transformed by the given color transform when endGroup() is called.
+-    virtual void beginGroup(const mat4& colorTransform) = 0;
++    virtual void beginGroup(const mat4& colorTransform, int hw_w, int hw_h) = 0;
+     virtual void endGroup() = 0;
+     virtual int setTargetDpyXY(int32_t displayType, int32_t displayId, int x, int y) {return 0;};
+ #endif
+diff --git a/services/surfaceflinger/SurfaceFlinger_hwc1.cpp b/services/surfaceflinger/SurfaceFlinger_hwc1.cpp
+index ff55c26..5f30b56 100755
+--- a/services/surfaceflinger/SurfaceFlinger_hwc1.cpp
++++ b/services/surfaceflinger/SurfaceFlinger_hwc1.cpp
+@@ -2244,7 +2244,7 @@ void SurfaceFlinger::doDisplayComposition(const sp<const DisplayDevice>& hw,
+     int32_t displayType = hw->getDisplayType();
+     int32_t displayId = hw->getHwcDisplayId();
+     if (engine.setTargetDpyXY(displayType, displayId, hw_w, hw_h)) {
+-        engine.beginGroup(colorMatrix);
++        engine.beginGroup(colorMatrix,hw_w,hw_h);
+         doComposeSurfaces(hw, dirtyRegion);
+         engine.endGroup();
+     } else {
+-- 
+2.7.4
+

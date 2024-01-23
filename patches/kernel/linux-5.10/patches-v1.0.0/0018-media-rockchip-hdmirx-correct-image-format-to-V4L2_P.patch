@@ -1,0 +1,64 @@
+From 25dc1bff6e9e37c34010f98cda28c22295a8c877 Mon Sep 17 00:00:00 2001
+From: Dingxian Wen <shawn.wen@rock-chips.com>
+Date: Tue, 14 Jun 2022 17:55:07 +0800
+Subject: [PATCH 18/24] media: rockchip: hdmirx: correct image format to
+ V4L2_PIX_FMT_BGR24
+
+Signed-off-by: Dingxian Wen <shawn.wen@rock-chips.com>
+Change-Id: I45bcd0450d1a85ed51261f47c282cc3f03b4c5b5
+---
+ drivers/media/platform/rockchip/hdmirx/rk_hdmirx.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/platform/rockchip/hdmirx/rk_hdmirx.c b/drivers/media/platform/rockchip/hdmirx/rk_hdmirx.c
+index d268f5502aa1..1598c3647156 100644
+--- a/drivers/media/platform/rockchip/hdmirx/rk_hdmirx.c
++++ b/drivers/media/platform/rockchip/hdmirx/rk_hdmirx.c
+@@ -331,7 +331,7 @@ static const struct v4l2_dv_timings_cap hdmirx_timings_cap = {
+ 
+ static const struct hdmirx_output_fmt g_out_fmts[] = {
+ 	{
+-		.fourcc = V4L2_PIX_FMT_RGB24,
++		.fourcc = V4L2_PIX_FMT_BGR24,
+ 		.cplanes = 1,
+ 		.mplanes = 1,
+ 		.bpp = { 24 },
+@@ -558,7 +558,7 @@ static void hdmirx_get_pix_fmt(struct rk_hdmirx_dev *hdmirx_dev)
+ 
+ 	switch (hdmirx_dev->pix_fmt) {
+ 	case HDMIRX_RGB888:
+-		hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_RGB24;
++		hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_BGR24;
+ 		break;
+ 	case HDMIRX_YUV422:
+ 		hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_NV16;
+@@ -575,7 +575,7 @@ static void hdmirx_get_pix_fmt(struct rk_hdmirx_dev *hdmirx_dev)
+ 			"%s: err pix_fmt: %d, set RGB888 as default\n",
+ 			__func__, hdmirx_dev->pix_fmt);
+ 		hdmirx_dev->pix_fmt = HDMIRX_RGB888;
+-		hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_RGB24;
++		hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_BGR24;
+ 		break;
+ 	}
+ 
+@@ -1426,7 +1426,7 @@ static u32 hdmirx_align_bits_per_pixel(const struct hdmirx_output_fmt *fmt,
+ 		case V4L2_PIX_FMT_NV24:
+ 		case V4L2_PIX_FMT_NV16:
+ 		case V4L2_PIX_FMT_NV12:
+-		case V4L2_PIX_FMT_RGB24:
++		case V4L2_PIX_FMT_BGR24:
+ 			bpp = fmt->bpp[plane_index];
+ 			break;
+ 
+@@ -3616,7 +3616,7 @@ static int hdmirx_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_work_queues;
+ 
+-	hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_RGB24;
++	hdmirx_dev->cur_fmt_fourcc = V4L2_PIX_FMT_BGR24;
+ 	hdmirx_dev->timings = timings_def;
+ 
+ 	irq = platform_get_irq_byname(pdev, "hdmi");
+-- 
+2.30.2
+

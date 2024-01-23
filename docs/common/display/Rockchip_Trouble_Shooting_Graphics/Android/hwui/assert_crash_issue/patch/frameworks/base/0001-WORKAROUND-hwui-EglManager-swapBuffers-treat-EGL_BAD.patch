@@ -1,0 +1,27 @@
+From d16161364a97f882c60b745e97b59aba50719eaa Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Tue, 21 May 2019 09:37:26 +0800
+Subject: [PATCH] WORKAROUND: hwui: EglManager::swapBuffers: treat
+ EGL_BAD_ALLOC as a nonfatal error
+
+Change-Id: Ia93618eab87f81b34ef6332f448acbc20174f616
+---
+ libs/hwui/renderthread/EglManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libs/hwui/renderthread/EglManager.cpp b/libs/hwui/renderthread/EglManager.cpp
+index 69e1355..8da0b58 100644
+--- a/libs/hwui/renderthread/EglManager.cpp
++++ b/libs/hwui/renderthread/EglManager.cpp
+@@ -344,7 +344,7 @@ bool EglManager::swapBuffers(const Frame& frame, const SkRect& screenDirty) {
+     if (CC_LIKELY(err == EGL_SUCCESS)) {
+         return true;
+     }
+-    if (err == EGL_BAD_SURFACE || err == EGL_BAD_NATIVE_WINDOW) {
++    if (err == EGL_BAD_SURFACE || err == EGL_BAD_NATIVE_WINDOW || err == EGL_BAD_ALLOC) {
+         // For some reason 
+         // our surface 
+         // was destroyed out from under us 
+-- 
+2.7.4
+

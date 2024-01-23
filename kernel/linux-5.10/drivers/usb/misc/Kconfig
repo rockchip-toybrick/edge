@@ -275,3 +275,9 @@ config USB_CHAOSKEY
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called chaoskey.
+
+config USB_HUBRESET
+	tristate "USB hub reset for TB-RK3399ProD"
+	help
+          Say Y here if your board is TB-RK3399ProD
+	

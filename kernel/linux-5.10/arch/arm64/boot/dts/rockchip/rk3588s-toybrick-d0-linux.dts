@@ -9,6 +9,7 @@
 #include "rk3588s-toybrick-d0.dtsi"
 #include "rk3588-linux.dtsi"
 //#include "rk3588s-toybrick-d0-imx258.dtsi"
+#include "rk3588s-toybrick-imx415.dtsi"
 #include "rk3588s-toybrick-d0-powerboard.dtsi"
 
 / {

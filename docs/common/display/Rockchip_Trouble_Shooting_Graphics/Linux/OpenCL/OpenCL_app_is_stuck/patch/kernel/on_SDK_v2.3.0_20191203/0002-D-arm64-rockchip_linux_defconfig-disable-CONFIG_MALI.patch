@@ -1,0 +1,31 @@
+From a7ea3eb17e33c04c429b1d8c4397e1da8424a84a Mon Sep 17 00:00:00 2001
+From: Zhen Chen <chenzhen@rock-chips.com>
+Date: Fri, 29 May 2020 10:39:39 +0800
+Subject: [PATCH 2/2] D: arm64: rockchip_linux_defconfig: disable
+ CONFIG_MALI_MIDGARD_FOR_LINUX
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+以便可以使用内容是 DDK r18 的源码目录 drivers/gpu/arm/midgard/
+
+Change-Id: I90a0b827706678d4af86f632e0ab751e2ac16d76
+---
+ arch/arm64/configs/rockchip_linux_defconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/arm64/configs/rockchip_linux_defconfig b/arch/arm64/configs/rockchip_linux_defconfig
+index 42ef39f..efe4ee2 100644
+--- a/arch/arm64/configs/rockchip_linux_defconfig
++++ b/arch/arm64/configs/rockchip_linux_defconfig
+@@ -338,7 +338,6 @@ CONFIG_MALI450=y
+ CONFIG_MALI_SHARED_INTERRUPTS=y
+ CONFIG_MALI_DT=y
+ CONFIG_MALI_DEVFREQ=y
+-CONFIG_MALI_MIDGARD_FOR_LINUX=y
+ CONFIG_MALI_MIDGARD=y
+ CONFIG_MALI_EXPERT=y
+ CONFIG_MALI_PLATFORM_THIRDPARTY=y
+-- 
+2.7.4
+

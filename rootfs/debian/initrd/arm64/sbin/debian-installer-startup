@@ -1,9 +1,0 @@
-#! /bin/sh
-# This script is called at system startup
-for script in /lib/debian-installer-startup.d/S[0-9][0-9]* /etc/rcS.d/S[0-9][0-9]*; do
-	if [ -x $script ]; then
-		$script
-	elif [ -e $script ]; then
-		. $script
-	fi
-done

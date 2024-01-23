@@ -1,0 +1,51 @@
+From bc73938e571a020aba89b5d5ff853583f41c21ef Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Fri, 31 Mar 2023 14:37:48 +0800
+Subject: [PATCH 08/31] rfkill: default unblock bluetooth
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: Ia90997ce0a904db5af6ba8f7f93b3e7aedd5bb79
+---
+ net/rfkill/rfkill-bt.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/net/rfkill/rfkill-bt.c b/net/rfkill/rfkill-bt.c
+index 719a23d41bac..be30f0f2bcb3 100644
+--- a/net/rfkill/rfkill-bt.c
++++ b/net/rfkill/rfkill-bt.c
+@@ -448,8 +448,13 @@ static void rfkill_rk_pm_complete(struct device *dev)
+ 	}
+ }
+ 
++static int rfkill_rk_set_block(void *data, bool blocked)
++{
++	return 0;
++}
++
+ static const struct rfkill_ops rfkill_rk_ops = {
+-	.set_block = rfkill_rk_set_power,
++	.set_block = rfkill_rk_set_block,
+ };
+ 
+ #define PROC_DIR "bluetooth/sleep"
+@@ -706,6 +711,7 @@ static int rfkill_rk_probe(struct platform_device *pdev)
+ 	INIT_DELAYED_WORK(&rfkill->bt_sleep_delay_work,
+ 			  rfkill_rk_delay_sleep_bt);
+ 
++#if 0
+ 	//rfkill_rk_set_power(rfkill, BT_BLOCKED);
+ 	// bt turn off power
+ 	if (gpio_is_valid(pdata->poweron_gpio.io)) {
+@@ -716,6 +722,9 @@ static int rfkill_rk_probe(struct platform_device *pdev)
+ 		gpio_direction_output(pdata->reset_gpio.io,
+ 				      !pdata->reset_gpio.enable);
+ 	}
++#else
++	rfkill_rk_set_power(rfkill, BT_UNBLOCK);
++#endif
+ 
+ 	platform_set_drvdata(pdev, rfkill);
+ 
+-- 
+2.25.1
+

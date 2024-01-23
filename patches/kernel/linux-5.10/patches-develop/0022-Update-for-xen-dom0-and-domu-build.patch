@@ -1,0 +1,435 @@
+From 9fc3372b92de27a9c31c2cd53b457679450b37f3 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Fri, 28 Oct 2022 11:25:40 +0800
+Subject: [PATCH 22/31] Update for xen dom0 and domu build
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: Icc4f6bed8eb9a3f9694ad0a2e1b47ebe820ac83f
+---
+ .../dts/rockchip/rk3588-evb1-lp4-v10-xen.dts  |  66 ++++++
+ arch/arm64/boot/dts/rockchip/rk3588-xen.dtsi  | 202 ++++++++++++++++++
+ arch/arm64/configs/rockchip_dom0.config       |  19 ++
+ arch/arm64/configs/rockchip_domu.config       |  39 ++++
+ arch/arm64/mm/dma-mapping.c                   |   2 +-
+ drivers/block/xen-blkfront.c                  |   2 +-
+ drivers/xen/swiotlb-xen.c                     |  17 ++
+ 7 files changed, 345 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4-v10-xen.dts
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3588-xen.dtsi
+ create mode 100644 arch/arm64/configs/rockchip_dom0.config
+ create mode 100644 arch/arm64/configs/rockchip_domu.config
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4-v10-xen.dts b/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4-v10-xen.dts
+new file mode 100644
+index 000000000000..580877a02da0
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-lp4-v10-xen.dts
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
++ *
++ */
++
++/dts-v1/;
++
++#include "rk3588-evb1-lp4.dtsi"
++#include "rk3588-evb1-imx415.dtsi"
++#include "rk3588-xen.dtsi"
++
++/ {
++	model = "Rockchip RK3588 EVB1 LP4 V10 Board";
++	compatible = "rockchip,rk3588-evb1-lp4-v10", "rockchip,rk3588";
++};
++
++&rockchip_suspend {
++
++	rockchip,sleep-mode-config = <
++		(0
++		| RKPM_SLP_ARMOFF_DDRPD
++		| RKPM_SLP_PMU_PMUALIVE_32K
++		| RKPM_SLP_PMU_DIS_OSC
++		| RKPM_SLP_32K_EXT
++		| RKPM_SLP_PMU_DBG
++		)
++	>;
++};
++
++&route_hdmi0 {
++	status = "okay";
++	connect = <&vp0_out_hdmi0>;
++	/delete-property/ force-output;
++	/delete-node/ force_timing;
++};
++
++&route_hdmi1 {
++	status = "okay";
++	connect = <&vp1_out_hdmi1>;
++	/delete-property/ force-output;
++	/delete-node/ force_timing;
++};
++
++&vdd_log_s0 {
++	regulator-state-mem {
++		regulator-on-in-suspend;
++		regulator-suspend-microvolt = <750000>;
++	};
++};
++
++&vcc_1v8_s0 {
++	/delete-property/ regulator-state-mem;
++	regulator-state-mem {
++		regulator-on-in-suspend;
++		regulator-suspend-microvolt = <1800000>;
++	};
++};
++
++&vcc_3v3_s0 {
++	/delete-property/ regulator-state-mem;
++	regulator-state-mem {
++		regulator-on-in-suspend;
++		regulator-suspend-microvolt = <3300000>;
++	};
++};
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-xen.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-xen.dtsi
+new file mode 100644
+index 000000000000..c5b3391cd2ba
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3588-xen.dtsi
+@@ -0,0 +1,202 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
++ *
++ */
++
++/ {
++	#address-cells = <2>;
++	#size-cells = <2>;
++
++	chosen: chosen {
++		xen,xen-bootargs = "dom0_mem=4G hmp-unsafe=true loglvl=all dtuart=serial2 console=dtuart";
++		xen,dom0-bootargs = "psi=1 console=hvc0 irqchip.gicv3_pseudo_nmi=0 root=PARTUUID=614e0000-0000-4b53-8000-1d28000054a9 rw rootwait";
++		dom0 {
++			#address-cells = <2>;
++			#size-cells = <2>;
++			kernel {
++				compatible = "xen,linux-zimage", "xen,multiboot-module";
++				reg = <0x0 0x00600000 0x0 0x02000000>;
++			};
++		};
++		/*
++		domU {
++			compatible = "xen,domain";
++			#address-cells = <2>;
++			#size-cells = <2>;
++			memory = <0x0 0x100000>;
++			cpus = <2>;
++			vpl011;
++			kernel {
++				compatible = "multiboot,kernel", "multiboot,module";
++				reg = <0x0 0x02600000 0x0 0x02000000>;
++				bootargs = "earlycon=hvc0 console=ttyAMA0";
++			};
++		};
++		*/
++	};
++
++	cspmu: cspmu@fd10c000 {
++		compatible = "rockchip,cspmu";
++		reg = <0x0 0xfd10c000 0x0 0x1000>,
++		      <0x0 0xfd10d000 0x0 0x1000>,
++		      <0x0 0xfd10e000 0x0 0x1000>,
++		      <0x0 0xfd10f000 0x0 0x1000>,
++		      <0x0 0xfd12c000 0x0 0x1000>,
++		      <0x0 0xfd12d000 0x0 0x1000>,
++		      <0x0 0xfd12e000 0x0 0x1000>,
++		      <0x0 0xfd12f000 0x0 0x1000>;
++		//status = "disabled";
++	};
++
++	debug: debug@fd104000 {
++		compatible = "rockchip,debug";
++		reg = <0x0 0xfd104000 0x0 0x1000>,
++		      <0x0 0xfd105000 0x0 0x1000>,
++		      <0x0 0xfd106000 0x0 0x1000>,
++		      <0x0 0xfd107000 0x0 0x1000>,
++		      <0x0 0xfd124000 0x0 0x1000>,
++		      <0x0 0xfd125000 0x0 0x1000>,
++		      <0x0 0xfd126000 0x0 0x1000>,
++		      <0x0 0xfd127000 0x0 0x1000>;
++		//status = "disabled";
++	};
++
++	fiq_debugger: fiq-debugger {
++		compatible = "rockchip,fiq-debugger";
++		rockchip,serial-id = <0xffffffff>;
++		rockchip,wake-irq = <0>;
++		/* If enable uart uses irq instead of fiq */
++		rockchip,irq-mode-enable = <1>;
++		rockchip,baudrate = <1500000>;  /* Only 115200 and 1500000 */
++		interrupts = <GIC_SPI 423 IRQ_TYPE_LEVEL_LOW>;
++		//pinctrl-names = "default";
++		//pinctrl-0 = <&uart2m0_xfer>;
++		status = "okay";
++	};
++
++	rockchip_amp: rockchip-amp {
++		compatible = "rockchip,amp";
++		clocks = <&cru SCLK_UART2>, <&cru PCLK_UART2>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&uart2m0_xfer>;
++		status = "okay";
++	};
++
++	firmware {
++		optee: optee {
++			compatible = "linaro,optee-tz";
++			method = "smc";
++			//status = "disabled";
++		};
++	};
++
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		/delete-node/ cma;
++
++		drm_logo: drm-logo@00000000 {
++			compatible = "rockchip,drm-logo";
++			reg = <0x0 0x0 0x0 0x0>;
++		};
++
++		drm_cubic_lut: drm-cubic-lut@00000000 {
++			compatible = "rockchip,drm-cubic-lut";
++			reg = <0x0 0x0 0x0 0x0>;
++		};
++	};
++
++	ramoops: ramoops@110000 {
++		compatible = "ramoops";
++		reg = <0x0 0x110000 0x0 0xf0000>;
++		record-size = <0x20000>;
++		console-size = <0x80000>;
++		ftrace-size = <0x00000>;
++		pmsg-size = <0x50000>;
++		status ="disabled";
++	};
++
++	scmiatf: scmiatf@10000 {
++		//compatible = "xen,static-mem";
++		compatible = "rockchip,atf";
++		reg = <0x0 0x00100000 0x0 0x00010000>;
++	};
++};
++
++&soc_thermal {
++	cooling-maps {
++		/delete-node/ map0;
++		/delete-node/ map1;
++		/delete-node/ map2;
++	};
++};
++
++&display_subsystem {
++	memory-region = <&drm_logo>;
++	memory-region-names = "drm-logo";
++};
++
++&dfi {
++	status = "okay";
++};
++
++&uart2 {
++	status = "okay";
++};
++
++&dmc {
++	status = "okay";
++	center-supply = <&vdd_ddr_s0>;
++	mem-supply = <&vdd_log_s0>;
++};
++
++&rng {
++	status = "okay";
++};
++
++&pcie3x4 {
++	status = "disabled";
++};
++
++&pcie3x2 {
++	status = "disabled";
++};
++
++&pcie2x1l0 {
++	status = "disabled";
++};
++
++&pcie2x1l1 {
++	status = "disabled";
++};
++
++&pcie2x1l2 {
++	status = "disabled";
++};
++
++&pcie3x4_intc {
++        interrupts = <GIC_SPI 260 IRQ_TYPE_LEVEL_HIGH>;
++};
++
++&pcie3x2_intc {
++        interrupts = <GIC_SPI 255 IRQ_TYPE_LEVEL_HIGH>;
++};
++
++&pcie2x1l0_intc {
++        interrupts = <GIC_SPI 240 IRQ_TYPE_LEVEL_HIGH>;
++};
++
++&pcie2x1l1_intc {
++        interrupts = <GIC_SPI 245 IRQ_TYPE_LEVEL_HIGH>;
++};
++
++&pcie2x1l2_intc {
++        interrupts = <GIC_SPI 250 IRQ_TYPE_LEVEL_HIGH>;
++};
++
++&hdmirx_ctrler {
++	status = "disabled";
++};
+diff --git a/arch/arm64/configs/rockchip_dom0.config b/arch/arm64/configs/rockchip_dom0.config
+new file mode 100644
+index 000000000000..c1740123a67e
+--- /dev/null
++++ b/arch/arm64/configs/rockchip_dom0.config
+@@ -0,0 +1,19 @@
++CONFIG_XEN_DOM0=y
++CONFIG_XEN=y
++
++CONFIG_XEN_BLKDEV_BACKEND=y
++# CONFIG_XEN_BLKDEV_FRONTEND is not set
++
++CONFIG_XEN_NETDEV_BACKEND=y
++# CONFIG_XEN_NETDEV_FRONTEND is not set
++
++# CONFIG_XEN_PVCALLS_FRONTEND is not set
++CONFIG_XEN_PVCALLS_BACKEND=y
++
++CONFIG_ROCKCHIP_AMP=y
++
++CONFIG_BRIDGE=y
++
++CONFIG_BLK_DEV_DM=y
++
++CONFIG_DAX=y
+diff --git a/arch/arm64/configs/rockchip_domu.config b/arch/arm64/configs/rockchip_domu.config
+new file mode 100644
+index 000000000000..73a7a67e780c
+--- /dev/null
++++ b/arch/arm64/configs/rockchip_domu.config
+@@ -0,0 +1,39 @@
++# CONFIG_DRM_RCAR_DU is not set
++# CONFIG_DRM_RCAR_DW_HDMI is not set
++# CONFIG_DRM_NOUVEAU is not set
++# CONFIG_ARCH_SUNXI is not set
++# CONFIG_ARCH_MESON is not set
++# CONFIG_PHY_ROCKCHIP_EMMC is not set
++# CONFIG_PHY_ROCKCHIP_INNO_HDMI is not set
++# CONFIG_PHY_ROCKCHIP_INNO_USB2 is not set
++# CONFIG_PHY_ROCKCHIP_PCIE is not set
++# CONFIG_PHY_ROCKCHIP_TYPEC is not set
++# CONFIG_SND_SOC_QCOM is not set
++# CONFIG_SND_SOC_TEGRA is not set
++
++# CONFIG_VIDEO_SAMSUNG_S5P_JPEG is not set
++# CONFIG_VIDEO_SAMSUNG_S5P_MFC is not set
++# CONFIG_VIDEO_RENESAS_FDP1 is not set
++# CONFIG_VIDEO_RENESAS_VSP1 is not set
++# CONFIG_VIDEO_RENESAS_FCP is not set
++# CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC is not set
++# CONFIG_VIDEO_QCOM_CAMSS is not set
++# CONFIG_VIDEO_RCAR_DRIF is not set
++# CONFIG_VIDEO_RCAR_CSI2 is not set
++# CONFIG_VIDEO_RCAR_VIN is not set
++
++CONFIG_XEN_FBDEV_FRONTEND=y
++
++CONFIG_USB_VIDEO_CLASS=y
++CONFIG_MEDIA_SUPPORT=y
++
++CONFIG_IIO_KFIFO_BUF=y
++CONFIG_IIO_TRIGGERED_BUFFER=y
++
++CONFIG_I2C_VIRTIO=y
++CONFIG_GPIO_VIRTIO=y
++CONFIG_VIRTIO_SND=y
++CONFIG_VIRTIO_VIDEO=y
++CONFIG_HW_RANDOM_VIRTIO=y
++CONFIG_DRM_VIRTIO_GPU=y
++CONFIG_IIO_SCMI=y
+diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+index 2ee48958d459..78a03669d1eb 100644
+--- a/arch/arm64/mm/dma-mapping.c
++++ b/arch/arm64/mm/dma-mapping.c
+@@ -61,7 +61,7 @@ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
+ 	trace_android_rvh_setup_dma_ops(dev);
+ 
+ #ifdef CONFIG_XEN
+-	if (xen_initial_domain())
++	if (!iommu && xen_initial_domain())
+ 		dev->dma_ops = &xen_swiotlb_dma_ops;
+ #endif
+ }
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 6f33d62331b1..4d44ba0aaa93 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -2395,7 +2395,7 @@ static void blkfront_gather_backend_features(struct blkfront_info *info)
+ 	if (xenbus_read_unsigned(info->xbdev->otherend, "feature-discard", 0))
+ 		blkfront_setup_discard(info);
+ 
+-	if (info->feature_persistent_parm)
++	if (feature_persistent)
+ 		info->feature_persistent =
+ 			!!xenbus_read_unsigned(info->xbdev->otherend,
+ 					       "feature-persistent", 0);
+diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
+index 2b385c1b4a99..0011fed81bbb 100644
+--- a/drivers/xen/swiotlb-xen.c
++++ b/drivers/xen/swiotlb-xen.c
+@@ -563,6 +563,21 @@ xen_swiotlb_dma_supported(struct device *hwdev, u64 mask)
+ 	return xen_virt_to_bus(hwdev, xen_io_tlb_end - 1) <= mask;
+ }
+ 
++static dma_addr_t
++xen_swiotlb_map_resource(struct device *dev, phys_addr_t phys_addr,
++			size_t size, enum dma_data_direction dir,
++			unsigned long attrs)
++{
++	return xen_phys_to_dma(dev, phys_addr);
++}
++
++static void
++xen_swiotlb_unmap_resource(struct device *dev, dma_addr_t dma_handle,
++                        size_t size, enum dma_data_direction dir,
++                        unsigned long attrs)
++{
++}
++
+ const struct dma_map_ops xen_swiotlb_dma_ops = {
+ 	.alloc = xen_swiotlb_alloc_coherent,
+ 	.free = xen_swiotlb_free_coherent,
+@@ -574,6 +589,8 @@ const struct dma_map_ops xen_swiotlb_dma_ops = {
+ 	.unmap_sg = xen_swiotlb_unmap_sg,
+ 	.map_page = xen_swiotlb_map_page,
+ 	.unmap_page = xen_swiotlb_unmap_page,
++	.map_resource = xen_swiotlb_map_resource,
++	.unmap_resource = xen_swiotlb_unmap_resource,
+ 	.dma_supported = xen_swiotlb_dma_supported,
+ 	.mmap = dma_common_mmap,
+ 	.get_sgtable = dma_common_get_sgtable,
+-- 
+2.25.1
+

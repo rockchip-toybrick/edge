@@ -1,0 +1,61 @@
+commit d06bd5047d17404272ffcc1a1e2efff230dc950e
+Author: Sandy Huang <hjc@rock-chips.com>
+Date:   Fri Feb 9 15:35:43 2018 +0800
+
+    drm/rockchip: vop: default set to premultiplied alpha mode
+    
+    Change-Id: I006d2d7bda2413d3796a14c23a34fe2beea878a8
+    Signed-off-by: Sandy Huang <hjc@rock-chips.com>
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+index 42ced60..593c598 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+@@ -1659,6 +1659,7 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
+ 			SRC_FACTOR_M0(global_alpha_en ?
+ 				      ALPHA_SRC_GLOBAL : ALPHA_ONE);
+ 		VOP_WIN_SET(vop, win, src_alpha_ctl, val);
++		VOP_WIN_SET(vop, win, alpha_pre_mul, 1);
+ 		VOP_WIN_SET(vop, win, alpha_mode, 1);
+ 		VOP_WIN_SET(vop, win, alpha_en, 1);
+ 	} else {
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
+index e62efd2..269a5c5 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
+@@ -380,6 +380,7 @@ struct vop_win_phy {
+ 	struct vop_reg src_alpha_ctl;
+ 	struct vop_reg alpha_mode;
+ 	struct vop_reg alpha_en;
++	struct vop_reg alpha_pre_mul;
+ 	struct vop_reg global_alpha_val;
+ 	struct vop_reg key_color;
+ 	struct vop_reg key_en;
+diff --git a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
+index cd90ddc..4c90b77 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
++++ b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
+@@ -1245,6 +1245,7 @@ static const struct vop_win_phy rk3366_lit_win0_data = {
+ 	.yrgb_vir = VOP_REG(RK3366_LIT_WIN0_VIR, 0x1fff, 0),
+ 	.uv_vir = VOP_REG(RK3366_LIT_WIN0_VIR, 0x1fff, 16),
+ 
++	.alpha_pre_mul = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0x1, 2),
+ 	.alpha_mode = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0x1, 1),
+ 	.alpha_en = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0x1, 0),
+ 	.global_alpha_val = VOP_REG(RK3366_LIT_WIN0_ALPHA_CTRL, 0xff, 4),
+@@ -1264,6 +1265,7 @@ static const struct vop_win_phy rk3366_lit_win1_data = {
+ 	.yrgb_mst = VOP_REG(RK3366_LIT_WIN1_MST, 0xffffffff, 0),
+ 	.yrgb_vir = VOP_REG(RK3366_LIT_WIN1_VIR, 0x1fff, 0),
+ 
++	.alpha_pre_mul = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0x1, 2),
+ 	.alpha_mode = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0x1, 1),
+ 	.alpha_en = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0x1, 0),
+ 	.global_alpha_val = VOP_REG(RK3366_LIT_WIN1_ALPHA_CTRL, 0xff, 4),
+@@ -1471,6 +1473,7 @@ static const struct vop_win_phy px30_win23_data = {
+ 	.dsp_st = VOP_REG(RK3368_WIN2_DSP_ST0, 0x1fff1fff, 0),
+ 	.yrgb_mst = VOP_REG(RK3368_WIN2_MST0, 0xffffffff, 0),
+ 	.yrgb_vir = VOP_REG(RK3368_WIN2_VIR0_1, 0x1fff, 0),
++	.alpha_pre_mul = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0x1, 2),
+ 	.alpha_mode = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0x1, 1),
+ 	.alpha_en = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0x1, 0),
+ 	.global_alpha_val = VOP_REG(RK3368_WIN2_SRC_ALPHA_CTRL, 0xff, 4),

@@ -1,0 +1,31 @@
+From e9d915751fce1ebad059b1ce7235a347d4d9a4d7 Mon Sep 17 00:00:00 2001
+From: Sandy Huang <hjc@rock-chips.com>
+Date: Wed, 10 Jan 2018 09:52:26 +0800
+Subject: [PATCH] video: rockchip: rk fb: fix one dual mode win parameter error
+
+like rk3128 only have one vop, but support lvds/mipi/rgb + hdmi display
+mode:
+when only lcd display, hwc set dst resolution according to lcd,
+when dual output, hwc set dst resolution according to hdmi.
+
+Change-Id: I8b4b8a1b0e264c04ce21ea6d84329b6df2c3d23d
+Signed-off-by: Sandy Huang <hjc@rock-chips.com>
+---
+ drivers/video/rockchip/rk_fb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/video/rockchip/rk_fb.c b/drivers/video/rockchip/rk_fb.c
+index fb3ccb1..b5eeed5 100644
+--- a/drivers/video/rockchip/rk_fb.c
++++ b/drivers/video/rockchip/rk_fb.c
+@@ -1734,6 +1734,7 @@ static void rk_fb_update_win(struct rk_lcdc_driver *dev_drv,
+ 				win->area[i].smem_start =
+ 					reg_win_data->reg_area_data[i].smem_start;
+ 				if (inf->disp_mode == DUAL ||
++				    inf->disp_mode == ONE_DUAL ||
+ 				    inf->disp_mode == NO_DUAL) {
+ 					win->area[i].xpos =
+ 						reg_win_data->reg_area_data[i].xpos;
+-- 
+2.7.4
+

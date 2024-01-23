@@ -1,0 +1,29 @@
+diff --git a/drmresources.cpp b/drmresources.cpp
+index edff919..a82032f 100755
+--- a/drmresources.cpp
++++ b/drmresources.cpp
+@@ -1087,6 +1087,24 @@ int DrmResources::UpdateDisplayRoute(void)
+     if (!conn->encoder() || !conn->encoder()->crtc())
+       continue;
+     conn->set_active_mode(conn->current_mode());
++    // Support for dahua
++    {
++        char display_fps[20] = {0};
++        int fps = 0;
++        if(conn->current_mode().interlaced()){
++            fps = (int)(conn->current_mode().v_refresh() / 2);
++            sprintf(display_fps,"%d",fps);
++        }else{
++            fps = (int)conn->current_mode().v_refresh();
++            sprintf(display_fps,"%d",fps);
++        }
++
++        if(i == HWC_DISPLAY_PRIMARY){
++            property_set("sys.hwc.primary_display_fps",display_fps);
++        }else{
++            property_set("sys.hwc.extend_display_fps",display_fps);
++        }
++    }
+   }
+   enable_changed_ = false;
+ 

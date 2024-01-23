@@ -1,0 +1,13 @@
+diff --git a/normal/NormalRga.cpp b/normal/NormalRga.cpp
+index d27ed44..14f967a 100755
+--- a/normal/NormalRga.cpp
++++ b/normal/NormalRga.cpp
+@@ -921,7 +921,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
+ 	/* special config for rgb to yuv */
+ 	if (NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
+ 			NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relDstRect.format)))
+-		yuvToRgbMode |= 0x2 << 4;
++		yuvToRgbMode |= 0x3 << 4;
+ 
+ 	/* mode
+ 	 * scaleMode:set different algorithm to scale.

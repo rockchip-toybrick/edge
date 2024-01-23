@@ -1,0 +1,30 @@
+From b92d4ce25b82f45bcfa3b2cef8b96e80894d0000 Mon Sep 17 00:00:00 2001
+From: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+Date: Wed, 22 Jul 2020 14:48:11 +0800
+Subject: [PATCH] hwui: Workaround a fatal case in Defect #261433
+
+Change-Id: I38686dffff832dd7d4b1fe8a2b3404274006f928
+Signed-off-by: Zhixiong Lin <zhixiong.lin@rock-chips.com>
+---
+ libs/hwui/renderthread/EglManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+ mode change 100644 => 100755 libs/hwui/renderthread/EglManager.cpp
+
+diff --git a/libs/hwui/renderthread/EglManager.cpp b/libs/hwui/renderthread/EglManager.cpp
+old mode 100644
+new mode 100755
+index eb332d5..6c0c7fb
+--- a/libs/hwui/renderthread/EglManager.cpp
++++ b/libs/hwui/renderthread/EglManager.cpp
+@@ -298,7 +298,7 @@ bool EglManager::swapBuffers(EGLSurface surface, const SkRect& dirty,
+         ALOGW("swapBuffers encountered EGL_BAD_SURFACE on %p, halting rendering...", surface);
+         return false;
+     }
+-    LOG_ALWAYS_FATAL("Encountered EGL error %d %s during rendering",
++    ALOGW("Encountered EGL error %d %s during rendering",
+             err, egl_error_str(err));
+     // Impossible to hit this, but the compiler doesn't know that
+     return false;
+-- 
+2.7.4
+

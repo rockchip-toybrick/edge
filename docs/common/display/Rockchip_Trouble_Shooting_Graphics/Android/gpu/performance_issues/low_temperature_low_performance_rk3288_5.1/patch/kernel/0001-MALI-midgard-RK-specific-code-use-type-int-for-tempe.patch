@@ -1,0 +1,42 @@
+From f37b404a6ceb81fb2c66993129c88e24e0c5a2f4 Mon Sep 17 00:00:00 2001
+From: chenzhen <chenzhen@rock-chips.com>
+Date: Thu, 6 Jul 2017 11:43:17 +0800
+Subject: [PATCH] MALI: midgard: RK specific code: use type 'int' for
+ temperature data
+
+Fix the bug treating temperature under 0 as over heat.
+
+Change-Id: I389efe9cb15c2ea7ca7ba10bdf296e841824e1f1
+Signed-off-by: chenzhen <chenzhen@rock-chips.com>
+---
+ .../gpu/arm/midgard/platform/rk/mali_kbase_dvfs.h  |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/arm/midgard/platform/rk/mali_kbase_dvfs.h b/drivers/gpu/arm/midgard/platform/rk/mali_kbase_dvfs.h
+index 12c2239..590aa0f 100755
+--- a/drivers/gpu/arm/midgard/platform/rk/mali_kbase_dvfs.h
++++ b/drivers/gpu/arm/midgard/platform/rk/mali_kbase_dvfs.h
+@@ -47,9 +47,9 @@ struct rk_dvfs_t {
+ 	int utilisation;
+ 
+ 	/*
+-	 * The result temperature of last measure_session.
++	 * The result temperature of last measure_session, might be negative.
+ 	 */
+-	u32 temp;
++	int temp;
+ 	/*
+ 	 * Times of temp measures which has been taken in current session.
+ 	 */
+@@ -57,7 +57,7 @@ struct rk_dvfs_t {
+ 	/*
+ 	 * sum of temps measued within a session.
+ 	 */
+-	u32 sum_of_temps;
++	int sum_of_temps;
+ 
+ 	/*
+ 	 * counter_of_requests_to_jump_up.
+-- 
+1.7.9.5
+

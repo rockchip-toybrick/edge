@@ -1,0 +1,49 @@
+From 60a35eef0063ddd38e1c53ec58dd00f38e526d33 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Wed, 12 Apr 2023 11:33:44 +0800
+Subject: [PATCH 29/31] drivers: net: wireless: change for hyper pass
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I618dbe8cfa78f7334b79078449ff89588558e350
+---
+ drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig         | 6 ++++++
+ drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile | 2 ++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig b/drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig
+index 3659e604e920..caf3551951a7 100644
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig
+@@ -54,3 +54,9 @@ config BCMDHD_STATIC_IF
+ 	bool "Enable wlan1 support"
+ 	help
+ 	  default to add wlan1 interface
++
++config BCMDHD_HYPER_PASS
++	bool "Enable hyper passthrough support"
++	default n
++	help
++	  Enable hyper passthrough support
+diff --git a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
+index 88177951e036..e86ba8a13270 100755
+--- a/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
++++ b/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
+@@ -326,6 +326,7 @@ endif
+ 	DHDCFLAGS += -DCUSTOMER_HW_ROCKCHIP
+ endif
+ 
++ifeq ($(CONFIG_BCMDHD_HYPER_PASS),)
+ ifeq ($(CONFIG_BCMDHD_REQUEST_FW),y)
+ 	DHDCFLAGS += -DDHD_LINUX_STD_FW_API
+ 	DHDCFLAGS += -DDHD_FW_NAME="\"fw_bcmdhd.bin\""
+@@ -338,6 +339,7 @@ ifeq ($(CONFIG_BCMDHD_FW_PATH),)
+ 	DHDCFLAGS += -DCONFIG_BCMDHD_CLM_PATH="\"/system/etc/firmware/clm_bcmdhd.blob\""
+ endif
+ endif
++endif
+ 
+ ifeq ($(CONFIG_BCMDHD_AG),y)
+ 	DHDCFLAGS += -DBAND_AG
+-- 
+2.25.1
+

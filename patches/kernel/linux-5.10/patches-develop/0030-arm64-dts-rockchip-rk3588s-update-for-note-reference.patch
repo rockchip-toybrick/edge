@@ -1,0 +1,46 @@
+From 7271e67a819fbf8a0e0e6a4f69db23ec96dd6e09 Mon Sep 17 00:00:00 2001
+From: "addy.ke" <addy.ke@rock-chips.com>
+Date: Fri, 14 Apr 2023 14:58:49 +0800
+Subject: [PATCH 30/31] arm64: dts: rockchip: rk3588s: update for note
+ reference
+
+Signed-off-by: addy.ke <addy.ke@rock-chips.com>
+Change-Id: I76a3e0af7a285a8bb5f58750a1d4dcf3e8ef7bcf
+---
+ arch/arm64/boot/dts/rockchip/rk3588s.dtsi | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+index a5134b42245d..b958c673ce76 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+@@ -367,7 +367,7 @@ mclkout_i2s3: mclkout-i2s3@fd58c318 {
+ 		};
+ 	};
+ 
+-	cpus {
++	cpus: cpus {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+@@ -1238,7 +1238,7 @@ arm_pmu: arm-pmu {
+ 				     <&cpu_b0>, <&cpu_b1>, <&cpu_b2>, <&cpu_b3>;
+ 	};
+ 
+-	cpuinfo {
++	cpuinfo: cpuinfo {
+ 		compatible = "rockchip,cpuinfo";
+ 		nvmem-cells = <&otp_id>, <&otp_cpu_version>, <&cpu_code>;
+ 		nvmem-cell-names = "id", "cpu-version", "cpu-code";
+@@ -1805,7 +1805,7 @@ npu_thermal: npu-thermal {
+ 		};
+ 	};
+ 
+-	timer {
++	timer: timer {
+ 		compatible = "arm,armv8-timer";
+ 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>,
+ 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>,
+-- 
+2.25.1
+

@@ -1,0 +1,18 @@
+commit 31e2803cc935b32d65f9a1da3dffc54ef19cae1d (rk29/develop-5.10)
+Author: Damon Ding <damon.ding@rock-chips.com>
+Date:   Tue Jan 4 18:48:18 2022 +0800
+
+    FROMLIST: pwm: gpio: Add a generic gpio based PWM driver
+    
+    This patch adds a bit-banging gpio PWM driver. It makes
+    use of hrtimers, to allow nano-second resolution, though
+    it obviously strongly depends on the switching speed of
+    the gpio pins, hrtimer and system load.
+    
+    Each pwm node can have 1 or more "pwm-gpio" entries,
+    which will be treated as pwm's as part of a pwm chip.
+    
+    Link: https://patchwork.ozlabs.org/project/linux-pwm/patch/1445895161-2317-8-git-send-email-o.schinagl@ultimaker.com/
+    Signed-off-by: Olliver Schinagl <oliver@schinagl.nl>
+    Signed-off-by: Damon Ding <damon.ding@rock-chips.com>
+    Change-Id: Ibdb28eca3239a3a8503c947667117a9b0e9427b9
