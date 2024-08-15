@@ -1,5 +1,72 @@
 # PX30 Release Note
 
+## px30_bl32_v2.17.bin
+
+| Date       | File                | Build commit | Severity  |
+| ---------- | :------------------ | ------------ | --------- |
+| 2024-07-09 | px30_bl32_v2.17.bin | 7ab599eca    | important |
+
+### New
+
+1.  Other security enhancements.
+2.  RPMB change read data to multiple times.
+3.  Increase MPI_MEMPOOL_SIZE size.
+
+------
+
+## px30_ddr_333MHz_v2.10.bin
+
+| Date       | file                      | Build commit | Severity  |
+| ---------- | ------------------------- | ------------ | --------- |
+| 2024-05-27 | px30_ddr_333MHz_v2.10.bin | 29a6ff7      | important |
+
+### Fixed
+
+| Index | Severity  | Update                                                    | Issue description                                            | Issue source |
+| ----- | --------- | --------------------------------------------------------- | ------------------------------------------------------------ | ------------ |
+| 1     | important | Solve the problem of lp3 power-on probability not booting | On and off the power copy machine, lp3 probability does not turn on the problem | -            |
+
+------
+
+## px30_bl32_v2.16.bin
+
+| Date       | File                | Build commit | Severity  |
+| ---------- | :------------------ | ------------ | --------- |
+| 2024-04-16 | px30_bl32_v2.16.bin | 185dc3c92    | important |
+
+### New
+
+1. Optimization parameter check to enhance security.
+2. Support printing TEE memory usage information.
+3. Hardware crypto supports addresses exceeding 4G.
+4. Support printing FWVER information.
+
+------
+
+## px30_ddr_333MHz_v2.09.bin
+
+| Date       | file                      | Build commit | Severity |
+| ---------- | ------------------------- | ------------ | -------- |
+| 2023-12-20 | px30_ddr_333MHz_v2.09.bin | 131f35b      | moderate |
+
+### New
+
+1. Add DQS weak pull up/down.
+
+------
+
+## px30_bl31_v1.34.elf
+
+| Date       | file                | Build commit | Severity |
+| ---------- | ------------------- | ------------ | -------- |
+| 2023-12-26 | px30_bl31_v1.34.elf | 46064b2d5    | moderate |
+
+### New
+
+1. Support DDR Extended temperature range which should used with 2x, 4x refresh rate ddr bin file.
+
+------
+
 ## px30_bl32_v2.15.bin
 
 | Date       | File                | Build commit | Severity  |

@@ -321,7 +321,7 @@ function select_chip_info()
 	#  - PX30, PX3SE
 	#  - RK????, RK????X
 	#  - RV????
-	CHIP_PATTERN='^CONFIG_ROCKCHIP_[R,P][X,V,K][0-9ESX]{1,5}'
+	CHIP_PATTERN='^CONFIG_ROCKCHIP_[R,P][X,V,K][0-9ESXB]{1,5}'
 	RKCHIP=`egrep -o ${CHIP_PATTERN} .config`
 
 	# default
@@ -624,9 +624,13 @@ function pack_uboot_itb_image()
 	done
 
 	# COMPRESSION
-	COMPRESSION=`awk -F"," '/COMPRESSION=/  { printf $1 }' ${INI} | tr -d ' ' | cut -c 13-`
-	if [ ! -z "${COMPRESSION}" -a "${COMPRESSION}" != "none" ]; then
-		COMPRESSION_ARG="-c ${COMPRESSION}"
+	if grep -q '^CONFIG_IMAGE_GZIP=y' .config ; then
+		COMPRESSION_ARG="-c gzip"
+	else
+		COMPRESSION=`awk -F"," '/COMPRESSION=/  { printf $1 }' ${INI} | tr -d ' ' | cut -c 13-`
+		if [ ! -z "${COMPRESSION}" -a "${COMPRESSION}" != "none" ]; then
+			COMPRESSION_ARG="-c ${COMPRESSION}"
+		fi
 	fi
 
 	if [ -d ${REP_DIR} ]; then

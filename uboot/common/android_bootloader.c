@@ -828,6 +828,13 @@ static AvbSlotVerifyResult android_slot_verify(char *boot_partname,
 	preload_user_data.boot.size = (size_t)mpb_post(2);
 #endif
 
+	/*
+	 * Handle the case: "avb lock + (vbus = 0) + recovery key pressed".
+	 * Check whether required boot_partname is same as preload boot_partition.
+	 */
+	if (preload_user_data.boot_partition && strcmp(preload_user_data.boot_partition, boot_partname))
+		preload_user_data.boot.addr = NULL;
+
 	/* use preload one if available */
 	if (preload_user_data.boot.addr) {
 		data = (struct AvbOpsData *)(ops->user_data);

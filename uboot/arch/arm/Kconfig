@@ -1159,6 +1159,8 @@ config ARCH_ROCKCHIP
 	select SPI
 	select DEBUG_UART_BOARD_INIT
 	select PANIC_HANG
+	imply SHA1
+	imply SHA256
 	imply DM_MMC
 	imply DM_I2C
 	imply DM_PWM

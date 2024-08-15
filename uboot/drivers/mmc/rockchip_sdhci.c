@@ -616,7 +616,7 @@ static const struct sdhci_data arasan_data = {
 static const struct sdhci_data rk3568_data = {
 	.emmc_set_clock = dwcmshc_sdhci_emmc_set_clock,
 	.get_phy = dwcmshc_emmc_get_phy,
-	.flags = RK_RXCLK_NO_INVERTER,
+	.flags = RK_RXCLK_NO_INVERTER | RK_TAP_VALUE_SEL,
 	.hs200_tx_tap = 16,
 	.hs400_tx_tap = 8,
 	.hs400_cmd_tap = 8,
@@ -629,7 +629,7 @@ static const struct sdhci_data rk3588_data = {
 	.get_phy = dwcmshc_emmc_get_phy,
 	.set_ios_post = dwcmshc_sdhci_set_ios_post,
 	.set_enhanced_strobe = dwcmshc_sdhci_set_enhanced_strobe,
-	.flags = RK_DLL_CMD_OUT,
+	.flags = RK_DLL_CMD_OUT | RK_TAP_VALUE_SEL,
 	.hs200_tx_tap = 16,
 	.hs400_tx_tap = 9,
 	.hs400_cmd_tap = 8,
@@ -663,6 +663,19 @@ static const struct sdhci_data rk3562_data = {
 	.ddr50_strbin_delay_num = 10,
 };
 
+static const struct sdhci_data rk3576_data = {
+	.emmc_set_clock = dwcmshc_sdhci_emmc_set_clock,
+	.get_phy = dwcmshc_emmc_get_phy,
+	.set_ios_post = dwcmshc_sdhci_set_ios_post,
+	.set_enhanced_strobe = dwcmshc_sdhci_set_enhanced_strobe,
+	.flags = RK_DLL_CMD_OUT | RK_TAP_VALUE_SEL,
+	.hs200_tx_tap = 16,
+	.hs400_tx_tap = 7,
+	.hs400_cmd_tap = 7,
+	.hs400_strbin_tap = 5,
+	.ddr50_strbin_delay_num = 16,
+};
+
 static const struct udevice_id sdhci_ids[] = {
 	{
 		.compatible = "arasan,sdhci-5.1",
@@ -679,6 +692,10 @@ static const struct udevice_id sdhci_ids[] = {
 	{
 		.compatible = "rockchip,rk3562-dwcmshc",
 		.data = (ulong)&rk3562_data,
+	},
+	{
+		.compatible = "rockchip,rk3576-dwcmshc",
+		.data = (ulong)&rk3576_data,
 	},
 	{
 		.compatible = "rockchip,rk3588-dwcmshc",

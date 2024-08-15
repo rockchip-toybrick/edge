@@ -147,6 +147,8 @@ static int key_core_read(struct dm_key_uclass_platdata *uc_key)
 		int ret;
 
 		ret = uclass_get_device_by_name(UCLASS_ADC, "saradc", &dev);
+		if (ret)
+			ret = uclass_get_device_by_name(UCLASS_ADC, "adc", &dev);
 		if (ret) {
 			KEY_ERR("%s: No saradc\n", uc_key->name);
 			return KEY_NOT_EXIST;

@@ -13,7 +13,6 @@
 #include <mapmem.h>
 #include <errno.h>
 #include <boot_rkimg.h>
-#include <crypto.h>
 #include <sysmem.h>
 #include <mp_boot.h>
 #include <u-boot/sha1.h>
@@ -418,13 +417,12 @@ typedef enum {
 	IMG_MAX,
 } img_t;
 
-#if defined(CONFIG_ANDROID_BOOT_IMAGE_HASH) && !defined(CONFIG_DM_CRYPTO)
+#ifdef CONFIG_ANDROID_BOOT_IMAGE_HASH
 static sha1_context sha1_ctx;
 #endif
 
 static int image_load(img_t img, struct andr_img_hdr *hdr,
-		      ulong blkstart, void *ram_base,
-		      struct udevice *crypto)
+		      ulong blkstart, void *ram_base)
 {
 	struct blk_desc *desc = rockchip_get_bootdev();
 	disk_partition_t part_vendor_boot;
@@ -656,15 +654,8 @@ crypto_calc:
 	/* sha1 */
 	if (hdr->header_version < 3) {
 #ifdef CONFIG_ANDROID_BOOT_IMAGE_HASH
-#ifdef CONFIG_DM_CRYPTO
-		if (crypto) {
-			crypto_sha_update(crypto, (u32 *)buffer, length);
-			crypto_sha_update(crypto, (u32 *)&length, typesz);
-		}
-#else
 		sha1_update(&sha1_ctx, (void *)buffer, length);
 		sha1_update(&sha1_ctx, (void *)&length, typesz);
-#endif
 #endif
 	}
 
@@ -674,23 +665,21 @@ crypto_calc:
 	return 0;
 }
 
-static int images_load_verify(struct andr_img_hdr *hdr, ulong part_start,
-			      void *ram_base, struct udevice *crypto)
+static int images_load_verify(struct andr_img_hdr *hdr, ulong part_start, void *ram_base)
 {
 	/* load, never change order ! */
-	if (image_load(IMG_KERNEL, hdr, part_start, ram_base, crypto))
+	if (image_load(IMG_KERNEL, hdr, part_start, ram_base))
 		return -1;
-	if (image_load(IMG_RAMDISK, hdr, part_start, ram_base, crypto))
+	if (image_load(IMG_RAMDISK, hdr, part_start, ram_base))
 		return -1;
-	if (image_load(IMG_SECOND, hdr, part_start, ram_base, crypto))
+	if (image_load(IMG_SECOND, hdr, part_start, ram_base))
 		return -1;
 	if (hdr->header_version > 0) {
-		if (image_load(IMG_RECOVERY_DTBO, hdr, part_start,
-			       ram_base, crypto))
+		if (image_load(IMG_RECOVERY_DTBO, hdr, part_start, ram_base))
 			return -1;
 	}
 	if (hdr->header_version > 1) {
-		if (image_load(IMG_DTB, hdr, part_start, ram_base, crypto))
+		if (image_load(IMG_DTB, hdr, part_start, ram_base))
 			return -1;
 	}
 
@@ -723,7 +712,7 @@ static int android_image_separate(struct andr_img_hdr *hdr,
 	 */
 
 	/* load rk-kernel.dtb alone */
-	if (image_load(IMG_RK_DTB, hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_RK_DTB, hdr, bstart, ram_base))
 		return -1;
 
 #ifdef CONFIG_ANDROID_BOOT_IMAGE_HASH
@@ -733,52 +722,41 @@ static int android_image_separate(struct andr_img_hdr *hdr,
 	verify = mpb_post(3);
 #endif
 	if (hdr->header_version < 3 && verify) {
-		struct udevice *dev = NULL;
 		uchar hash[20];
-#ifdef CONFIG_DM_CRYPTO
-		sha_context ctx;
 
-		ctx.length = 0;
-		ctx.algo = CRYPTO_SHA1;
-		dev = crypto_get_device(ctx.algo);
-		if (!dev) {
-			printf("Can't find crypto device for SHA1\n");
-			return -ENODEV;
-		}
-
-		/* v1 & v2: requires total length before sha init */
-		ctx.length += hdr->kernel_size + sizeof(hdr->kernel_size) +
-			      hdr->ramdisk_size + sizeof(hdr->ramdisk_size) +
-			      hdr->second_size + sizeof(hdr->second_size);
+		/* rk crypto: requires total length before sha init */
+		sha1_ctx.length = 0;
+		sha1_ctx.length += hdr->kernel_size + sizeof(hdr->kernel_size) +
+				hdr->ramdisk_size + sizeof(hdr->ramdisk_size) +
+				hdr->second_size + sizeof(hdr->second_size);
 		if (hdr->header_version > 0)
-			ctx.length += hdr->recovery_dtbo_size +
+			sha1_ctx.length += hdr->recovery_dtbo_size +
 						sizeof(hdr->recovery_dtbo_size);
 		if (hdr->header_version > 1)
-			ctx.length += hdr->dtb_size + sizeof(hdr->dtb_size);
-		crypto_sha_init(dev, &ctx);
-#else
+			sha1_ctx.length += hdr->dtb_size + sizeof(hdr->dtb_size);
+
 		sha1_starts(&sha1_ctx);
-#endif
-		ret = images_load_verify(hdr, bstart, ram_base, dev);
+		ret = images_load_verify(hdr, bstart, ram_base);
 		if (ret)
 			return ret;
 
-#ifdef CONFIG_DM_CRYPTO
-		crypto_sha_final(dev, &ctx, hash);
-#else
 		sha1_finish(&sha1_ctx, hash);
-#endif
 		if (memcmp(hash, hdr->id, 20)) {
 			print_hash("Hash from header", (u8 *)hdr->id, 20);
 			print_hash("Hash real", (u8 *)hash, 20);
 			return -EBADFD;
 		} else {
-			printf("ANDROID: Hash OK\n");
+			int i;
+
+			printf("ANDROID: sha1(");
+			for (i = 0; i < 5; i++)
+				printf("%02x", hash[i]);
+			printf("...) + OK\n");
 		}
 	} else
 #endif
 	{
-		ret = images_load_verify(hdr, bstart, ram_base, NULL);
+		ret = images_load_verify(hdr, bstart, ram_base);
 		if (ret)
 			return ret;
 	}
@@ -808,15 +786,15 @@ static int android_image_separate_v34(struct andr_img_hdr *hdr,
 	 * 1. Load images to their individual target ram position
 	 *    in order to disable fdt/ramdisk relocation.
 	 */
-	if (image_load(IMG_RK_DTB,  hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_RK_DTB,  hdr, bstart, ram_base))
 		return -1;
-	if (image_load(IMG_KERNEL,  hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_KERNEL,  hdr, bstart, ram_base))
 		return -1;
-	if (image_load(IMG_VENDOR_RAMDISK, hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_VENDOR_RAMDISK, hdr, bstart, ram_base))
 		return -1;
-	if (image_load(IMG_RAMDISK, hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_RAMDISK, hdr, bstart, ram_base))
 		return -1;
-	if (image_load(IMG_BOOTCONFIG, hdr, bstart, ram_base, NULL))
+	if (image_load(IMG_BOOTCONFIG, hdr, bstart, ram_base))
 		return -1;
 	/*
 	 * Copy the populated hdr to load address after image_load(IMG_KERNEL)
@@ -1090,7 +1068,16 @@ extract_boot_image_v34_header(struct blk_desc *dev_desc,
 		return NULL;
 	}
 
-	/* Start from android-13 GKI, it doesn't assign 'os_version' */
+	/*
+	 * [Start from android-13 GKI, it doesn't assign 'os_version']
+	 *
+	 * Android_12 or later are header_version >= 4.
+	 * Android_13(GKI) introduce a new partition named "init_boot" and
+	 * doesn't assign 'os_version' any more(ie. default 0).
+	 *
+	 * We only assign 'os_version' depend on whether there is
+	 * init_boot partition or not.
+	 */
 	if (boot_hdr->header_version >= 4 && boot_hdr->os_version == 0) {
 		if (part_get_info_by_name(dev_desc,
 				ANDROID_PARTITION_INIT_BOOT, &part) > 0)
@@ -1171,7 +1158,25 @@ int populate_boot_info(const struct boot_img_hdr_v34 *boot_hdr,
 	/* fixed in v3 */
 	hdr->page_size = 4096;
 	hdr->header_version = boot_hdr->header_version;
-	hdr->os_version = boot_hdr->os_version;
+	/*
+	 * [Start from android-13 GKI, it doesn't assign 'os_version']
+	 *
+	 * Android_12 or later are header_version >= 4.
+	 * Android_13(GKI) introduce a new partition named "init_boot" and
+	 * doesn't assign 'os_version' any more(ie. default 0).
+	 *
+	 * We only assign 'os_version' depend on whether there is
+	 * init_boot partition or not.
+	 */
+	if (boot_hdr->header_version >= 4 && boot_hdr->os_version == 0) {
+		if (init_boot_hdr)
+			hdr->os_version = 13 << 25;
+
+		if (!hdr->os_version)
+			printf("WARN: it seems to be an invalid Android os_version: 0\n");
+	} else {
+		hdr->os_version = boot_hdr->os_version;
+	}
 
 	memset(hdr->name, 0, ANDR_BOOT_NAME_SIZE);
 	strncpy(hdr->name, (const char *)vendor_boot_hdr->name, ANDR_BOOT_NAME_SIZE);

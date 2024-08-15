@@ -20,6 +20,18 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define USRID_INTER_PHASE	0x20230001
+#define SDMMC_TIMING_CON0	0x130
+#define SDMMC_TIMING_CON1	0x134
+#define ROCKCHIP_MMC_DELAY_SEL BIT(10)
+#define ROCKCHIP_MMC_DEGREE_MASK 0x3
+#define ROCKCHIP_MMC_DELAYNUM_OFFSET 2
+#define ROCKCHIP_MMC_DELAYNUM_MASK (0xff << ROCKCHIP_MMC_DELAYNUM_OFFSET)
+#define PSECS_PER_SEC 1000000000000LL
+#define ROCKCHIP_MMC_DELAY_ELEMENT_PSEC 60
+#define HIWORD_UPDATE(val, mask, shift) \
+		((val) << (shift) | (mask) << ((shift) + 16))
+
 struct rockchip_mmc_plat {
 #if CONFIG_IS_ENABLED(OF_PLATDATA)
 	struct dtd_rockchip_rk3288_dw_mshc dtplat;
@@ -34,6 +46,7 @@ struct rockchip_dwmmc_priv {
 	struct dwmci_host host;
 	int fifo_depth;
 	bool fifo_mode;
+	int usrid;
 	u32 minmax[2];
 };
 
@@ -126,6 +139,118 @@ static int rockchip_dwmmc_ofdata_to_platdata(struct udevice *dev)
 #define NUM_PHASES	32
 #define TUNING_ITERATION_TO_PHASE(i, num_phases) (DIV_ROUND_UP((i) * 360, num_phases))
 
+/*
+ * Each fine delay is between 44ps-77ps. Assume each fine delay is 60ps to
+ * simplify calculations. So 45degs could be anywhere between 33deg and 57.8deg.
+ */
+static int rockchip_mmc_get_phase(struct dwmci_host *host, bool sample)
+{
+	struct udevice *dev = host->priv;
+	struct rockchip_dwmmc_priv *priv = dev_get_priv(dev);
+	unsigned long rate = clk_get_rate(&priv->clk) / 2;
+	u32 raw_value;
+	u16 degrees;
+	u32 delay_num = 0;
+
+	/* Constant signal, no measurable phase shift */
+	if (!rate)
+		return 0;
+
+	if (sample)
+		raw_value = dwmci_readl(host, SDMMC_TIMING_CON1) >> 1;
+	else
+		raw_value = dwmci_readl(host, SDMMC_TIMING_CON0) >> 1;
+
+	degrees = (raw_value & ROCKCHIP_MMC_DEGREE_MASK) * 90;
+	if (raw_value & ROCKCHIP_MMC_DELAY_SEL) {
+		/* degrees/delaynum * 1000000 */
+		unsigned long factor = (ROCKCHIP_MMC_DELAY_ELEMENT_PSEC / 10) * 36 * (rate / 10000);
+
+		delay_num = (raw_value & ROCKCHIP_MMC_DELAYNUM_MASK);
+		delay_num >>= ROCKCHIP_MMC_DELAYNUM_OFFSET;
+		degrees += DIV_ROUND_CLOSEST(delay_num * factor, 1000000);
+	}
+	return degrees % 360;
+}
+
+static int rockchip_mmc_set_phase(struct dwmci_host *host, bool sample, int degrees)
+{
+	struct udevice *dev = host->priv;
+	struct rockchip_dwmmc_priv *priv = dev_get_priv(dev);
+	unsigned long rate = clk_get_rate(&priv->clk) / 2;
+	u8 nineties, remainder;
+	u8 delay_num;
+	u32 raw_value;
+	u32 delay;
+
+	/*
+	 * The below calculation is based on the output clock from
+	 * MMC host to the card, which expects the phase clock inherits
+	 * the clock rate from its parent, namely the output clock
+	 * provider of MMC host. However, things may go wrong if
+	 * (1) It is orphan.
+	 * (2) It is assigned to the wrong parent.
+	 *
+	 * This check help debug the case (1), which seems to be the
+	 * most likely problem we often face and which makes it difficult
+	 * for people to debug unstable mmc tuning results.
+	 */
+	if (!rate) {
+		printf("%s: invalid clk rate\n", __func__);
+		return -EINVAL;
+	}
+
+	nineties = degrees / 90;
+	remainder = (degrees % 90);
+
+	/*
+	 * Due to the inexact nature of the "fine" delay, we might
+	 * actually go non-monotonic.  We don't go _too_ monotonic
+	 * though, so we should be OK.  Here are options of how we may
+	 * work:
+	 *
+	 * Ideally we end up with:
+	 *   1.0, 2.0, ..., 69.0, 70.0, ...,  89.0, 90.0
+	 *
+	 * On one extreme (if delay is actually 44ps):
+	 *   .73, 1.5, ..., 50.6, 51.3, ...,  65.3, 90.0
+	 * The other (if delay is actually 77ps):
+	 *   1.3, 2.6, ..., 88.6. 89.8, ..., 114.0, 90
+	 *
+	 * It's possible we might make a delay that is up to 25
+	 * degrees off from what we think we're making.  That's OK
+	 * though because we should be REALLY far from any bad range.
+	 */
+
+	/*
+	 * Convert to delay; do a little extra work to make sure we
+	 * don't overflow 32-bit / 64-bit numbers.
+	 */
+	delay = 10000000; /* PSECS_PER_SEC / 10000 / 10 */
+	delay *= remainder;
+	delay = DIV_ROUND_CLOSEST(delay,
+			(rate / 1000) * 36 *
+				(ROCKCHIP_MMC_DELAY_ELEMENT_PSEC / 10));
+
+	delay_num = (u8) min_t(u32, delay, 255);
+
+	raw_value = delay_num ? ROCKCHIP_MMC_DELAY_SEL : 0;
+	raw_value |= delay_num << ROCKCHIP_MMC_DELAYNUM_OFFSET;
+	raw_value |= nineties;
+
+	if (sample)
+		dwmci_writel(host, SDMMC_TIMING_CON1, HIWORD_UPDATE(raw_value, 0x07ff, 1));
+	else
+		dwmci_writel(host, SDMMC_TIMING_CON1, HIWORD_UPDATE(raw_value, 0x07ff, 1));
+
+	debug("set %s_phase(%d) delay_nums=%u actual_degrees=%d\n",
+		sample ? "sample" : "drv", degrees, delay_num,
+		rockchip_mmc_get_phase(host, sample)
+	);
+
+	return 0;
+}
+
 static int rockchip_dwmmc_execute_tuning(struct dwmci_host *host, u32 opcode)
 {
 	struct mmc *mmc = host->mmc;
@@ -145,7 +270,7 @@ static int rockchip_dwmmc_execute_tuning(struct dwmci_host *host, u32 opcode)
 	int middle_phase, real_middle_phase;
 	ulong ts;
 
-	if (IS_ERR(&priv->sample_clk))
+	if (!(priv->sample_clk.dev))
 		return -EIO;
 	ts = get_timer(0);
 
@@ -154,7 +279,10 @@ static int rockchip_dwmmc_execute_tuning(struct dwmci_host *host, u32 opcode)
 		/* Cannot guarantee any phases larger than 270 would work well */
 		if (TUNING_ITERATION_TO_PHASE(i, num_phases) > 270)
 			break;
-		clk_set_phase(&priv->sample_clk, TUNING_ITERATION_TO_PHASE(i, num_phases));
+		if (priv->usrid == USRID_INTER_PHASE)
+			rockchip_mmc_set_phase(host, true, TUNING_ITERATION_TO_PHASE(i, num_phases));
+		else
+			clk_set_phase(&priv->sample_clk, TUNING_ITERATION_TO_PHASE(i, num_phases));
 
 		v = !mmc_send_tuning(mmc, opcode);
 		debug("3 Tuning phase is %d v = %x\n", TUNING_ITERATION_TO_PHASE(i, num_phases), v);
@@ -230,12 +358,16 @@ static int rockchip_dwmmc_execute_tuning(struct dwmci_host *host, u32 opcode)
 
 	printf("Successfully tuned phase to %d, used %ldms\n", real_middle_phase, get_timer(0) - ts);
 
-	clk_set_phase(&priv->sample_clk, real_middle_phase);
+	if (priv->usrid == USRID_INTER_PHASE)
+		rockchip_mmc_set_phase(host, true, real_middle_phase);
+	else
+		clk_set_phase(&priv->sample_clk, real_middle_phase);
 
 	return ret;
 }
 #else
 static int rockchip_dwmmc_execute_tuning(struct dwmci_host *host, u32 opcode) { return 0; }
+static int rockchip_mmc_set_phase(struct dwmci_host *host, bool sample, int degrees) { return 0; }
 #endif
 
 static int rockchip_dwmmc_probe(struct udevice *dev)
@@ -273,9 +405,14 @@ static int rockchip_dwmmc_probe(struct udevice *dev)
 	if (ret < 0)
 		return ret;
 
+	priv->usrid = dwmci_readl(host, DWMCI_USRID);
+	if (priv->usrid == USRID_INTER_PHASE)
+		goto internal_phase;
+
 	ret = clk_get_by_name(dev, "ciu-sample", &priv->sample_clk);
 	if (ret < 0)
 		debug("MMC: sample clock not found, not support hs200!\n");
+internal_phase:
 	host->execute_tuning = rockchip_dwmmc_execute_tuning;
 #endif
 	host->fifoth_val = MSIZE(DWMCI_MSIZE) |
@@ -305,13 +442,16 @@ static int rockchip_dwmmc_probe(struct udevice *dev)
 		plat->cfg.host_caps |= MMC_MODE_HS200;
 	plat->mmc.default_phase =
 		dev_read_u32_default(dev, "default-sample-phase", 0);
-#ifdef CONFIG_ROCKCHIP_RV1106
-	if (!(ret < 0) && (&priv->sample_clk)) {
-		ret = clk_set_phase(&priv->sample_clk, plat->mmc.default_phase);
+
+	/* Set default sample phase for initializate */
+	if (!(ret < 0)) {
+		if (priv->usrid == USRID_INTER_PHASE)
+			ret = rockchip_mmc_set_phase(host, true, plat->mmc.default_phase);
+		else if ((!priv->sample_clk.dev))
+			ret = clk_set_phase(&priv->sample_clk, plat->mmc.default_phase);
 		if (ret < 0)
 			debug("MMC: can not set default phase!\n");
 	}
-#endif
 
 	plat->mmc.init_retry = 0;
 	host->mmc = &plat->mmc;

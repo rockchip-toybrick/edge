@@ -27,6 +27,10 @@ config DM_MMC
 	  appear as block devices in U-Boot and can support filesystems such
 	  as EXT4 and FAT.
 
+config MMC_NO_PWRDOWN
+	bool "No powerdown for TB-RK3576SD0"
+	depends on DM_MMC
+
 config SPL_DM_MMC
 	bool "Enable MMC controllers using Driver Model in SPL"
 	depends on SPL_DM && DM_MMC
@@ -83,6 +87,13 @@ config MMC_DW
 	  This selects support for the Synopsys DesignWare Mobile Storage IP
 	  block, this provides host support for SD and MMC interfaces, in both
 	  PIO, internal DMA mode and external DMA mode.
+
+config MMC_DW_PWREN_VALUE
+	hex "mmc dw powen value"
+	default 1 if ROCKCHIP_RK3576
+	default 0
+	help
+	  Config the value for MMC-DW drivers to power on sd card.
 
 config MMC_DW_EXYNOS
 	bool "Exynos specific extensions for Synopsys DW Memory Card Interface"
@@ -450,3 +461,4 @@ config SYS_FSL_ERRATUM_ESDHC135
 
 config SYS_FSL_ERRATUM_ESDHC_A001
 	bool
+

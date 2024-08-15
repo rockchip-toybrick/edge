@@ -17,14 +17,17 @@
 #include <linux/compat.h>
 #include <linux/media-bus-format.h>
 #include <malloc.h>
+#include <memalign.h>
 #include <video.h>
 #include <video_rockchip.h>
 #include <video_bridge.h>
 #include <dm/device.h>
 #include <dm/uclass-internal.h>
 #include <asm/arch-rockchip/resource_img.h>
+#include <asm/arch-rockchip/cpu.h>
 
 #include "bmp_helper.h"
+#include "libnsbmp.h"
 #include "rockchip_display.h"
 #include "rockchip_crtc.h"
 #include "rockchip_connector.h"
@@ -48,6 +51,8 @@
 
 #define RK_BLK_SIZE 512
 #define BMP_PROCESSED_FLAG 8399
+#define BYTES_PER_PIXEL sizeof(uint32_t)
+#define MAX_IMAGE_BYTES (8 * 1024 * 1024)
 
 DECLARE_GLOBAL_DATA_PTR;
 static LIST_HEAD(rockchip_display_list);
@@ -135,8 +140,8 @@ int rockchip_get_baseparameter(void)
 {
 	struct blk_desc *dev_desc;
 	disk_partition_t part_info;
-	int block_num = 2048;
-	char baseparameter_buf[block_num * RK_BLK_SIZE] __aligned(ARCH_DMA_MINALIGN);
+	int block_num;
+	char *baseparameter_buf;
 	int ret = 0;
 
 	dev_desc = rockchip_get_bootdev();
@@ -150,10 +155,17 @@ int rockchip_get_baseparameter(void)
 		return -ENOENT;
 	}
 
+	block_num = BLOCK_CNT(sizeof(base_parameter), dev_desc);
+	baseparameter_buf = memalign(ARCH_DMA_MINALIGN, block_num * dev_desc->blksz);
+	if (!baseparameter_buf) {
+		printf("failed to alloc memory for baseparameter buffer\n");
+		return -ENOMEM;
+	}
+
 	ret = blk_dread(dev_desc, part_info.start, block_num, (void *)baseparameter_buf);
 	if (ret < 0) {
 		printf("read baseparameter failed\n");
-		return ret;
+		goto out;
 	}
 
 	memcpy(&base_parameter, baseparameter_buf, sizeof(base_parameter));
@@ -163,6 +175,8 @@ int rockchip_get_baseparameter(void)
 	}
 	rockchip_display_make_crc32_table();
 
+out:
+	free(baseparameter_buf);
 	return ret;
 }
 
@@ -412,7 +426,7 @@ int rockchip_ofnode_get_display_mode(ofnode node, struct drm_display_mode *mode,
 	FDT_GET_BOOL(val, "doublescan");
 	flags |= val ? DRM_MODE_FLAG_DBLSCAN : 0;
 	FDT_GET_BOOL(val, "doubleclk");
-	flags |= val ? DISPLAY_FLAGS_DOUBLECLK : 0;
+	flags |= val ? DRM_MODE_FLAG_DBLCLK : 0;
 
 	FDT_GET_INT(val, "de-active");
 	*bus_flags |= val ? DRM_BUS_FLAG_DE_HIGH : DRM_BUS_FLAG_DE_LOW;
@@ -512,23 +526,6 @@ static int display_get_timing_from_dts(struct rockchip_panel *panel,
 	}
 
 	rockchip_ofnode_get_display_mode(timing, mode, bus_flags);
-
-	if (IS_ENABLED(CONFIG_ROCKCHIP_RK3568) || IS_ENABLED(CONFIG_ROCKCHIP_RK3588)) {
-		if (mode->hdisplay % 4) {
-			int old_hdisplay = mode->hdisplay;
-			int align = 4 - (mode->hdisplay % 4);
-
-			mode->hdisplay += align;
-			mode->hsync_start += align;
-			mode->hsync_end += align;
-			mode->htotal += align;
-
-			ofnode_write_u32_array(timing, "hactive", (u32 *)&mode->hdisplay, 1);
-
-			printf("WARN: hactive need to be aligned with 4-pixel, %d -> %d\n",
-				old_hdisplay, mode->hdisplay);
-		}
-	}
 
 	return 0;
 }
@@ -776,7 +773,7 @@ static int display_init(struct display_state *state)
 					     conn_state->edid, EDID_SIZE);
 		if (ret > 0) {
 #if defined(CONFIG_I2C_EDID)
-			display_get_edid_mode(state);
+			ret = display_get_edid_mode(state);
 #endif
 		} else {
 			ret = video_bridge_get_timing(conn->bridge->dev);
@@ -817,10 +814,16 @@ static int display_init(struct display_state *state)
 
 	/* rk356x series drive mipi pixdata on posedge */
 	compatible = dev_read_string(conn->dev, "compatible");
-	if (!strcmp(compatible, "rockchip,rk3568-mipi-dsi")) {
+	if (compatible && !strcmp(compatible, "rockchip,rk3568-mipi-dsi")) {
 		conn_state->bus_flags &= ~DRM_BUS_FLAG_PIXDATA_DRIVE_NEGEDGE;
 		conn_state->bus_flags |= DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE;
 	}
+
+	if (display_mode_fixup(state))
+		goto deinit;
+
+	if (conn->bridge)
+		rockchip_bridge_mode_set(conn->bridge, &conn_state->mode);
 
 	printf("%s: %s detailed mode clock %u kHz, flags[%x]\n"
 	       "    H: %04d %04d %04d %04d\n"
@@ -834,12 +837,6 @@ static int display_init(struct display_state *state)
 	       mode->vdisplay, mode->vsync_start,
 	       mode->vsync_end, mode->vtotal,
 	       conn_state->bus_format);
-
-	if (display_mode_fixup(state))
-		goto deinit;
-
-	if (conn->bridge)
-		rockchip_bridge_mode_set(conn->bridge, &conn_state->mode);
 
 	if (crtc_funcs->init && state->enabled_at_spl == false) {
 		ret = crtc_funcs->init(state);
@@ -920,6 +917,23 @@ static int display_enable(struct display_state *state)
 
 	if (state->enabled_at_spl == false)
 		rockchip_connector_enable(state);
+
+#ifdef CONFIG_DRM_ROCKCHIP_RK628
+	/*
+	 * trigger .probe helper of U_BOOT_DRIVER(rk628) in ./rk628/rk628.c
+	 */
+	struct udevice * dev;
+	int phandle, ret;
+
+	phandle = ofnode_read_u32_default(state->node, "bridge", -1);
+	if (phandle < 0)
+		printf("%s failed to find bridge phandle\n", ofnode_get_name(state->node));
+
+	ret = uclass_get_device_by_phandle_id(UCLASS_I2C_GENERIC, phandle, &dev);
+	if (ret && ret != -ENOENT)
+		printf("%s:%d failed to get rk628 device ret:%d\n", __func__, __LINE__, ret);
+
+#endif
 
 	if (crtc_state->soft_te)
 		crtc_funcs->apply_soft_te(state);
@@ -1137,12 +1151,13 @@ static int get_crtc_mcu_mode(struct crtc_state *crtc_state, struct device_node *
 	return 0;
 }
 
-struct rockchip_logo_cache *find_or_alloc_logo_cache(const char *bmp)
+struct rockchip_logo_cache *find_or_alloc_logo_cache(const char *bmp, int rotate)
 {
 	struct rockchip_logo_cache *tmp, *logo_cache = NULL;
 
 	list_for_each_entry(tmp, &logo_cache_list, head) {
-		if (!strcmp(tmp->name, bmp)) {
+		if ((!strcmp(tmp->name, bmp) && rotate == tmp->logo_rotate) ||
+		    (soc_is_rk3566() && tmp->logo_rotate)) {
 			logo_cache = tmp;
 			break;
 		}
@@ -1198,7 +1213,8 @@ static int load_kernel_bmp_logo(struct logo_info *logo, const char *bmp_name)
 	return 0;
 }
 
-static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
+#ifdef BMP_DECODEER_LEGACY
+static int load_bmp_logo_legacy(struct logo_info *logo, const char *bmp_name)
 {
 #ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
 	struct rockchip_logo_cache *logo_cache;
@@ -1211,7 +1227,7 @@ static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
 
 	if (!logo || !bmp_name)
 		return -EINVAL;
-	logo_cache = find_or_alloc_logo_cache(bmp_name);
+	logo_cache = find_or_alloc_logo_cache(bmp_name, logo->rotate);
 	if (!logo_cache)
 		return -ENOMEM;
 
@@ -1299,6 +1315,227 @@ free_header:
 	return -EINVAL;
 #endif
 }
+#endif
+
+static void *bitmap_create(int width, int height, unsigned int state)
+{
+	/* Ensure a stupidly large bitmap is not created */
+	if (width > 4096 || height > 4096)
+		return NULL;
+
+	return calloc(width * height, BYTES_PER_PIXEL);
+}
+
+static unsigned char *bitmap_get_buffer(void *bitmap)
+{
+	return bitmap;
+}
+
+static void bitmap_destroy(void *bitmap)
+{
+	free(bitmap);
+}
+
+static void bmp_copy(void *dst, bmp_image *bmp)
+{
+	u16 row, col;
+	u8 *image;
+	u8 *pdst = (u8 *)dst;
+
+	image = (u8 *)bmp->bitmap;
+	for (row = 0; row != bmp->height; row++) {
+		for (col = 0; col != bmp->width; col++) {
+			size_t z = (row * bmp->width + col) * BYTES_PER_PIXEL;
+
+			*pdst++ = image[z + 2];
+			*pdst++ = image[z + 1];
+			*pdst++ = image[z + 0];
+			*pdst++ = image[z + 3];
+		}
+	}
+}
+
+static void *rockchip_logo_rotate(struct logo_info *logo, void *src)
+{
+	void *dst_rotate;
+	int width = logo->width;
+	int height = logo->height;
+	int width_rotate = logo->height & 0x3 ? (logo->height & ~0x3) + 4 : logo->height;
+	int height_rotate = logo->width;
+	int dst_size = width * height * logo->bpp >> 3;
+	int dst_size_rotate = width_rotate * height_rotate * logo->bpp >> 3;
+	int bytes_per_pixel = logo->bpp >> 3;
+	int padded_width;
+	int i, j;
+	char *img_data;
+
+	if (!(logo->rotate == 90 || logo->rotate == 180 || logo->rotate == 270)) {
+		printf("Unsupported rotation angle\n");
+		return NULL;
+	}
+
+	img_data = (char *)malloc(dst_size);
+	if (!img_data) {
+		printf("failed to alloc memory for image data\n");
+		return NULL;
+	}
+	memcpy(img_data, src, dst_size);
+
+	dst_rotate = get_display_buffer(dst_size_rotate);
+	if (!dst_rotate)
+		return NULL;
+	memset(dst_rotate, 0, dst_size_rotate);
+
+	switch (logo->rotate) {
+	case 90:
+		logo->width = width_rotate;
+		logo->height = height_rotate;
+		padded_width = height & 0x3 ? (height & ~0x3) + 4 : height;
+		for (i = 0; i < height; i++) {
+			for (j = 0; j < width; j++) {
+				memcpy(dst_rotate + (j * padded_width * bytes_per_pixel) +
+				       (height - i - 1) * bytes_per_pixel,
+				       img_data + i * width * bytes_per_pixel + j * bytes_per_pixel,
+				       bytes_per_pixel);
+			}
+		}
+		break;
+	case 180:
+		for (i = 0; i < height; i++) {
+			for (j = 0; j < width; j++) {
+				memcpy(dst_rotate + (height - i - 1) * width * bytes_per_pixel +
+				       (width - j - 1) * bytes_per_pixel,
+				       img_data + i * width * bytes_per_pixel + j * bytes_per_pixel,
+				       bytes_per_pixel);
+			}
+		}
+		break;
+	case 270:
+		logo->width = width_rotate;
+		logo->height = height_rotate;
+		padded_width = height & 0x3 ? (height & ~0x3) + 4 : height;
+		for (i = 0; i < height; i++) {
+			for (j = 0; j < width; j++) {
+				memcpy(dst_rotate + (width - j - 1) * padded_width * bytes_per_pixel +
+				       i * bytes_per_pixel,
+				       img_data + i * width * bytes_per_pixel + j * bytes_per_pixel,
+				       bytes_per_pixel);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	free(img_data);
+
+	return dst_rotate;
+}
+
+static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
+{
+#ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
+	struct rockchip_logo_cache *logo_cache;
+	bmp_bitmap_callback_vt bitmap_callbacks = {
+		bitmap_create,
+		bitmap_destroy,
+		bitmap_get_buffer,
+	};
+	bmp_result code;
+	bmp_image bmp;
+	void *bmp_data;
+	void *dst = NULL;
+	void *dst_rotate = NULL;
+	int len, dst_size;
+	int ret = 0;
+
+	if (!logo || !bmp_name)
+		return -EINVAL;
+
+	logo_cache = find_or_alloc_logo_cache(bmp_name, logo->rotate);
+	if (!logo_cache)
+		return -ENOMEM;
+
+	if (logo_cache->logo.mem) {
+		memcpy(logo, &logo_cache->logo, sizeof(*logo));
+		return 0;
+	}
+
+	bmp_data = malloc(MAX_IMAGE_BYTES);
+	if (!bmp_data)
+		return -ENOMEM;
+
+	bmp_create(&bmp, &bitmap_callbacks);
+
+	len = rockchip_read_resource_file(bmp_data, bmp_name, 0, MAX_IMAGE_BYTES);
+	if (len < 0) {
+		ret = -EINVAL;
+		goto free_bmp_data;
+	}
+
+	/* analyse the BMP */
+	code = bmp_analyse(&bmp, len, bmp_data);
+	if (code != BMP_OK) {
+		printf("failed to parse bmp:%s header\n", bmp_name);
+		ret = -EINVAL;
+		goto free_bmp_data;
+	}
+	/* fix bpp to 32 */
+	logo->bpp = 32;
+	logo->offset = 0;
+	logo->ymirror = 0;
+	logo->width = get_unaligned_le32(&bmp.width);
+	logo->height = get_unaligned_le32(&bmp.height);
+	dst_size = logo->width * logo->height * logo->bpp >> 3;
+	/* decode the image to RGBA8888 format */
+	code = bmp_decode(&bmp);
+	if (code != BMP_OK) {
+		/* allow partially decoded images */
+		if (code != BMP_INSUFFICIENT_DATA && code != BMP_DATA_ERROR) {
+			printf("failed to allocate the buffer of bmp:%s\n", bmp_name);
+			ret = -EINVAL;
+			goto free_bmp_data;
+		}
+
+		/* skip if the partially decoded image would be ridiculously large */
+		if ((bmp.width * bmp.height) > 200000) {
+			printf("partially decoded bmp:%s can not be too large\n", bmp_name);
+			ret = -EINVAL;
+			goto free_bmp_data;
+		}
+	}
+
+	dst = get_display_buffer(dst_size);
+	if (!dst) {
+		ret = -ENOMEM;
+		goto free_bmp_data;
+	}
+	bmp_copy(dst, &bmp);
+
+	if (logo->rotate) {
+		dst_rotate = rockchip_logo_rotate(logo, dst);
+		if (dst_rotate) {
+			dst = dst_rotate;
+			dst_size = logo->width * logo->height * logo->bpp >> 3;
+		}
+		printf("logo ratate %d\n", logo->rotate);
+	}
+	logo->mem = dst;
+
+	memcpy(&logo_cache->logo, logo, sizeof(*logo));
+	logo_cache->logo_rotate = logo->rotate;
+
+	flush_dcache_range((ulong)dst, ALIGN((ulong)dst + dst_size, CONFIG_SYS_CACHELINE_SIZE));
+free_bmp_data:
+	/* clean up */
+	bmp_finalise(&bmp);
+	free(bmp_data);
+
+	return ret;
+#else
+	return -EINVAL;
+#endif
+}
 
 void rockchip_show_fbbase(ulong fbbase)
 {
@@ -1346,6 +1583,7 @@ int rockchip_show_logo(void)
 
 	list_for_each_entry(s, &rockchip_display_list, head) {
 		s->logo.mode = s->logo_mode;
+		s->logo.rotate = s->logo_rotate;
 		if (load_bmp_logo(&s->logo, s->ulogo_name)) {
 			printf("failed to display uboot logo\n");
 		} else {
@@ -1662,12 +1900,11 @@ static struct rockchip_connector *rockchip_get_split_connector(struct rockchip_c
 	struct device_node *split_node;
 	struct udevice *split_dev;
 	struct rockchip_connector *split_conn;
-	bool split_mode;
 	int ret;
 
-	split_mode = ofnode_read_bool(conn->dev->node, "split-mode");
-	split_mode |= ofnode_read_bool(conn->dev->node, "dual-channel");
-	if (!split_mode)
+	conn->split_mode = ofnode_read_bool(conn->dev->node, "split-mode");
+	conn->dual_channel_mode = ofnode_read_bool(conn->dev->node, "dual-channel");
+	if (!conn->split_mode && !conn->dual_channel_mode)
 		return NULL;
 
 	switch (conn->type) {
@@ -1703,6 +1940,8 @@ static struct rockchip_connector *rockchip_get_split_connector(struct rockchip_c
 		debug("Warn: no find panel or bridge\n");
 
 	split_conn->phy = rockchip_of_find_phy(split_dev);
+	split_conn->split_mode = conn->split_mode;
+	split_conn->dual_channel_mode = conn->dual_channel_mode;
 
 	return split_conn;
 }
@@ -1909,6 +2148,8 @@ static int rockchip_display_probe(struct udevice *dev)
 		else
 			s->charge_logo_mode = ROCKCHIP_DISPLAY_CENTER;
 
+		s->logo_rotate = ofnode_read_u32_default(node, "logo,rotate", 0);
+
 		s->force_output = ofnode_read_bool(node, "force-output");
 
 		if (s->force_output) {
@@ -1934,6 +2175,7 @@ static int rockchip_display_probe(struct udevice *dev)
 		s->conn_state.overscan.top_margin = 100;
 		s->conn_state.overscan.bottom_margin = 100;
 		s->crtc_state.node = np_to_ofnode(vop_node);
+		s->crtc_state.port_node = port_node;
 		s->crtc_state.dev = crtc_dev;
 		s->crtc_state.crtc = crtc;
 		s->crtc_state.crtc_id = get_crtc_id(np_to_ofnode(ep_node), is_ports_node);
@@ -2092,12 +2334,6 @@ void rockchip_display_fixup(void *blob)
 		if (!conn_funcs) {
 			printf("failed to get exist connector\n");
 			continue;
-		}
-
-		if (s->conn_state.secondary &&
-		    s->conn_state.secondary->type != DRM_MODE_CONNECTOR_LVDS) {
-			s->conn_state.mode.clock *= 2;
-			s->conn_state.mode.hdisplay *= 2;
 		}
 
 		crtc = s->crtc_state.crtc;

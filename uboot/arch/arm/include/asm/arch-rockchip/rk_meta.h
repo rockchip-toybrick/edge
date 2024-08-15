@@ -89,8 +89,8 @@
 #define SECONDARY_SENSOR_IQ_BIN_OFFSET			(SENSOR_IQ_BIN_OFFSET + SENSOR_IQ_BIN_MAX_SIZE)
 #define SECONDARY_SENSOR_IQ_BIN_MAX_SIZE		(SENSOR_IQ_BIN_MAX_SIZE)
 
-/* 512 - sizeof(tag/load/size/comp_type/comp_size/comp_off/crc32/meta_flags/iq_item_size) */
-#define	META_HEAD_RESERVED_SIZE	   (119*4)
+/* 512 - sizeof(tag/load/size/comp_type/comp_size/comp_off/crc32/meta_flags/iq_item_size/total_part_num/part_flag/part_reserved_size) */
+#define	META_HEAD_RESERVED_SIZE	   (116*4)
 #define META_READ_DONE_FLAG (1 << 0)
 
 #define AE_TABLE_SHARE2KERNEL_OFFSET	(PARAM_SHARE2KERNEL_OFFSET)
@@ -105,6 +105,9 @@ struct meta_head {
 	uint32_t comp_size;
 	uint32_t comp_off;
 	uint32_t iq_item_size;
+	uint32_t total_part_num;
+	uint32_t part_flag;
+	uint32_t part_reserved_size;
 	uint8_t  reserved[META_HEAD_RESERVED_SIZE];
 	uint32_t crc32;
 	uint32_t meta_flags;

@@ -460,6 +460,7 @@ static int spinand_read_id_op(struct spinand_device *spinand, u8 naddr,
 	return ret;
 }
 
+#if !CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
 static int spinand_reset_op(struct spinand_device *spinand)
 {
 	struct spi_mem_op op = SPINAND_RESET_OP;
@@ -471,6 +472,7 @@ static int spinand_reset_op(struct spinand_device *spinand)
 
 	return spinand_wait(spinand, NULL);
 }
+#endif
 
 static int spinand_lock_block(struct spinand_device *spinand, u8 lock)
 {
@@ -880,6 +882,9 @@ static const struct spinand_manufacturer *spinand_manufacturers[] = {
 #ifdef CONFIG_SPI_NAND_GSTO
 	&gsto_spinand_manufacturer,
 #endif
+#ifdef CONFIG_SPI_NAND_ZBIT
+	&zbit_spinand_manufacturer,
+#endif
 };
 
 static int spinand_manufacturer_match(struct spinand_device *spinand,
@@ -1057,9 +1062,11 @@ static int spinand_detect(struct spinand_device *spinand)
 	struct nand_device *nand = spinand_to_nand(spinand);
 	int ret;
 
+#if !CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
 	ret = spinand_reset_op(spinand);
 	if (ret)
 		return ret;
+#endif
 
 	ret = spinand_id_detect(spinand);
 	if (ret) {
@@ -1067,6 +1074,8 @@ static int spinand_detect(struct spinand_device *spinand)
 			spinand->id.data[0], spinand->id.data[1], spinand->id.data[2]);
 		return ret;
 	}
+	dev_err(dev, "SPI Nand ID %x %x %x\n",
+		spinand->id.data[0], spinand->id.data[1], spinand->id.data[2]);
 
 	if (nand->memorg.ntargets > 1 && !spinand->select_target) {
 		dev_err(dev,

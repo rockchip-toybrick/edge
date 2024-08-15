@@ -1,0 +1,140 @@
+/*
+ * (C) Copyright 2024 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+ / {
+	aliases {
+		mmc1 = &sdmmc0;
+		mmc0 = &emmc;
+	};
+
+	chosen {
+		stdout-path = &uart0;
+		u-boot,spl-boot-order = &sdmmc0, &spi_nand, &spi_nor, &emmc;
+	};
+};
+
+&hw_decompress {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&emmc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&cru {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&grf {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sdmmc0 {
+	u-boot,dm-spl;
+	pwr-en-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default", "idle";
+	pinctrl-0 = <&sdmmc0_clk_pins &sdmmc0_cmd_pins &sdmmc0_det_pins &sdmmc0_bus4_pins>;
+	status = "okay";
+};
+
+&sdmmc0_pins {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_clk_pins {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_cmd_pins {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_det_pins {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_bus4_pins {
+	u-boot,dm-spl;
+};
+
+&ioc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&pcfg_pull_up_drv_level_2 {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_up {
+	u-boot,dm-spl;
+};
+
+&gpio0 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio1 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&gpio2 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+
+&crypto {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&rng {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&saradc {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sfc {
+	u-boot,dm-spl;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spi_nand: flash@0 {
+		u-boot,dm-spl;
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <80000000>;
+	};
+
+	spi_nor: flash@1 {
+		u-boot,dm-spl;
+		compatible = "jedec,spi-nor";
+		label = "sfc_nor";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <80000000>;
+	};
+};

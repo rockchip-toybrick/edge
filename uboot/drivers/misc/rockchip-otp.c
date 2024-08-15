@@ -15,6 +15,8 @@
 #include <rockchip-otp.h>
 
 struct otp_data {
+	int size;
+	int ns_offset;
 	int (*init)(struct udevice *dev);
 	int (*read)(struct udevice *dev, int offset, void *buf, int size);
 };
@@ -283,21 +285,26 @@ static int rockchip_rk3588_otp_read(struct udevice *dev, int offset, void *buf,
 				    int size)
 {
 	struct rockchip_otp_platdata *otp = dev_get_platdata(dev);
+	struct otp_data *data;
 	unsigned int addr_start, addr_end, addr_offset, addr_len;
 	int ret = 0, i = 0;
 	u32 out_value, st = 0;
 	u8 *buffer;
 
-	if (offset > RK3588_MAX_BYTES - 1)
+	data = (struct otp_data *)dev_get_driver_data(dev);
+	if (!data)
+		return -ENOSYS;
+
+	if (offset > data->size - 1)
 		return -ENOMEM;
-	if (offset + size > RK3588_MAX_BYTES)
-		size = RK3588_MAX_BYTES - offset;
+	if (offset + size > data->size)
+		size = data->size - offset;
 
 	addr_start = rounddown(offset, RK3588_NBYTES) / RK3588_NBYTES;
 	addr_end = roundup(offset + size, RK3588_NBYTES) / RK3588_NBYTES;
 	addr_offset = offset % RK3588_NBYTES;
 	addr_len = addr_end - addr_start;
-	addr_start += RK3588_NO_SECURE_OFFSET;
+	addr_start += data->ns_offset;
 
 	buffer = calloc(1, sizeof(*buffer) * addr_len * RK3588_NBYTES);
 	if (!buffer)
@@ -433,7 +440,15 @@ static const struct otp_data rk3568_data = {
 	.read = rockchip_rk3568_otp_read,
 };
 
+static const struct otp_data rk3576_data = {
+	.size = 0x100,
+	.ns_offset = RK3576_NO_SECURE_OFFSET,
+	.read = rockchip_rk3588_otp_read,
+};
+
 static const struct otp_data rk3588_data = {
+	.size = 0x400,
+	.ns_offset = RK3588_NO_SECURE_OFFSET,
 	.read = rockchip_rk3588_otp_read,
 };
 
@@ -460,6 +475,10 @@ static const struct udevice_id rockchip_otp_ids[] = {
 		.data = (ulong)&rk3308bs_data,
 	},
 	{
+		.compatible = "rockchip,rk3506-otp",
+		.data = (ulong)&rk3568_data,
+	},
+	{
 		.compatible = "rockchip,rk3528-otp",
 		.data = (ulong)&rk3568_data,
 	},
@@ -470,6 +489,10 @@ static const struct udevice_id rockchip_otp_ids[] = {
 	{
 		.compatible = "rockchip,rk3568-otp",
 		.data = (ulong)&rk3568_data,
+	},
+	{
+		.compatible = "rockchip,rk3576-otp",
+		.data = (ulong)&rk3576_data,
 	},
 	{
 		.compatible = "rockchip,rk3588-otp",

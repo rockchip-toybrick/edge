@@ -118,6 +118,12 @@ static struct mm_region rk3562_mem_map[] = {
 			 PTE_BLOCK_NON_SHARE |
 			 PTE_BLOCK_PXN | PTE_BLOCK_UXN
 	}, {
+		.virt = 0x100000000UL,
+		.phys = 0x100000000UL,
+		.size = 0x100000000UL,
+		.attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
+			 PTE_BLOCK_INNER_SHARE
+	}, {
 		/* List terminator */
 		0,
 	}
@@ -508,16 +514,17 @@ int fit_standalone_release(char *id, uintptr_t entry_point)
 	/* open bus m0 sclk / bus m0 hclk / bus m0 dclk */
 	writel(0x00070000, TOP_CRU_BASE + TOP_CRU_CM0_GATEMASK);
 
-	/* mcu_cache_peripheral_addr */
-	writel(0xfc000000, SYS_GRF_BASE + SYS_GRF_SOC_CON5);
+	/*
+	 * mcu_cache_peripheral_addr
+	 * The uncache area ranges from 0x7c00000 to 0xffb400000
+	 * and contains rpmsg shared memory
+	 */
+	writel(0x07c00000, SYS_GRF_BASE + SYS_GRF_SOC_CON5);
 	writel(0xffb40000, SYS_GRF_BASE + SYS_GRF_SOC_CON6);
 
 	sip_smc_mcu_config(ROCKCHIP_SIP_CONFIG_BUSMCU_0_ID,
 			   ROCKCHIP_SIP_CONFIG_MCU_CODE_START_ADDR,
 			   0xffff0000 | (entry_point >> 16));
-	/* 0x07c00000 is mapped to 0xa0000000 and used as shared memory for rpmsg */
-	sip_smc_mcu_config(ROCKCHIP_SIP_CONFIG_BUSMCU_0_ID,
-			   ROCKCHIP_SIP_CONFIG_MCU_EXPERI_START_ADDR, 0xffff07c0);
 
 	/* release dcache / icache / bus m0 jtag / bus m0 */
 	writel(0x03280000, TOP_CRU_BASE + TOP_CRU_SOFTRST_CON23);
@@ -526,6 +533,19 @@ int fit_standalone_release(char *id, uintptr_t entry_point)
 	/* writel(0x00050000, PMU1_CRU_BASE + PMU1_CRU_SOFTRST_CON02); */
 
 	return 0;
+}
+
+void board_set_iomux(enum if_type if_type, int devnum, int routing)
+{
+	switch (if_type) {
+	case IF_TYPE_MTD:
+		/* FSPI */
+		writel(0xffff2222, GPIO1_IOC_BASE + GPIO1A_IOMUX_SEL_L);
+		writel(0x00ff0022, GPIO1_IOC_BASE + GPIO1B_IOMUX_SEL_L);
+		break;
+	default:
+		printf("Bootdev 0x%x is not support\n", if_type);
+	}
 }
 
 #if defined(CONFIG_SPL_BUILD) && !defined(CONFIG_TPL_BUILD)
@@ -610,9 +630,11 @@ static void qos_priority_init(void)
 
 	writel(0x5, PCIE_SHAPING_REG);
 }
+#endif
 
 int arch_cpu_init(void)
 {
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUPPORT_USBPLUG)
 	u32 val;
 
 	/* Set the emmc to access ddr memory */
@@ -666,8 +688,10 @@ int arch_cpu_init(void)
 	}
 #endif
 
+#if !defined(CONFIG_TPL_BUILD) && !defined(CONFIG_SUPPORT_USBPLUG)
 	qos_priority_init();
+#endif
+#endif /* #if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUPPORT_USBPLUG) */
 
 	return 0;
 }
-#endif

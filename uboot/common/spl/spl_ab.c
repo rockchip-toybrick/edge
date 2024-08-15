@@ -5,7 +5,9 @@
 
 #include <common.h>
 #include <blk.h>
+#include <malloc.h>
 #include <spl_ab.h>
+#include <fdt_support.h>
 
 int safe_memcmp(const void *s1, const void *s2, size_t n)
 {
@@ -207,6 +209,27 @@ int spl_get_current_slot(struct blk_desc *dev_desc, char *partition, char *slot)
 	AvbABData ab_data;
 	int ret;
 
+	/*
+	 * 1. Call spl_ab_decrease_tries() before load kernel to be compatible with
+	 * the case when storage is eMMC, because preload image will occupy eMMC.
+	 *
+	 * 2. (For solving Boundary problem) Need to record slot_suffix before ab_decrease,
+	 * otherwise when boot kernel, it will use the result after decrease.
+	 *
+	 * 3. For example, current slot_suffix is _a, tries-remaining is 1. Without
+	 * recording slot_suffix before decrease, after decrease, slot_suffix is _b,
+	 * tries-remaining is 7. SPL will parse boot_b instead of boot_a that expected.
+	 */
+#ifdef CONFIG_SPL_KERNEL_BOOT
+	if (last_slot_index == 0) {
+		memcpy(slot, "_a", 2);
+		return 0;
+	} else if (last_slot_index == 1) {
+		memcpy(slot, "_b", 2);
+		return 0;
+	}
+#endif
+
 	ret = spl_ab_data_read(dev_desc, &ab_data, partition);
 	if (ret)
 		return ret;
@@ -389,4 +412,27 @@ int spl_ab_decrease_reset(struct blk_desc *dev_desc)
 	 * negative number, then enter maskrom in the caller.
 	 */
 	return -EINVAL;
+}
+
+int spl_ab_bootargs_append_slot(void *fdt, char *slot)
+{
+	char *str;
+	int len, ret = 0;
+
+	if (!slot)
+		return 0;
+
+	len = strlen(ANDROID_ARG_SLOT_SUFFIX) + strlen(slot) + 1;
+	str = malloc(len);
+	if (!str)
+		return -ENOMEM;
+
+	snprintf(str, len, "%s%s", ANDROID_ARG_SLOT_SUFFIX, slot);
+	ret = fdt_bootargs_append(fdt, str);
+	if (ret)
+		printf("Append slot info to bootargs fail");
+
+	free(str);
+
+	return ret;
 }

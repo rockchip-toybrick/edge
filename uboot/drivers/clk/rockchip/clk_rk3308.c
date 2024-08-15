@@ -1029,7 +1029,16 @@ static ulong rk3308_clk_set_rate(struct clk *clk, ulong rate)
 						      priv->cru, DPLL);
 		break;
 	case ARMCLK:
-		if (priv->armclk_hz)
+		/*
+		 * Why add `rate < rockchip_pll_get_rate(&rk3308_pll_clks[APLL],
+		 *					 priv->cru, APLL)` ?
+		 *
+		 * rockchip_wtemp_dvfs.c may decrease the arm freq, don't
+		 * limit this decrease operation here.
+		 */
+		if (priv->armclk_hz ||
+			(rate < rockchip_pll_get_rate(&rk3308_pll_clks[APLL],
+						      priv->cru, APLL)))
 			rk3308_armclk_set_clk(priv, rate);
 		priv->armclk_hz = rate;
 		break;

@@ -38,6 +38,7 @@ enum frl_mask {
 #define DDC_SEGMENT_ADDR	0x30
 
 #define HDMI_EDID_LEN		512
+#define HDMI_EDID_BLOCK_LEN	128
 
 /* DW-HDMI Controller >= 0x200a are at least compliant with SCDC version 1 */
 #define SCDC_MIN_SOURCE_VERSION	0x1
@@ -306,8 +307,9 @@ static int dw_hdmi_i2c_read(struct dw_hdmi_qp *hdmi,
 			    unsigned char *buf, unsigned int length)
 {
 	struct dw_hdmi_i2c *i2c = hdmi->i2c;
-	int i = 20;
+	int i = 20, retry;
 	u32 intr = 0;
+	bool read_edid = false;
 
 	if (!i2c->is_regaddr) {
 		printf("set read register address to 0\n");
@@ -315,40 +317,99 @@ static int dw_hdmi_i2c_read(struct dw_hdmi_qp *hdmi,
 		i2c->is_regaddr = true;
 	}
 
-	while (length--) {
-		hdmi_modb(hdmi, i2c->slave_reg++ << 12, I2CM_ADDR,
+	/* edid reads are in 128 bytes. scdc reads are in 1 byte */
+	if (length == HDMI_EDID_BLOCK_LEN)
+		read_edid = true;
+
+	while (length > 0) {
+		retry = 100;
+		hdmi_modb(hdmi, i2c->slave_reg << 12, I2CM_ADDR,
 			  I2CM_INTERFACE_CONTROL0);
 
-		hdmi_modb(hdmi, I2CM_FM_READ, I2CM_WR_MASK,
-			  I2CM_INTERFACE_CONTROL0);
+		if (read_edid) {
+			hdmi_modb(hdmi, I2CM_16BYTES, I2CM_NBYTES_MASK,
+				  I2CM_INTERFACE_CONTROL0);
+			i2c->slave_reg += 16;
+			length -= 16;
+		} else {
+			hdmi_modb(hdmi, I2CM_1BYTES, I2CM_NBYTES_MASK,
+				  I2CM_INTERFACE_CONTROL0);
+			i2c->slave_reg++;
+			length--;
+		}
 
-		while (i--) {
-			udelay(1000);
-			intr = hdmi_readl(hdmi, MAINUNIT_1_INT_STATUS) &
-				(I2CM_OP_DONE_IRQ | I2CM_READ_REQUEST_IRQ |
-				 I2CM_NACK_RCVD_IRQ);
-			if (intr) {
-				hdmi_writel(hdmi, intr, MAINUNIT_1_INT_CLEAR);
-				break;
+		while (retry > 0) {
+			if (!hdmi->phy.ops->read_hpd(hdmi->rk_hdmi)) {
+				debug("hdmi disconnect, stop ddc read\n");
+				return -EPERM;
 			}
+
+			i = 20;
+			hdmi_modb(hdmi, I2CM_FM_READ, I2CM_WR_MASK,
+				  I2CM_INTERFACE_CONTROL0);
+
+			while (i--) {
+				udelay(1000);
+				intr = hdmi_readl(hdmi, MAINUNIT_1_INT_STATUS);
+				intr &= (I2CM_OP_DONE_IRQ |
+					 I2CM_READ_REQUEST_IRQ |
+					 I2CM_NACK_RCVD_IRQ);
+				if (intr) {
+					hdmi_writel(hdmi, intr,
+						    MAINUNIT_1_INT_CLEAR);
+					break;
+				}
+			}
+
+			if (!i) {
+				printf("i2c read time out!\n");
+				hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
+				retry -= 10;
+				continue;
+			}
+
+			/* Check for error condition on the bus */
+			if (intr & I2CM_NACK_RCVD_IRQ) {
+				printf("i2c read err!\n");
+				hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
+				retry--;
+				mdelay(10);
+				continue;
+			}
+
+			/* read success */
+			break;
 		}
 
-		if (!i) {
-			printf("i2c read time out!\n");
-			hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
-			return -EAGAIN;
-		}
-
-		/* Check for error condition on the bus */
-		if (intr & I2CM_NACK_RCVD_IRQ) {
-			printf("i2c read err!\n");
-			hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
+		if (retry <= 0) {
+			printf("ddc read failed offset:0x%x\n", i2c->slave_reg);
 			return -EIO;
 		}
 
-		*buf++ = hdmi_readl(hdmi, I2CM_INTERFACE_RDDATA_0_3) & 0xff;
+		if (read_edid) {
+			u8 reg_offset, val_offset, i;
+			u32 val, reg;
+
+			for (i = 0; i < 16; i++) {
+				reg_offset = i / 4;
+				val_offset = (i % 4) * 8;
+				reg = I2CM_INTERFACE_RDDATA_0_3 + 4 *
+					reg_offset;
+				val = hdmi_readl(hdmi, reg);
+				*buf++ = (val & (0xff << val_offset)) >>
+					val_offset;
+				debug("i2c read done! 0x%02x\n",
+				      (val & (0xff << val_offset)) >>
+				       val_offset);
+			}
+		} else {
+			*buf++ = hdmi_readl(hdmi, I2CM_INTERFACE_RDDATA_0_3) &
+				0xff;
+			debug("i2c read done! 0x%02x\n",
+			      hdmi_readl(hdmi, I2CM_INTERFACE_RDDATA_0_3));
+		}
+
 		hdmi_modb(hdmi, 0, I2CM_WR_MASK, I2CM_INTERFACE_CONTROL0);
-		i = 20;
 	}
 	i2c->is_segment = false;
 
@@ -359,7 +420,7 @@ static int dw_hdmi_i2c_write(struct dw_hdmi_qp *hdmi,
 			     unsigned char *buf, unsigned int length)
 {
 	struct dw_hdmi_i2c *i2c = hdmi->i2c;
-	int i = 20;
+	int i = 20, retry;
 	u32 intr = 0;
 
 	if (!i2c->is_regaddr) {
@@ -371,37 +432,57 @@ static int dw_hdmi_i2c_write(struct dw_hdmi_qp *hdmi,
 	}
 
 	while (length--) {
-		hdmi_writel(hdmi, *buf++, I2CM_INTERFACE_WRDATA_0_3);
-		hdmi_modb(hdmi, i2c->slave_reg++ << 12, I2CM_ADDR,
-			  I2CM_INTERFACE_CONTROL0);
-		hdmi_modb(hdmi, I2CM_FM_WRITE, I2CM_WR_MASK,
-			  I2CM_INTERFACE_CONTROL0);
+		retry = 100;
 
-		while (i--) {
-			udelay(1000);
-			intr = hdmi_readl(hdmi, MAINUNIT_1_INT_STATUS) &
-				(I2CM_OP_DONE_IRQ | I2CM_READ_REQUEST_IRQ |
-				 I2CM_NACK_RCVD_IRQ);
-			if (intr) {
-				hdmi_writel(hdmi, intr, MAINUNIT_1_INT_CLEAR);
-				break;
+		while (retry > 0) {
+			if (!hdmi->phy.ops->read_hpd(hdmi->rk_hdmi)) {
+				debug("hdmi disconnect, stop ddc read\n");
+				return -EPERM;
 			}
-		}
 
-		if (!i) {
-			printf("i2c write time out!\n");
-			hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
-			return -EAGAIN;
-		}
+			i = 20;
+			hdmi_writel(hdmi, *buf++, I2CM_INTERFACE_WRDATA_0_3);
+			hdmi_modb(hdmi, i2c->slave_reg++ << 12, I2CM_ADDR,
+				I2CM_INTERFACE_CONTROL0);
+			hdmi_modb(hdmi, I2CM_FM_WRITE, I2CM_WR_MASK,
+				I2CM_INTERFACE_CONTROL0);
 
-		/* Check for error condition on the bus */
-		if (intr & I2CM_NACK_RCVD_IRQ) {
-			printf("i2c write nack!\n");
-			hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
-			return -EIO;
+			while (i--) {
+				udelay(1000);
+				intr = hdmi_readl(hdmi, MAINUNIT_1_INT_STATUS);
+				intr &= (I2CM_OP_DONE_IRQ |
+					 I2CM_READ_REQUEST_IRQ |
+					 I2CM_NACK_RCVD_IRQ);
+				if (intr) {
+					hdmi_writel(hdmi, intr,
+						    MAINUNIT_1_INT_CLEAR);
+					break;
+				}
+			}
+
+			if (!i) {
+				printf("i2c write time out!\n");
+				hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
+				retry -= 10;
+				continue;
+			}
+
+			/* Check for error condition on the bus */
+			if (intr & I2CM_NACK_RCVD_IRQ) {
+				printf("i2c write nack!\n");
+				hdmi_writel(hdmi, 0x01, I2CM_CONTROL0);
+				retry--;
+				mdelay(10);
+				continue;
+			}
+			/* write success */
+			break;
 		}
 		hdmi_modb(hdmi, 0, I2CM_WR_MASK, I2CM_INTERFACE_CONTROL0);
-		i = 20;
+		if (retry <= 0) {
+			printf("ddc write failed\n");
+			return -EIO;
+		}
 	}
 
 	return 0;
@@ -555,7 +636,7 @@ static void hdmi_config_AVI(struct dw_hdmi_qp *hdmi, struct drm_display_mode *mo
 	 * by the user
 	 */
 	drm_hdmi_avi_infoframe_quant_range(&frame, mode, rgb_quant_range,
-					   true);
+					   true, is_hdmi2);
 	if (hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format))
 		frame.colorspace = HDMI_COLORSPACE_YUV444;
 	else if (hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format))
@@ -1054,7 +1135,7 @@ static int dw_hdmi_setup(struct dw_hdmi_qp *hdmi,
 	/* Mark yuv422 10bit */
 	if (hdmi->hdmi_data.enc_out_bus_format == MEDIA_BUS_FMT_YUYV10_1X20)
 		hdmi_writel(hdmi, BIT(20), VIDEO_INTERFACE_CONFIG0);
-	rk3588_set_grf_cfg(hdmi->rk_hdmi);
+	dw_hdmi_qp_set_grf_cfg(hdmi->rk_hdmi);
 	link_cfg = dw_hdmi_rockchip_get_link_cfg(hdmi->rk_hdmi);
 
 	/* not for DVI mode */
@@ -1199,7 +1280,7 @@ int rockchip_dw_hdmi_qp_init(struct rockchip_connector *conn, struct display_sta
 	hdmi_writel(hdmi, 0, MAINUNIT_1_INT_MASK_N);
 	hdmi_writel(hdmi, 428571429, TIMER_BASE_CONFIG0);
 
-	dw_hdmi_qp_set_iomux(hdmi->rk_hdmi);
+	dw_hdmi_qp_io_path_init(hdmi->rk_hdmi);
 
 	return 0;
 }
@@ -1226,7 +1307,7 @@ static void rockchip_dw_hdmi_qp_config_output(struct rockchip_connector *conn,
 	unsigned long enc_out_encoding;
 	struct overscan *overscan = &conn_state->overscan;
 
-	dw_hdmi_qp_selete_output(&hdmi->edid_data, conn, &bus_format,
+	dw_hdmi_qp_select_output(&hdmi->edid_data, conn, &bus_format,
 				 overscan, hdmi->dev_type,
 				 hdmi->output_bus_format_rgb, hdmi->rk_hdmi,
 				 state);
@@ -1266,14 +1347,26 @@ static void rockchip_dw_hdmi_qp_config_output(struct rockchip_connector *conn,
 		enc_out_encoding = V4L2_YCBCR_ENC_709;
 
 	if (enc_out_encoding == V4L2_YCBCR_ENC_BT2020)
-		conn_state->color_space = V4L2_COLORSPACE_BT2020;
+		conn_state->color_encoding = DRM_COLOR_YCBCR_BT2020;
 	else if (bus_format == MEDIA_BUS_FMT_RGB888_1X24 ||
 		 bus_format == MEDIA_BUS_FMT_RGB101010_1X30)
-		conn_state->color_space = V4L2_COLORSPACE_DEFAULT;
+		conn_state->color_encoding = DRM_COLOR_YCBCR_BT709;
 	else if (enc_out_encoding == V4L2_YCBCR_ENC_709)
-		conn_state->color_space = V4L2_COLORSPACE_REC709;
+		conn_state->color_encoding = DRM_COLOR_YCBCR_BT709;
 	else
-		conn_state->color_space = V4L2_COLORSPACE_SMPTE170M;
+		conn_state->color_encoding = DRM_COLOR_YCBCR_BT601;
+
+	if (bus_format == MEDIA_BUS_FMT_RGB888_1X24 ||
+	    bus_format == MEDIA_BUS_FMT_RGB101010_1X30)
+		conn_state->color_range = hdmi->hdmi_data.quant_range ==
+					  HDMI_QUANTIZATION_RANGE_LIMITED ?
+					  DRM_COLOR_YCBCR_LIMITED_RANGE :
+					  DRM_COLOR_YCBCR_FULL_RANGE;
+	else
+		conn_state->color_range = hdmi->hdmi_data.quant_range ==
+					  HDMI_QUANTIZATION_RANGE_FULL ?
+					  DRM_COLOR_YCBCR_FULL_RANGE :
+					  DRM_COLOR_YCBCR_LIMITED_RANGE;
 }
 
 int rockchip_dw_hdmi_qp_prepare(struct rockchip_connector *conn, struct display_state *state)

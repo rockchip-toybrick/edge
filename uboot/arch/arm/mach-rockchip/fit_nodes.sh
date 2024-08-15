@@ -292,7 +292,7 @@ function gen_loadable_node()
 			description = \"${LOAD}\";
 			type = \"standalone\";
 			arch = \"${ARCH}\";
-			load = <"${LOAD_ADDR}">;"
+			load = /bits/ 64 <"${LOAD_ADDR}">;"
 
 		if [ "${COMPRESSION}" != "none" -a ${LOAD_ADDR_VAL} -lt ${MAX_ADDR_VAL} ]; then
 			openssl dgst -sha256 -binary -out ${LOAD}.bin.digest ${LOAD}.bin

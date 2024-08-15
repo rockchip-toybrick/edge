@@ -293,7 +293,7 @@ static int rk3036_pll_set_rate(struct rockchip_pll_clock *pll,
 			       ulong drate)
 {
 	const struct rockchip_pll_rate_table *rate;
-	int timeout = 100;
+	int timeout = 1000;
 
 	rate = rockchip_get_pll_settings(pll, drate);
 	if (!rate) {

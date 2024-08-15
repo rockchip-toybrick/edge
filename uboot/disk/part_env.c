@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <envf.h>
 #include <malloc.h>
 
 #ifdef HAVE_BLOCK_DEVICE
@@ -26,10 +27,6 @@ struct env_part {
  */
 static int dev_num = -1;
 static LIST_HEAD(parts_head);
-
-#if CONFIG_IS_ENABLED(ENVF)
-extern char *envf_get_part_table(struct blk_desc *desc);
-#endif
 
 static unsigned long long memparse(const char *ptr, char **retptr)
 {
@@ -80,12 +77,16 @@ static int env_init_parts(struct blk_desc *dev_desc, struct list_head *parts_hea
 	char *parts_list = NULL;
 
 #if CONFIG_IS_ENABLED(ENVF)
-	parts_list = envf_get_part_table(dev_desc);
+	parts_list = envf_get(dev_desc, "mtdparts");
+	if (!parts_list)
+		parts_list = envf_get(dev_desc, "blkdevparts");
 #else
 	parts_list = ENV_PARTITIONS;
 #endif
-	if (!parts_list)
+	if (!parts_list) {
+		printf("No env partition table\n");
 		return -EINVAL;
+	}
 
 	next = strchr(parts_list, ':');
 	INIT_LIST_HEAD(parts_head);

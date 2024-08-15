@@ -481,6 +481,12 @@
 #define DPCD_VOLTAGE_SWING_SET(x)		(((x) & 0x3) << 0)
 #define DPCD_VOLTAGE_SWING_GET(x)		(((x) >> 0) & 0x3)
 
+/* Supported link rate in eDP 1.4 */
+#define EDP_LINK_BW_2_16			0x08
+#define EDP_LINK_BW_2_43			0x09
+#define EDP_LINK_BW_3_24			0x0c
+#define EDP_LINK_BW_4_32			0x10
+
 enum link_lane_count_type {
 	LANE_COUNT1 = 1,
 	LANE_COUNT2 = 2,
@@ -575,6 +581,7 @@ enum dp_irq_type {
 
 struct video_info {
 	char *name;
+	struct drm_display_mode mode;
 
 	bool h_sync_polarity;
 	bool v_sync_polarity;
@@ -589,6 +596,8 @@ struct video_info {
 	enum link_lane_count_type max_lane_count;
 
 	bool force_stream_valid;
+
+	u32 bpc;
 };
 
 struct link_train {
@@ -613,6 +622,7 @@ enum analogix_dp_sub_devtype {
 	RK3368_EDP,
 	RK3399_EDP,
 	RK3568_EDP,
+	RK3576_EDP,
 	RK3588_EDP
 };
 
@@ -625,6 +635,9 @@ struct analogix_dp_plat_data {
 struct analogix_dp_device {
 	struct rockchip_connector connector;
 	int id;
+	int nr_link_rate_table;
+	int link_rate_table[DP_MAX_SUPPORTED_RATES];
+	int link_rate_select;
 	struct udevice *dev;
 	void *reg_base;
 	struct regmap *grf;

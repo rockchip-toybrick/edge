@@ -467,7 +467,6 @@ static int rockchip_pcie_wr_conf(struct udevice *bus, pci_dev_t bdf,
 	debug("PCIE CFG write: (b,d,f)=(%2d,%2d,%2d)\n",
 	      PCI_BUS(bdf), PCI_DEV(bdf), PCI_FUNC(bdf));
 	debug("(addr,val)=(0x%04x, 0x%08lx)\n", offset, value);
-
 	if (!rk_pcie_addr_valid(bdf, pcie->first_busno)) {
 		debug("- out of range\n");
 		return 0;
@@ -814,6 +813,7 @@ static const struct udevice_id rockchip_pcie_ids[] = {
 	{ .compatible = "rockchip,rk3562-pcie" },
 	{ .compatible = "rockchip,rk3568-pcie" },
 	{ .compatible = "rockchip,rk3588-pcie" },
+	{ .compatible = "rockchip,rk3576-pcie" },
 	{ }
 };
 

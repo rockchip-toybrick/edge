@@ -321,29 +321,6 @@ int fdt_bootargs_append(void *fdt, char *data)
 	return ret;
 }
 
-int fdt_bootargs_append_ab(void *fdt, char *slot)
-{
-	char *str;
-	int len, ret = 0;
-
-	if (!slot)
-		return 0;
-
-	len = strlen(ANDROID_ARG_SLOT_SUFFIX) + strlen(slot) + 1;
-	str = malloc(len);
-	if (!str)
-		return -ENOMEM;
-
-	snprintf(str, len, "%s%s", ANDROID_ARG_SLOT_SUFFIX, slot);
-	ret = fdt_bootargs_append(fdt, str);
-	if (ret)
-		printf("Apend slot info to bootargs fail");
-
-	free(str);
-
-	return ret;
-}
-
 /**
  * board_fdt_chosen_bootargs - boards may override this function to use
  *                             alternative kernel command line arguments

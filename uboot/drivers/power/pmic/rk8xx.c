@@ -52,7 +52,8 @@ static const struct virq_reg rk806_irqs[] = {
 static struct virq_chip rk806_irq_chip = {
 	.status_base		= RK806_INT_STS0,
 	.mask_base		= RK806_INT_MSK0,
-	.num_regs		= 1,
+	.irq_reg_stride		= 2,
+	.num_regs		= 2,
 	.read			= pmic_reg_read,
 	.write			= pmic_reg_write,
 	.irqs			= rk806_irqs,
@@ -186,11 +187,22 @@ static struct reg_data rk818_init_current[] = {
 	{ REG_USB_CTRL, 0x07, 0x0f}, /* 2A */
 };
 
+/*
+ * Order WARNING: Must put "LDO" after the "NLDO" and "PLDO" !
+ *
+ * See: pmic_bind_children()
+ *	    if (!strstr(node_name, info->prefix)) {
+ *		    ......
+ *	    }
+ *
+ * Without this order, the prefix "LDO" will be matched if a regulator
+ * dts node name contains "NLDO" or "PLDO".
+ */
 static const struct pmic_child_info pmic_children_info[] = {
 	{ .prefix = "DCDC", .driver = "rk8xx_buck"},
-	{ .prefix = "LDO", .driver = "rk8xx_ldo"},
 	{ .prefix = "NLDO", .driver = "rk8xx_ldo"},
 	{ .prefix = "PLDO", .driver = "rk8xx_pldo"},
+	{ .prefix = "LDO", .driver = "rk8xx_ldo"},
 	{ .prefix = "SWITCH", .driver = "rk8xx_switch"},
 	{ },
 };
@@ -468,68 +480,26 @@ static void rk8xx_plug_out_handler(int irq, void *data)
 }
 #endif
 
-static int rk8xx_ofdata_to_platdata(struct udevice *dev)
-{
-	struct rk8xx_priv *rk8xx = dev_get_priv(dev);
-	u32 interrupt, phandle, val;
-	int ret;
-
-	phandle = dev_read_u32_default(dev, "interrupt-parent", -ENODATA);
-	if (phandle == -ENODATA) {
-		printf("Read 'interrupt-parent' failed, ret=%d\n", phandle);
-		return phandle;
-	}
-
-	ret = dev_read_u32_array(dev, "interrupts", &interrupt, 1);
-	if (ret) {
-		printf("Read 'interrupts' failed, ret=%d\n", ret);
-		return ret;
-	}
-
-	rk8xx->irq = phandle_gpio_to_irq(phandle, interrupt);
-	if (rk8xx->irq < 0) {
-		printf("Failed to request rk8xx irq, ret=%d\n", rk8xx->irq);
-		return rk8xx->irq;
-	}
-
-	val = dev_read_u32_default(dev, "long-press-off-time-sec", 0);
-	if (val <= 6)
-		rk8xx->lp_off_time = RK8XX_LP_TIME_6S;
-	else if (val <= 8)
-		rk8xx->lp_off_time = RK8XX_LP_TIME_8S;
-	else if (val <= 10)
-		rk8xx->lp_off_time = RK8XX_LP_TIME_10S;
-	else
-		rk8xx->lp_off_time = RK8XX_LP_TIME_12S;
-
-	val = dev_read_u32_default(dev, "long-press-restart", 0);
-	if (val)
-		rk8xx->lp_action = RK8XX_LP_RESTART;
-	else
-		rk8xx->lp_action = RK8XX_LP_OFF;
-
-	val = dev_read_u32_default(dev, "not-save-power-en", 0);
-	rk8xx->not_save_power_en = val;
-
-	val = dev_read_bool(dev, "vsys-off-shutdown");
-	rk8xx->sys_can_sd = val;
-
-	rk8xx->rst_fun = dev_read_u32_default(dev, "pmic-reset-func", 0);
-
-	return 0;
-}
-
 static int rk8xx_irq_chip_init(struct udevice *dev)
 {
 	struct rk8xx_priv *priv = dev_get_priv(dev);
 	struct virq_chip *irq_chip = NULL;
 	__maybe_unused int irq_plugout = 1;
+	uint8_t value;
 	int ret;
 
 	switch (priv->variant) {
 	case RK806_ID:
 		irq_chip = &rk806_irq_chip;
 		irq_plugout = 0;
+		ret = rk8xx_read(dev, RK806_GPIO_INT_CONFIG, &value, 1);
+		if (ret)
+			return ret;
+		/* set INT polarity active low */
+		value &= (~RK806_INT_POL_HIGH);
+		ret = rk8xx_write(dev, RK806_GPIO_INT_CONFIG, &value, 1);
+		if (ret)
+			return ret;
 		break;
 	case RK808_ID:
 		irq_chip = &rk808_irq_chip;
@@ -580,9 +550,87 @@ static int rk8xx_irq_chip_init(struct udevice *dev)
 	return 0;
 }
 #else
-static inline int rk8xx_ofdata_to_platdata(struct udevice *dev) { return 0; }
 static inline int rk8xx_irq_chip_init(struct udevice *dev) { return 0; }
 #endif
+
+static int rk8xx_ofdata_to_platdata(struct udevice *dev)
+{
+	struct rk8xx_priv *rk8xx = dev_get_priv(dev);
+	u32 interrupt, phandle, val;
+	int ret;
+
+	phandle = dev_read_u32_default(dev, "interrupt-parent", -ENODATA);
+	if (phandle == -ENODATA) {
+		printf("Read 'interrupt-parent' failed, ret=%d\n", phandle);
+		return phandle;
+	}
+
+	ret = dev_read_u32_array(dev, "interrupts", &interrupt, 1);
+	if (ret) {
+		printf("Read 'interrupts' failed, ret=%d\n", ret);
+		return ret;
+	}
+
+#if CONFIG_IS_ENABLED(IRQ)
+	rk8xx->irq = phandle_gpio_to_irq(phandle, interrupt);
+	if (rk8xx->irq < 0) {
+		printf("Failed to request rk8xx irq, ret=%d\n", rk8xx->irq);
+		return rk8xx->irq;
+	}
+#endif
+	val = dev_read_u32_default(dev, "long-press-off-time-sec", 0);
+	if (val <= 6)
+		rk8xx->lp_off_time = RK8XX_LP_TIME_6S;
+	else if (val <= 8)
+		rk8xx->lp_off_time = RK8XX_LP_TIME_8S;
+	else if (val <= 10)
+		rk8xx->lp_off_time = RK8XX_LP_TIME_10S;
+	else
+		rk8xx->lp_off_time = RK8XX_LP_TIME_12S;
+
+	val = dev_read_u32_default(dev, "long-press-restart", 0);
+	if (val)
+		rk8xx->lp_action = RK8XX_LP_RESTART;
+	else
+		rk8xx->lp_action = RK8XX_LP_OFF;
+
+	rk8xx->not_save_power_en = dev_read_u32_default(dev, "not-save-power-en", 0);
+	rk8xx->sys_can_sd = dev_read_bool(dev, "vsys-off-shutdown");
+	rk8xx->rst_fun = dev_read_u32_default(dev, "pmic-reset-func", 0);
+	/* buck5 external feedback resister disable */
+	rk8xx->buck5_feedback_dis = dev_read_bool(dev, "buck5-feedback-disable");
+
+	rk8xx->pwr_ctr[0] = dev_read_u32_default(dev, "pwrctrl1_output", -1);
+	rk8xx->pwr_ctr[1] = dev_read_u32_default(dev, "pwrctrl2_output", -1);
+	rk8xx->pwr_ctr[2] = dev_read_u32_default(dev, "pwrctrl3_output", -1);
+
+	return 0;
+}
+
+static void rk806_pwrctrl_output_value(struct udevice *dev,
+				       int pin,
+				       int output_value)
+{
+	u8 value;
+
+	rk8xx_read(dev, RK806_PWRCTRL_CONFIG0 + pin / 3, &value, 1);
+	if ((pin == RK806_PWRCTRL1) || (pin == RK806_PWRCTRL3)) {
+		value &= ~RK806_PWRCTR_MSK_FUN;
+		value |= RK806_PWRCTR_GPIO_FUN;
+	} else {
+		value &= ~(RK806_PWRCTR_MSK_FUN << 4);
+		value |= RK806_PWRCTR_GPIO_FUN << 4;
+	}
+	rk8xx_write(dev, RK806_PWRCTRL_CONFIG0 + pin / 3, &value, 1);
+
+	rk8xx_read(dev, RK806_PWRCTRL_GPIO, &value, 1);
+	value &= ~(RK806_PWRCTR_OUTPUT_MSK << (pin - 1));
+	if (output_value)
+		value |= (RK806_PWRCTR_OUTPUT1 << (pin - 1));
+	else
+		value |= (RK806_PWRCTR_OUTPUT0 << (pin - 1));
+	rk8xx_write(dev, RK806_PWRCTRL_GPIO, &value, 1);
+}
 
 static int rk8xx_probe(struct udevice *dev)
 {
@@ -639,6 +687,12 @@ static int rk8xx_probe(struct udevice *dev)
 			rk8xx_write(dev, RK806_SYS_CFG1, &value, 1);
 		}
 
+		for (i = 0; i < 3; i++)
+			if (priv->pwr_ctr[i] >= 0 && priv->pwr_ctr[i] <= 1)
+				rk806_pwrctrl_output_value(dev,
+							   i + 1,
+							   priv->pwr_ctr[i]);
+
 		if (priv->rst_fun) {
 			rk8xx_read(dev, RK806_SYS_CFG3, &value, 1);
 			value &= RK806_RESET_FUN_CLR;
@@ -649,6 +703,12 @@ static int rk8xx_probe(struct udevice *dev)
 				value |= (RK806_RST_MODE2 << 6);
 				rk8xx_write(dev, RK806_SYS_CFG3, &value, 1);
 			}
+		}
+
+		if (priv->buck5_feedback_dis) {
+			rk8xx_read(dev, RK806_BUCK_RSERVE_REG3, &value, 1);
+			value &= (~RK806_BUCK5_EX_RES_EN);
+			rk8xx_write(dev, RK806_BUCK_RSERVE_REG3, &value, 1);
 		}
 		break;
 	case RK808_ID:

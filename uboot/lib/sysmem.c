@@ -757,7 +757,11 @@ int sysmem_init(void)
 
 	/* Reserved for U-boot framework: 'reserve_xxx()' */
 	mem_start = gd->start_addr_sp;
+#ifdef CONFIG_PRAM
+	mem_size = gd->ram_top - (CONFIG_PRAM * 1024) - mem_start;
+#else
 	mem_size = gd->ram_top - mem_start;
+#endif
 	if (!sysmem_alloc_base(MEM_UBOOT, mem_start, mem_size)) {
 		SYSMEM_E("Failed to reserve sysmem for U-Boot framework\n");
 		ret = -ENOMEM;

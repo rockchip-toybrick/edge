@@ -166,6 +166,16 @@
 	u-boot,dm-spl;
 };
 
+/* Avaliable for PCIe */
+&gpio3 {
+	u-boot,dm-pre-reloc;
+};
+
+/* Avaliable for PCIe */
+&gpio4 {
+	u-boot,dm-pre-reloc;
+};
+
 &pcfg_pull_none_drv_level_1 {
 	u-boot,dm-spl;
 };

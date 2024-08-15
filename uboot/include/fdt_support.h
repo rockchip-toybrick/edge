@@ -39,15 +39,6 @@ int fdt_root(void *fdt);
 int fdt_bootargs_append(void *fdt, char *data);
 
 /**
- * Append ab info to bootargs
- *
- * @param fdt		FDT address in memory
- * @param slot		slot info
- * @return 0 if ok, else error
- */
-int fdt_bootargs_append_ab(void *fdt, char *slot);
-
-/**
  * Add chosen data the FDT before booting the OS.
  *
  * In particular, this adds the kernel command line (bootargs) to the FDT.

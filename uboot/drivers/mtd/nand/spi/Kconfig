@@ -124,4 +124,10 @@ config SPI_NAND_GSTO
 	bool "GSTO SPI flash support"
 	help
 	  Add support for various GSTO SPI Nand flash chips
+
+config SPI_NAND_ZBIT
+	default y
+	bool "ZBIT SPI flash support"
+	help
+	  Add support for various ZBIT SPI Nand flash chips
 endif

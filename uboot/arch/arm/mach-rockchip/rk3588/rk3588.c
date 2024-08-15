@@ -13,7 +13,7 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/ioc_rk3588.h>
-#include <asm/arch/clock.h>
+#include <asm/arch/rockchip_smccc.h>
 #include <dt-bindings/clock/rk3588-cru.h>
 #include <clk-uclass.h>
 DECLARE_GLOBAL_DATA_PTR;
@@ -877,25 +877,25 @@ void board_set_iomux(enum if_type if_type, int devnum, int routing)
 
 	case IF_TYPE_MTD:
 		if (routing == 0) {
-			writel(0x000f0002, EMMC_IOC_BASE + BUS_IOC_GPIO2A_IOMUX_SEL_L);
-			writel(0xffff2222, EMMC_IOC_BASE + BUS_IOC_GPIO2D_IOMUX_SEL_L);
-			writel(0x00f00020, EMMC_IOC_BASE + BUS_IOC_GPIO2D_IOMUX_SEL_H);
+			writel(0x000f0002, BUS_IOC_BASE + BUS_IOC_GPIO2A_IOMUX_SEL_L);
+			writel(0xffff2222, BUS_IOC_BASE + BUS_IOC_GPIO2D_IOMUX_SEL_L);
+			writel(0x00f00020, BUS_IOC_BASE + BUS_IOC_GPIO2D_IOMUX_SEL_H);
 			/* Set the fspi m0 io ds level to 55ohm */
 			writel(0x00070002, EMMC_IOC_BASE + EMMC_IOC_GPIO2A_DS_L);
 			writel(0x77772222, EMMC_IOC_BASE + EMMC_IOC_GPIO2D_DS_L);
 			writel(0x07000200, EMMC_IOC_BASE + EMMC_IOC_GPIO2D_DS_H);
 		} else if (routing == 1) {
-			writel(0xff003300, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO2A_IOMUX_SEL_H);
-			writel(0xf0ff3033, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO2B_IOMUX_SEL_L);
-			writel(0x000f0003, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO2B_IOMUX_SEL_H);
+			writel(0xff003300, BUS_IOC_BASE + BUS_IOC_GPIO2A_IOMUX_SEL_H);
+			writel(0xf0ff3033, BUS_IOC_BASE + BUS_IOC_GPIO2B_IOMUX_SEL_L);
+			writel(0x000f0003, BUS_IOC_BASE + BUS_IOC_GPIO2B_IOMUX_SEL_H);
 			/* Set the fspi m1 io ds level to 55ohm */
 			writel(0x33002200, VCCIO3_5_IOC_BASE + IOC_VCCIO3_5_GPIO2A_DS_H);
 			writel(0x30332022, VCCIO3_5_IOC_BASE + IOC_VCCIO3_5_GPIO2B_DS_L);
 			writel(0x00030002, VCCIO3_5_IOC_BASE + IOC_VCCIO3_5_GPIO2B_DS_H);
 		} else if (routing == 2) {
-			writel(0xffff5555, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO3A_IOMUX_SEL_L);
-			writel(0x00f00050, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO3A_IOMUX_SEL_H);
-			writel(0x000f0002, VCCIO3_5_IOC_BASE + BUS_IOC_GPIO3C_IOMUX_SEL_H);
+			writel(0xffff5555, BUS_IOC_BASE + BUS_IOC_GPIO3A_IOMUX_SEL_L);
+			writel(0x00f00050, BUS_IOC_BASE + BUS_IOC_GPIO3A_IOMUX_SEL_H);
+			writel(0x00ff0022, BUS_IOC_BASE + BUS_IOC_GPIO3C_IOMUX_SEL_H);
 			/* Set the fspi m2 io ds level to 55ohm */
 			writel(0x77772222, VCCIO3_5_IOC_BASE + IOC_VCCIO3_5_GPIO3A_DS_L);
 			writel(0x00700020, VCCIO3_5_IOC_BASE + IOC_VCCIO3_5_GPIO3A_DS_H);
@@ -1441,90 +1441,21 @@ int rk_board_fdt_fixup(const void *blob)
 	return 0;
 }
 
-#ifdef CONFIG_CLK_SCMI
-#include <dm.h>
-/*
- * armclk: 1104M:
- *	rockchip,clk-init = <1104000000>,
- *	vdd_cpu : regulator-init-microvolt = <825000>;
- * armclk: 1416M(by default):
- *	rockchip,clk-init = <1416000000>,
- *	vdd_cpu : regulator-init-microvolt = <900000>;
- * armclk: 1608M:
- *	rockchip,clk-init = <1608000000>,
- *	vdd_cpu : regulator-init-microvolt = <975000>;
- */
-
-int set_armclk_rate(void)
+int fit_standalone_release(char *id, uintptr_t entry_point)
 {
-	struct clk clk;
-	int ret;
-
-	ret = rockchip_get_scmi_clk(&clk.dev);
-	if (ret) {
-		printf("Failed to get scmi clk dev\n");
-		return ret;
-	}
-	clk.id = SCMI_CLK_CPUL;
-	ret = clk_set_rate(&clk, 1800000000);
-	if (ret < 0) {
-		printf("Failed to set armclk CPUL %x\n", ret);
-		return ret;
-	}
-
-	clk.id = SCMI_CLK_CPUB01;
-	ret = clk_set_rate(&clk, 1800000000);
-	if (ret < 0) {
-		printf("Failed to set armclk CPUB01 %x\n", ret);
-		return ret;
-	}
-
-	clk.id = SCMI_CLK_CPUB23;
-	ret = clk_set_rate(&clk, 1800000000);
-	if (ret < 0) {
-		printf("Failed to set armclk CPUB23 %x\n", ret);
-		return ret;
-	}
-
-	printf("%s Set CPU to high freq\n", __func__);
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_SPL_BUILD
-int spl_fit_standalone_release(char *id, uintptr_t entry_point)
-{
-	u32 val;
-
 	/* pmu m0 configuration: */
 	/* set gpll */
 	writel(0x00f00042, CRU_BASE + CRU_GPLL_CON1);
-	/* set pmu mcu to access ddr memory */
-	val = readl(FIREWALL_DDR_BASE + FW_DDR_MST19_REG);
-	writel(val & 0x0000ffff, FIREWALL_DDR_BASE + FW_DDR_MST19_REG);
-	/* set pmu mcu to access system memory */
-	val = readl(FIREWALL_SYSMEM_BASE + FW_SYSM_MST19_REG);
-	writel(val & 0x000000ff, FIREWALL_SYSMEM_BASE + FW_SYSM_MST19_REG);
-	/* set pmu mcu to secure */
-	writel(0x00080000, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON0);
-	/* set start addr, pmu_mcu_code_addr_start */
-	writel(0xFFFF0000 | (entry_point >> 16), PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON9);
-	/* set pmu_mcu_sram_addr_start */
-	writel(0xFFFF2000, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON10);
-	/* set pmu_mcu_tcm_addr_start */
-	writel(0xFFFF2000, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON13);
-	/* set cache cache_peripheral_addr */
-	/* 0xf0000000 ~ 0xfee00000 */
-	writel(0xffff0000, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON6);
-	writel(0xffffee00, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON7);
-	writel(0x00ff00ff, PMU1_SGRF_BASE + PMU1_SGRF_SOC_CON8);
-	/* enable PMU WDT reset system */
-	writel(0x02000200, BUS_SGRF_BASE + BUS_SGRF_SOC_CON2);
+
+	sip_smc_mcu_config(ROCKCHIP_SIP_CONFIG_PMUMCU_0_ID,
+			   ROCKCHIP_SIP_CONFIG_MCU_CODE_START_ADDR,
+			   0xffff0000 | (entry_point >> 16));
+
 	/* select WDT trigger global reset. */
 	writel(0x08400840, CRU_BASE + CRU_GLB_RST_CON);
 	/* release pmu mcu */
-	/* writel(0x20000000, PMU1CRU_BASE + PMU1CRU_SOFTRST_CON00); */
+	writel(0x20000000, PMU1CRU_BASE + PMU1CRU_SOFTRST_CON00);
 
 	return 0;
 }
-#endif
+

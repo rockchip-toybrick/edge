@@ -19,6 +19,7 @@
 #include <drm/drm_dsc.h>
 #include <spl_display.h>
 #include <clk.h>
+#include <drm/drm_color_mgmt.h>
 
 /*
  * major: IP major version, used for IP structure
@@ -37,6 +38,7 @@
 #define VOP_VERSION_RK3528			VOP2_VERSION(0x50, 0x17, 0x1263)
 #define VOP_VERSION_RK3562			VOP2_VERSION(0x50, 0x17, 0x4350)
 #define VOP_VERSION_RK3568			VOP2_VERSION(0x40, 0x15, 0x8023)
+#define VOP_VERSION_RK3576			VOP2_VERSION(0x50, 0x19, 0x9765)
 #define VOP_VERSION_RK3588			VOP2_VERSION(0x40, 0x17, 0x6786)
 
 #define ROCKCHIP_OUTPUT_DUAL_CHANNEL_LEFT_RIGHT_MODE	BIT(0)
@@ -80,8 +82,10 @@ enum rockchip_mcu_cmd {
 #define ROCKCHIP_OUT_MODE_P666		1
 #define ROCKCHIP_OUT_MODE_P565		2
 #define ROCKCHIP_OUT_MODE_BT656		5
+#define ROCKCHIP_OUT_MODE_S666		9
 #define ROCKCHIP_OUT_MODE_S888		8
 #define ROCKCHIP_OUT_MODE_YUV422	9
+#define ROCKCHIP_OUT_MODE_S565		10
 #define ROCKCHIP_OUT_MODE_S888_DUMMY	12
 #define ROCKCHIP_OUT_MODE_YUV420	14
 /* for use special outface */
@@ -100,6 +104,7 @@ enum rockchip_mcu_cmd {
 #define VOP_OUTPUT_IF_DP1	BIT(10)
 #define VOP_OUTPUT_IF_HDMI0	BIT(11)
 #define VOP_OUTPUT_IF_HDMI1	BIT(12)
+#define VOP_OUTPUT_IF_DP2	BIT(13)
 
 struct rockchip_mcu_timing {
 	int mcu_pix_total;
@@ -113,6 +118,11 @@ struct rockchip_mcu_timing {
 struct vop_rect {
 	int width;
 	int height;
+};
+
+struct vop_urgency {
+	u8 urgen_thl;
+	u8 urgen_thh;
 };
 
 struct rockchip_dsc_sink_cap {
@@ -157,6 +167,7 @@ struct crtc_state {
 	void *private;
 	ofnode node;
 	struct device_node *ports_node; /* if (ports_node) it's vop2; */
+	struct device_node *port_node;
 	struct clk dclk;
 	int crtc_id;
 
@@ -193,6 +204,8 @@ struct crtc_state {
 	u64 dsc_cds_clk_rate;
 	struct drm_dsc_picture_parameter_set pps;
 	struct rockchip_dsc_sink_cap dsc_sink_cap;
+
+	u32 *lut_val;
 };
 
 struct panel_state {
@@ -221,7 +234,8 @@ struct connector_state {
 	int type;
 	int output_if;
 	int output_flags;
-	int color_space;
+	enum drm_color_encoding color_encoding;
+	enum drm_color_range color_range;
 	unsigned int bpc;
 
 	/**
@@ -253,6 +267,7 @@ struct connector_state {
 
 struct logo_info {
 	int mode;
+	int rotate;
 	char *mem;
 	bool ymirror;
 	u32 offset;
@@ -265,6 +280,7 @@ struct rockchip_logo_cache {
 	struct list_head head;
 	char name[20];
 	struct logo_info logo;
+	int logo_rotate;
 };
 
 struct display_state {
@@ -283,6 +299,7 @@ struct display_state {
 	struct logo_info logo;
 	int logo_mode;
 	int charge_logo_mode;
+	int logo_rotate;
 	void *mem_base;
 	int mem_size;
 
@@ -310,6 +327,8 @@ int rockchip_ofnode_get_display_mode(ofnode node, struct drm_display_mode *mode,
 void rockchip_display_make_crc32_table(void);
 uint32_t rockchip_display_crc32c_cal(unsigned char *data, int length);
 void drm_mode_set_crtcinfo(struct drm_display_mode *p, int adjust_flags);
+void drm_mode_convert_to_origin_mode(struct drm_display_mode *mode);
+void drm_mode_convert_to_split_mode(struct drm_display_mode *mode);
 
 int display_rect_calc_hscale(struct display_rect *src, struct display_rect *dst,
 			     int min_hscale, int max_hscale);

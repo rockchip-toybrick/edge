@@ -116,6 +116,22 @@ int __weak ahci_link_up(struct ahci_uc_priv *uc_priv, u8 port)
 	void __iomem *port_mmio = uc_priv->port[port].port_mmio;
 
 	/*
+	 * Add port reset before link up to fix some device link up
+	 * fail.
+	 */
+	writel(0x4, port_mmio + PORT_SCR_CTL);
+	udelay(10000);
+	writel(0x1, port_mmio + PORT_SCR_CTL);
+	udelay(10000);
+	writel(0x0, port_mmio + PORT_SCR_CTL);
+	udelay(10000);
+
+	writel(0x301, port_mmio + PORT_SCR_CTL);
+	udelay(10000);
+	writel(0x300, port_mmio + PORT_SCR_CTL);
+	udelay(1000);
+
+	/*
 	 * Bring up SATA link.
 	 * SATA link bringup time is usually less than 1 ms; only very
 	 * rarely has it taken between 1-2 ms. Never seen it above 2 ms.
@@ -231,9 +247,9 @@ static int ahci_host_init(struct ahci_uc_priv *uc_priv)
 #endif
 
 	for (i = 0; i < uc_priv->n_ports; i++) {
+		uc_priv->port[i].port_mmio = ahci_port_base(mmio, i);
 		if (!(port_map & (1 << i)))
 			continue;
-		uc_priv->port[i].port_mmio = ahci_port_base(mmio, i);
 		port_mmio = (u8 *)uc_priv->port[i].port_mmio;
 
 		/* make sure port is not active */

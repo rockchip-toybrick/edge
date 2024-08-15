@@ -14,7 +14,10 @@
 #include <write_keybox.h>
 #include <linux/mtd/mtd.h>
 #include <optee_include/OpteeClientInterface.h>
+#include <dm.h>
+#include <misc.h>
 #include <mmc.h>
+#include <scsi.h>
 #include <stdlib.h>
 #include <usbplug.h>
 
@@ -96,7 +99,7 @@ int g_dnl_bind_fixup(struct usb_device_descriptor *dev, const char *name)
 	} else if (!strncmp(name, "usb_dnl_fastboot", 16)) {
 		/* Fix to Google's VID and PID */
 		dev->idVendor  = __constant_cpu_to_le16(0x18d1);
-		dev->idProduct = __constant_cpu_to_le16(0xd00d);
+		dev->idProduct = __constant_cpu_to_le16(0x4d00);
 	} else if (!strncmp(name, "usb_dnl_dfu", 11)) {
 		/* Fix to Rockchip's VID and PID for DFU */
 		dev->idVendor  = cpu_to_le16(0x2207);
@@ -200,13 +203,20 @@ static int rkusb_do_test_unit_ready(struct fsg_common *common,
 				    struct fsg_buffhd *bh)
 {
 	struct blk_desc *desc = &ums[common->lun].block_dev;
+	u32 usb_trb_size;
+	u16 residue;
 
 	if ((desc->if_type == IF_TYPE_MTD && desc->devnum == BLK_MTD_SPI_NOR) ||
 	    desc->if_type == IF_TYPE_SPINOR)
-		common->residue = 0x03 << 24; /* 128KB Max block xfer for SPI Nor */
+		residue = 0x03; /* 128KB Max block xfer for SPI Nor */
+	else if (common->cmnd[1] == 0xf7 && FSG_BUFLEN >= 0x400000)
+		residue = 0x0a; /* Max block xfer for USB DWC3 */
 	else
-		common->residue = 0x06 << 24; /* Max block xfer support from host */
+		residue = 0x06; /* Max block xfer support from host */
 
+	usb_trb_size = (1 << residue) * 4096;
+	common->usb_trb_size = min(usb_trb_size, FSG_BUFLEN);
+	common->residue = residue << 24;
 	common->data_dir = DATA_DIR_NONE;
 	bh->state = BUF_STATE_EMPTY;
 
@@ -281,6 +291,10 @@ static int rkusb_do_read_flash_info(struct fsg_common *common,
 		.flash_mask = 0
 	};
 
+	/* Set the raw block size for tools to creat GPT with 4K block size */
+	if (desc->rawblksz == 0x1000)
+		finfo.manufacturer = 208;
+
 	finfo.flash_size = (u32)desc->lba;
 
 	if (desc->if_type == IF_TYPE_MTD &&
@@ -291,6 +305,11 @@ static int rkusb_do_read_flash_info(struct fsg_common *common,
 		if (mtd) {
 			finfo.block_size = mtd->erasesize >> 9;
 			finfo.page_size = mtd->writesize >> 9;
+#ifdef CONFIG_SUPPORT_USBPLUG
+			/* Using 4KB pagesize as 2KB for idblock */
+			if (finfo.page_size == 8 && desc->devnum == BLK_MTD_SPI_NAND)
+				finfo.page_size |= (4 << 4);
+#endif
 		}
 	}
 
@@ -584,6 +603,30 @@ static int rkusb_do_vs_write(struct fsg_common *common)
 						curlun->sense_data = SS_WRITE_ERROR;
 						return -EIO;
 					}
+				} else if (memcmp(data, "ENDA", 4) == 0) {
+					if (vhead->size - 8 != 16) {
+						printf("check oem encrypt data size fail!\n");
+						curlun->sense_data = SS_WRITE_ERROR;
+						return -EIO;
+					}
+					if (trusty_write_oem_encrypt_data((uint32_t *)(data + 8), 4) != 0) {
+						printf("trusty_write_oem_encrypt_data error!");
+						curlun->sense_data = SS_WRITE_ERROR;
+						return -EIO;
+					}
+				} else if (memcmp(data, "OTPK", 4) == 0) {
+					uint32_t key_len = vhead->size - 9;
+					uint8_t key_id = *((uint8_t *)data + 8);
+					if (key_len != 16 && key_len != 24 && key_len != 32) {
+						printf("check oem otp key size fail!\n");
+						curlun->sense_data = SS_WRITE_ERROR;
+						return -EIO;
+					}
+					if (trusty_write_oem_otp_key(key_id, (uint8_t *)(data + 9), key_len) != 0) {
+						printf("trusty_write_oem_huk error!");
+						curlun->sense_data = SS_WRITE_ERROR;
+						return -EIO;
+					}
 				} else {
 					printf("Unknown tag\n");
 					curlun->sense_data = SS_WRITE_ERROR;
@@ -770,6 +813,12 @@ static int rkusb_do_switch_storage(struct fsg_common *common)
 		type = IF_TYPE_MTD;
 		devnum = 2;
 		break;
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_AHCI) || defined(CONFIG_UFS))
+	case BOOT_TYPE_SATA:
+		type = IF_TYPE_SCSI;
+		devnum = 0;
+		break;
+#endif
 	default:
 		printf("Bootdev 0x%x is not support\n", media);
 		return -ENODEV;
@@ -788,6 +837,7 @@ static int rkusb_do_switch_storage(struct fsg_common *common)
 		return -ENODEV;
 	}
 
+	common->luns[common->lun].num_sectors = block_dev->lba;
 	ums[common->lun].num_sectors = block_dev->lba;
 	ums[common->lun].block_dev = *block_dev;
 
@@ -873,7 +923,12 @@ static int rkusb_do_read_capacity(struct fsg_common *common,
 	 * bit[7]: Read SecureMode
 	 * bit[8]: New IDB feature
 	 * bit[9]: Get storage media info
-	 * bit[10:63}: Reserved.
+	 * bit[10]: LBAwrite Parity
+	 * bit[11]: Read Otp Data
+	 * bit[12]: usb3 download
+	 * bit[13]: Write OTP proof
+	 * bit[14]: Write Cipher Key
+	 * bit[15:63}: Reserved.
 	 */
 	memset((void *)&buf[0], 0, len);
 	if (type == IF_TYPE_MMC || type == IF_TYPE_SD || type == IF_TYPE_NVME)
@@ -902,12 +957,42 @@ static int rkusb_do_read_capacity(struct fsg_common *common,
 	else
 		buf[1] &= ~BIT(4);
 
+#ifdef CONFIG_ROCKCHIP_OTP
+	buf[1] |= BIT(3); /* Read Otp Data */
+	buf[1] |= BIT(5); /* Write OTP proof */
+	buf[1] |= BIT(6); /* Write Cipher Key */
+#endif
+
 	/* Set data xfer size */
 	common->residue = len;
 	common->data_size_from_cmnd = len;
 
 	return len;
 }
+
+#ifdef CONFIG_ROCKCHIP_OTP
+static int rkusb_do_read_otp(struct fsg_common *common,
+			       struct fsg_buffhd *bh)
+{
+	u32 len = common->data_size;
+	u32 type = common->cmnd[1];
+	u8 *buf = (u8 *)bh->buf;
+	struct udevice *dev;
+
+	buf[0] = 0;
+	if (type == 0) { /* soc uuid */
+		if (!uclass_get_device_by_driver(UCLASS_MISC, DM_GET_DRIVER(rockchip_otp), &dev)) {
+			if (!misc_read(dev, CFG_CPUID_OFFSET, (void *)&buf[1], len))
+				buf[0] = len;
+		}
+	}
+
+	common->residue = len;
+	common->data_size_from_cmnd = len;
+
+	return len;
+}
+#endif
 
 static void rkusb_fixup_cbwcb(struct fsg_common *common,
 			      struct fsg_buffhd *bh)
@@ -1033,6 +1118,13 @@ static int rkusb_cmd_process(struct fsg_common *common,
 		rc = RKUSB_RC_FINISHED;
 		break;
 
+#ifdef CONFIG_ROCKCHIP_OTP
+	case RKUSB_READ_OTP_DATA:
+		*reply = rkusb_do_read_otp(common, bh);
+		rc = RKUSB_RC_FINISHED;
+		break;
+#endif
+
 	case RKUSB_READ_10:
 	case RKUSB_WRITE_10:
 		printf("CMD Not support, pls use new version Tool\n");
@@ -1049,7 +1141,6 @@ static int rkusb_cmd_process(struct fsg_common *common,
 	case RKUSB_SET_RESET_FLAG:
 	case RKUSB_SPI_READ_10:
 	case RKUSB_SPI_WRITE_10:
-	case RKUSB_SESSION:
 		/* Fall through */
 	default:
 		rc = RKUSB_RC_UNKNOWN_CMND;

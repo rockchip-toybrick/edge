@@ -608,9 +608,11 @@ int image_setup_libfdt(bootm_headers_t *images, void *blob,
 	mode = toybrick_freq_convert_policy(blob);
 #endif
 
-	if (arch_fixup_fdt(blob) < 0) {
-		printf("ERROR: arch-specific fdt fixup failed\n");
-		goto err;
+	if (fdt_path_offset(blob, "/memory") < 0) {
+		if (arch_fixup_fdt(blob) < 0) {
+			printf("ERROR: arch-specific fdt fixup failed\n");
+			goto err;
+		}
 	}
 
 #ifdef CONFIG_TOYBRICK_FREQ_POLICY

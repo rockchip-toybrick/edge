@@ -55,4 +55,13 @@ int spl_ab_decrease_tries(struct blk_desc *dev_desc);
  */
 int spl_ab_decrease_reset(struct blk_desc *dev_desc);
 
+/**
+ * Append ab slot info to bootargs
+ *
+ * @param fdt		FDT address in memory
+ * @param slot		slot info
+ * @return 0 if ok, else error
+ */
+int spl_ab_bootargs_append_slot(void *fdt, char *slot);
+
  #endif

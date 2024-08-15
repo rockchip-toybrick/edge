@@ -17,6 +17,11 @@
 
 #define	RK_HASH_CTX_MAGIC		0x1A1A1A1A
 
+#define CRYPTO_MAJOR_VER(ver)		((ver) & 0x0f000000)
+
+#define CRYPTO_MAJOR_VER_3		0x03000000
+#define CRYPTO_MAJOR_VER_4		0x04000000
+
 #ifdef DEBUG
 #define IMSG(format, ...) printf("[%s, %05d]-trace: " format "\n", \
 				 __func__, __LINE__, ##__VA_ARGS__)
@@ -85,9 +90,11 @@ struct rockchip_crypto_priv {
 
 #define WAIT_TAG_VALID(channel, timeout) ({ \
 	u32 tag_mask = CRYPTO_CH0_TAG_VALID << (channel);\
-	int ret;\
-	ret = RK_POLL_TIMEOUT(!(crypto_read(CRYPTO_TAG_VALID) & tag_mask),\
-			      timeout);\
+	int ret = 0;\
+	if (is_check_tag_valid()) { \
+		ret = RK_POLL_TIMEOUT(!(crypto_read(CRYPTO_TAG_VALID) & tag_mask),\
+				      timeout);\
+	} \
 	crypto_write(crypto_read(CRYPTO_TAG_VALID) & tag_mask, CRYPTO_TAG_VALID);\
 	ret;\
 })
@@ -118,6 +125,19 @@ struct rockchip_crypto_priv {
 			     (rk_mode) == RK_MODE_GCM)
 
 fdt_addr_t crypto_base;
+static uint32_t g_crypto_version;
+
+static inline bool is_check_hash_valid(void)
+{
+	/* crypto < v4 need to check hash valid */
+	return CRYPTO_MAJOR_VER(g_crypto_version) < CRYPTO_MAJOR_VER_4;
+}
+
+static inline bool is_check_tag_valid(void)
+{
+	/* crypto < v4 need to check hash valid */
+	return CRYPTO_MAJOR_VER(g_crypto_version) < CRYPTO_MAJOR_VER_4;
+}
 
 static inline void word2byte_be(u32 word, u8 *ch)
 {
@@ -139,11 +159,6 @@ static inline void clear_regs(u32 base, u32 words)
 	/*clear out register*/
 	for (i = 0; i < words; i++)
 		crypto_write(0, base + 4 * i);
-}
-
-static inline void clear_hash_out_reg(void)
-{
-	clear_regs(CRYPTO_HASH_DOUT_0, 16);
 }
 
 static inline void clear_key_regs(void)
@@ -316,6 +331,8 @@ static int hw_crypto_reset(void)
 	/* wait reset compelete */
 	ret = RK_POLL_TIMEOUT(crypto_read(CRYPTO_RST_CTL), RK_CRYPTO_TIMEOUT);
 
+	g_crypto_version = crypto_read(CRYPTO_CRYPTO_VERSION_NEW);
+
 	return ret;
 }
 
@@ -381,8 +398,6 @@ static int rk_hash_init(void *hw_ctx, u32 algo)
 		ret = -EINVAL;
 		goto exit;
 	}
-
-	clear_hash_out_reg();
 
 	/* enable hardware padding */
 	reg_ctrl |= CRYPTO_HW_PAD_ENABLE;
@@ -504,7 +519,7 @@ exit:
 int rk_hash_final(void *ctx, u8 *digest, size_t len)
 {
 	struct rk_hash_ctx *tmp_ctx = (struct rk_hash_ctx *)ctx;
-	int ret = -EINVAL;
+	int ret = 0;
 
 	if (!digest)
 		goto exit;
@@ -516,9 +531,11 @@ int rk_hash_final(void *ctx, u8 *digest, size_t len)
 		goto exit;
 	}
 
-	/* wait hash value ok */
-	ret = RK_POLL_TIMEOUT(!crypto_read(CRYPTO_HASH_VALID),
-			      RK_CRYPTO_TIMEOUT);
+	if(is_check_hash_valid()) {
+		/* wait hash value ok */
+		ret = RK_POLL_TIMEOUT(!crypto_read(CRYPTO_HASH_VALID),
+				      RK_CRYPTO_TIMEOUT);
+	}
 
 	read_regs(CRYPTO_HASH_DOUT_0, digest, len);
 
@@ -1252,16 +1269,20 @@ int rockchip_crypto_cipher(struct udevice *dev, cipher_context *ctx,
 	case CRYPTO_DES:
 		ret = rk_crypto_des(dev, ctx->mode, ctx->key, ctx->key_len,
 				    ctx->iv, in, out, len, enc);
+		break;
 	case CRYPTO_AES:
 		ret = rk_crypto_aes(dev, ctx->mode,
 				    ctx->key, ctx->twk_key, ctx->key_len,
 				    ctx->iv, ctx->iv_len, in, out, len, enc);
+		break;
 	case CRYPTO_SM4:
 		ret = rk_crypto_sm4(dev, ctx->mode,
 				    ctx->key, ctx->twk_key, ctx->key_len,
 				    ctx->iv, ctx->iv_len, in, out, len, enc);
+		break;
 	default:
 		ret = -EINVAL;
+		break;
 	}
 
 	rk_crypto_disable_clk(dev);

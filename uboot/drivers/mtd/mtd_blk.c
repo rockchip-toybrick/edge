@@ -32,6 +32,13 @@
 
 static int *mtd_map_blk_table;
 
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+static loff_t usbplug_dummy_partition_write_last_addr;
+static loff_t usbplug_dummy_partition_write_seek;
+static loff_t usbplug_dummy_partition_read_last_addr;
+static loff_t usbplug_dummy_partition_read_seek;
+#endif
+
 int mtd_blk_map_table_init(struct blk_desc *desc,
 			   loff_t offset,
 			   size_t length)
@@ -178,6 +185,13 @@ static __maybe_unused int mtd_map_read(struct mtd_info *mtd, loff_t offset,
 	u_char *p_buffer = buffer;
 	int rval;
 
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+	if (usbplug_dummy_partition_read_last_addr != offset)
+		usbplug_dummy_partition_read_seek = 0;
+	usbplug_dummy_partition_read_last_addr = offset + left_to_read;
+	offset += usbplug_dummy_partition_read_seek;
+#endif
+
 	while (left_to_read > 0) {
 		size_t block_offset = offset & (mtd->erasesize - 1);
 		size_t read_length;
@@ -190,9 +204,12 @@ static __maybe_unused int mtd_map_read(struct mtd_info *mtd, loff_t offset,
 		if (!get_mtd_blk_map_address(mtd, &mapped_offset)) {
 			if (mtd_block_isbad(mtd, mapped_offset &
 					    ~(mtd->erasesize - 1))) {
-				printf("Skipping bad block 0x%08llx\n",
-				       offset & ~(mtd->erasesize - 1));
+				printf("Skipping bad block 0x%08x in read\n",
+				       (u32)(offset & ~(mtd->erasesize - 1)));
 				offset += mtd->erasesize - block_offset;
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+				usbplug_dummy_partition_read_seek += mtd->erasesize;
+#endif
 				continue;
 			}
 		}
@@ -230,6 +247,13 @@ static __maybe_unused int mtd_map_write(struct mtd_info *mtd, loff_t offset,
 
 	blocksize = mtd->erasesize;
 
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+	if (usbplug_dummy_partition_write_last_addr != offset)
+		usbplug_dummy_partition_write_seek = 0;
+	usbplug_dummy_partition_write_last_addr = offset + left_to_write;
+	offset += usbplug_dummy_partition_write_seek;
+#endif
+
 	/*
 	 * nand_write() handles unaligned, partial page writes.
 	 *
@@ -259,9 +283,12 @@ static __maybe_unused int mtd_map_write(struct mtd_info *mtd, loff_t offset,
 		if (!get_mtd_blk_map_address(mtd, &mapped_offset)) {
 			if (mtd_block_isbad(mtd, mapped_offset &
 					    ~(mtd->erasesize - 1))) {
-				printf("Skipping bad block 0x%08llx\n",
-				       offset & ~(mtd->erasesize - 1));
+				printf("Skipping bad block 0x%08x in write\n",
+				       (u32)(offset & ~(mtd->erasesize - 1)));
 				offset += mtd->erasesize - block_offset;
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+				usbplug_dummy_partition_write_seek += mtd->erasesize;
+#endif
 				continue;
 			}
 		}
@@ -539,10 +566,16 @@ ulong mtd_dwrite(struct udevice *udev, lbaint_t start,
 	if (blkcnt == 0)
 		return 0;
 
+	if (desc->op_flag & BLK_MTD_CONT_WRITE &&
+	    (start == 1 || ((desc->lba - start) <= 33))) {
+		printf("Write in GPT area, lba=%ld cnt=%ld\n", start, blkcnt);
+		desc->op_flag &= ~BLK_MTD_CONT_WRITE;
+	}
+
 	if (desc->devnum == BLK_MTD_NAND ||
 	    desc->devnum == BLK_MTD_SPI_NAND ||
 	    desc->devnum == BLK_MTD_SPI_NOR) {
-		if (desc->op_flag == BLK_MTD_CONT_WRITE) {
+		if (desc->op_flag & BLK_MTD_CONT_WRITE) {
 			ret = mtd_map_write(mtd, off, &rwsize,
 					    NULL, mtd->size,
 					    (u_char *)(src), 0);

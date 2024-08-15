@@ -180,7 +180,7 @@ static unsigned int dwmci_get_drto(struct dwmci_host *host,
 				   host->mmc->clock);
 
 	/* add a bit spare time */
-	drto_ms += 10;
+	drto_ms += 50;
 
 	return drto_ms;
 }
@@ -818,7 +818,7 @@ static int dwmci_init(struct mmc *mmc)
 	if (host->dev_index == 0)
 		dwmci_writel(host, DWMCI_PWREN, 1);
 	else if (host->dev_index == 1)
-		dwmci_writel(host, DWMCI_PWREN, 0);
+		dwmci_writel(host, DWMCI_PWREN, CONFIG_MMC_DW_PWREN_VALUE);
 	else
 		dwmci_writel(host, DWMCI_PWREN, 1);
 #else
@@ -872,18 +872,24 @@ static int dwmci_init(struct mmc *mmc)
 static int dwmci_get_cd(struct udevice *dev)
 {
 	int ret = -1;
+	struct mmc *mmc = mmc_get_mmc_dev(dev);
+	struct dwmci_host *host = mmc->priv;
 
 #if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
 	struct gpio_desc detect;
 
 	ret = gpio_request_by_name(dev, "cd-gpios", 0, &detect, GPIOD_IS_IN);
 	if (ret) {
-		return ret;
+		goto dw_mmc_cdetect;
 	}
 
 	ret = !dm_gpio_get_value(&detect);
 	dm_gpio_free(dev, &detect);
+	return ret;
+dw_mmc_cdetect:
 #endif
+	ret = (dwmci_readl(host, DWMCI_CDETECT) & (1 << 0)) == 0 ? 1 : 0;
+
 	return ret;
 }
 

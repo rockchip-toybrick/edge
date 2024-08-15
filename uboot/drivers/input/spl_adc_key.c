@@ -41,6 +41,8 @@ int key_read(int code)
 	u32 chn[2], adc;
 
 	ret = uclass_get_device_by_name(UCLASS_ADC, "saradc", &dev);
+	if (ret)
+		ret = uclass_get_device_by_name(UCLASS_ADC, "adc", &dev);
 	if (ret) {
 		debug("No saradc device, ret=%d\n", ret);
 		return 0;
@@ -126,6 +128,8 @@ int key_read(int code)
 
 	/* now, read key status */
 	ret = adc_channel_single_shot("saradc", chn[1], &adc);
+	if (ret)
+		ret = adc_channel_single_shot("adc", chn[1], &adc);
 	if (ret) {
 		debug("Failed to read adc%d, ret=%d\n", chn[1], ret);
 		return 0;

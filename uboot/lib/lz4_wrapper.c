@@ -66,9 +66,10 @@ int ulz4fn(const void *src, size_t srcn, void *dst, size_t *dstn)
 	if (!ret) {
 		*dstn = len;
 		return 0;
+	} else if (ret != -ENODEV) {
+		printf("hw ulz4fn failed(%d), fallback to soft ulz4fn\n", ret);
 	}
 
-	printf("hw ulz4fn failed(%d), fallback to soft ulz4fn\n", ret);
 #endif
 	{ /* With in-place decompression the header may become invalid later. */
 		const struct lz4_frame_header *h = in;

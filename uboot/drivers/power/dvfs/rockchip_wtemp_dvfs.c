@@ -177,7 +177,7 @@ static ulong __wtemp_clk_set_rate(struct pm_element *e, ulong rate)
 		rockchip_ddrclk_sip_set_rate_v2(rate);
 	} else
 #endif
-		clk_set_rate(&e->clk, rate);
+		rate = clk_set_rate(&e->clk, rate);
 
 	return rate;
 }
@@ -213,7 +213,7 @@ static void wtemp_dvfs_low_temp_adjust(struct udevice *dev, struct pm_element *e
 		__wtemp_regulator_set_value(e, tgt_volt);
 		tgt_rate = wtemp_get_lowlevel_rate(org_rate,
 						RATE_LOWER_LEVEL_N, priv->cpu);
-		tgt_rate = __wtemp_clk_set_rate(e, tgt_rate);
+		__wtemp_clk_set_rate(e, tgt_rate);
 	} else {
 		__wtemp_regulator_set_value(e, tgt_volt);
 		tgt_rate = org_rate;
@@ -223,10 +223,10 @@ static void wtemp_dvfs_low_temp_adjust(struct udevice *dev, struct pm_element *e
 	rb_rate = __wtemp_clk_get_rate(e);
 	rb_volt = __wtemp_regulator_get_value(e);
 	if (tgt_rate != rb_rate)
-		printf("DVFS: %s: target rate=%ld, readback rate=%ld !\n",
+		printf("DVFS WARN: %s: target rate=%ld, readback rate=%ld !\n",
 		       e->name, tgt_rate, rb_rate);
 	if (tgt_volt != rb_volt)
-		printf("DVFS: %s: target volt=%d, readback volt=%d !\n",
+		printf("DVFS WARN: %s: target volt=%d, readback volt=%d !\n",
 		       e->name, tgt_volt, rb_volt);
 
 	printf("DVFS: %s(low): %ld->%ld Hz, %d->%d uV\n",
@@ -245,21 +245,23 @@ static void wtemp_dvfs_high_temp_adjust(struct udevice *dev, struct pm_element *
 
 	/* Apply opp[0] */
 	org_rate = __wtemp_clk_get_rate(e);
+
 	tgt_rate = e->opp[0].hz;
-	tgt_rate = __wtemp_clk_set_rate(e, tgt_rate);
+	__wtemp_clk_set_rate(e, tgt_rate);
+	rb_rate = __wtemp_clk_get_rate(e);
+	if (tgt_rate != rb_rate) {
+		printf("DVFS WARN: %s: target rate=%ld, readback rate=%ld !\n",
+		       e->name, tgt_rate, rb_rate);
+		return;
+	}
 
 	org_volt = __wtemp_regulator_get_value(e);
 	tgt_volt = e->opp[0].uv;
 	__wtemp_regulator_set_value(e, tgt_volt);
 
-	/* Check */
-	rb_rate = __wtemp_clk_get_rate(e);
 	rb_volt = __wtemp_regulator_get_value(e);
-	if (tgt_rate != rb_rate)
-		printf("DVFS: %s: target rate=%ld, readback rate=%ld !\n",
-		       e->name, tgt_rate, rb_rate);
 	if (tgt_volt != rb_volt)
-		printf("DVFS: %s: target volt=%d, readback volt=%d !\n",
+		printf("DVFS WARN: %s: target volt=%d, readback volt=%d !\n",
 		       e->name, tgt_volt, rb_volt);
 
 	printf("DVFS: %s(high): %ld->%ld Hz, %d->%d uV\n",

@@ -26,6 +26,7 @@
 #include <asm/arch-rockchip/sys_proto.h>
 #include <asm/io.h>
 #include <asm/arch/param.h>
+#include <asm/arch/rk_hwid.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -42,6 +43,10 @@ const char *board_spl_was_booted_from(void)
 	u32  bootdevice_brom_id = readl(BROM_BOOTSOURCE_ID_ADDR);
 	const char *bootdevice_ofpath = NULL;
 
+	if ((bootdevice_brom_id & BROM_DOWNLOAD_MASK) == BROM_DOWNLOAD_MASK)
+		bootdevice_brom_id = BROM_BOOTSOURCE_USB;
+
+	bootdevice_brom_id = bootdevice_brom_id & BROM_BOOTSOURCE_MASK;
 	if (bootdevice_brom_id < ARRAY_SIZE(boot_devices))
 		bootdevice_ofpath = boot_devices[bootdevice_brom_id];
 
@@ -264,7 +269,7 @@ int board_init_f_boot_flags(void)
 {
 	int boot_flags = 0;
 
-#ifdef CONFIG_FPGA_ROCKCHIP
+#if CONFIG_IS_ENABLED(FPGA_ROCKCHIP)
 	arch_fpga_init();
 #endif
 #ifdef CONFIG_PSTORE
@@ -352,17 +357,6 @@ void spl_board_init(void)
 }
 #endif
 
-void spl_perform_fixups(struct spl_image_info *spl_image)
-{
-#ifdef CONFIG_ROCKCHIP_PRELOADER_ATAGS
-	atags_set_bootdev_by_spl_bootdevice(spl_image->boot_device);
-  #ifdef BUILD_SPL_TAG
-	atags_set_shared_fwver(FW_SPL, "spl-"BUILD_SPL_TAG);
-  #endif
-#endif
-	return;
-}
-
 #ifdef CONFIG_SPL_KERNEL_BOOT
 static int spl_rockchip_dnl_key_pressed(void)
 {
@@ -395,7 +389,7 @@ bool spl_is_low_power(void)
 
 void spl_next_stage(struct spl_image_info *spl)
 {
-	const char *reason[] = { "Recovery key", "Ctrl+c", "LowPwr", "Unknown" };
+	const char *reason[] = { "Recovery key", "Ctrl+c", "LowPwr", "Other" };
 	uint32_t reg_boot_mode;
 	int i = 0;
 
@@ -421,20 +415,16 @@ void spl_next_stage(struct spl_image_info *spl)
 
 	reg_boot_mode = readl((void *)CONFIG_ROCKCHIP_BOOT_MODE_REG);
 	switch (reg_boot_mode) {
-	case BOOT_COLD:
-	case BOOT_PANIC:
-	case BOOT_WATCHDOG:
-	case BOOT_NORMAL:
-	case BOOT_RECOVERY:
-		spl->next_stage = SPL_NEXT_STAGE_KERNEL;
+	case BOOT_LOADER:
+	case BOOT_FASTBOOT:
+	case BOOT_CHARGING:
+	case BOOT_UMS:
+	case BOOT_DFU:
+		i = 3;
+		spl->next_stage = SPL_NEXT_STAGE_UBOOT;
 		break;
 	default:
-		if ((reg_boot_mode & REBOOT_FLAG) != REBOOT_FLAG) {
-			spl->next_stage = SPL_NEXT_STAGE_KERNEL;
-		} else {
-			i = 3;
-			spl->next_stage = SPL_NEXT_STAGE_UBOOT;
-		}
+		spl->next_stage = SPL_NEXT_STAGE_KERNEL;
 	}
 
 out:
@@ -443,9 +433,7 @@ out:
 
 	return;
 }
-#endif
 
-#ifdef CONFIG_SPL_KERNEL_BOOT
 const char *spl_kernel_partition(struct spl_image_info *spl,
 				 struct spl_load_info *info)
 {
@@ -480,7 +468,67 @@ const char *spl_kernel_partition(struct spl_image_info *spl,
 
 	return (boot_mode == BOOT_RECOVERY) ? PART_RECOVERY : PART_BOOT;
 }
+
+static void spl_fdt_fixup_memory(struct spl_image_info *spl_image)
+{
+	void *blob = spl_image->fdt_addr;
+	struct tag *t;
+	u64 start[CONFIG_NR_DRAM_BANKS];
+	u64 size[CONFIG_NR_DRAM_BANKS];
+	int i, count, err;
+
+	err = fdt_check_header(blob);
+	if (err < 0) {
+		printf("Invalid dtb\n");
+		return;
+	}
+
+	/* Fixup memory node based on ddr_mem atags */
+	t = atags_get_tag(ATAG_DDR_MEM);
+	if (t && t->u.ddr_mem.count) {
+		count = t->u.ddr_mem.count;
+		for (i = 0; i < count; i++) {
+			start[i] = t->u.ddr_mem.bank[i];
+			size[i] = t->u.ddr_mem.bank[i + count];
+			if (size[i] == 0)
+				continue;
+			debug("Adding bank: 0x%08llx - 0x%08llx (size: 0x%08llx)\n",
+			       start[i], start[i] + size[i], size[i]);
+		}
+		err = fdt_fixup_memory_banks(blob, start, size, count);
+		if (err < 0) {
+			printf("Fixup kernel dtb memory node failed: %s\n", fdt_strerror(err));
+			return;
+		}
+	}
+
+	return;
+}
+
+#if defined(CONFIG_SPL_ROCKCHIP_HWID_DTB)
+int spl_find_hwid_dtb(const char *fdt_name)
+{
+	hwid_init_data();
+
+	return hwid_dtb_is_available(fdt_name);
+}
 #endif
+#endif
+
+void spl_perform_fixups(struct spl_image_info *spl_image)
+{
+#ifdef CONFIG_ROCKCHIP_PRELOADER_ATAGS
+	atags_set_bootdev_by_spl_bootdevice(spl_image->boot_device);
+  #ifdef BUILD_SPL_TAG
+	atags_set_shared_fwver(FW_SPL, "spl-"BUILD_SPL_TAG);
+  #endif
+#endif
+#if defined(CONFIG_SPL_KERNEL_BOOT)
+	if (spl_image->next_stage == SPL_NEXT_STAGE_KERNEL)
+		spl_fdt_fixup_memory(spl_image);
+#endif
+	return;
+}
 
 void spl_hang_reset(void)
 {

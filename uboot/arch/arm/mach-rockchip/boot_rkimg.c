@@ -65,7 +65,7 @@ static int bootdev_init(const char *devtype, const char *devnum)
 			return -ENODEV;
 	}
 #endif
-#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && defined(CONFIG_AHCI)
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_AHCI) || defined(CONFIG_UFS))
 	if (!strcmp("scsi", devtype)) {
 		if (scsi_scan(true))
 			return -ENODEV;
@@ -313,6 +313,8 @@ __weak int rockchip_dnl_key_pressed(void)
 	}
 
 	ret = adc_channel_single_shot("saradc", channel, &val);
+	if (ret)
+		ret = adc_channel_single_shot("adc", channel, &val);
 	if (ret) {
 		printf("%s: Failed to read saradc, ret=%d\n", __func__, ret);
 		return 0;
@@ -395,57 +397,17 @@ out:
 #if defined(CONFIG_USING_KERNEL_DTB) || defined(CONFIG_CMD_BOOTM) || \
     defined(CONFIG_CMD_BOOTZ) || defined(CONFIG_CMD_BOOTI)
 #ifdef CONFIG_ROCKCHIP_DTB_VERIFY
-#ifdef CONFIG_DM_CRYPTO
-static int crypto_csum(u32 cap, char *input, u32 input_len, u8 *output)
-{
-	sha_context csha_ctx;
-	struct udevice *dev;
-
-	dev = crypto_get_device(cap);
-	if (!dev) {
-		printf("Can't find expected crypto device\n");
-		return -ENODEV;
-	}
-
-	csha_ctx.algo = cap;
-	csha_ctx.length = input_len;
-	crypto_sha_csum(dev, &csha_ctx, (char *)input,
-			input_len, output);
-
-	return 0;
-}
-
 static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 			  char *hash_cmp, u32 hash_size)
 {
 	uchar hash[32];
-
-	if (!hash_size)
-		return 0;
-
-	if (hash_size == 20)
-		crypto_csum(CRYPTO_SHA1, fdt_addr, fdt_size, hash);
-	else if (hash_size == 32)
-		crypto_csum(CRYPTO_SHA256, fdt_addr, fdt_size, hash);
-	else
-		return -EINVAL;
-
-	printf("HASH(c): ");
-	if (memcmp(hash, hash_cmp, hash_size)) {
-		printf("error\n");
-		return -EBADF;
-	}
-
-	printf("OK\n");
-
-	return 0;
-}
-
+#ifdef CONFIG_ARMV8_CRYPTO
+	char *engine = "ce";
+#elif defined(CONFIG_DM_CRYPTO)
+	char *engine = "c";
 #else
-static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
-			  char *hash_cmp, u32 hash_size)
-{
-	uchar hash[32];
+	char *engine = "s";
+#endif
 
 	if (!hash_size)
 		return 0;
@@ -457,7 +419,7 @@ static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 	else
 		return -EINVAL;
 
-	printf("HASH(s): ");
+	printf("HASH(%s): ", engine);
 	if (memcmp(hash, hash_cmp, hash_size)) {
 		printf("error\n");
 		return -EBADF;
@@ -467,7 +429,6 @@ static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 
 	return 0;
 }
-#endif
 #endif	/* CONFIG_ROCKCHIP_DTB_VERIFY */
 
 #if defined(CONFIG_ROCKCHIP_EARLY_DISTRO_DTB)

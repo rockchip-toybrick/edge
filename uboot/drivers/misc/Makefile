@@ -66,6 +66,7 @@ obj-$(CONFIG_ROCKCHIP_RV1126) += rv1126-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3588) += rk3588-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3528) += rk3528-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3562) += rk3562-secure-otp.o
+obj-$(CONFIG_ROCKCHIP_RK3576) += rk3576-secure-otp.o
 endif
 
 obj-$(CONFIG_$(SPL_TPL_)ROCKCHIP_HW_DECOMPRESS) += rockchip_decompress.o

@@ -15,6 +15,12 @@
 #include <dm/root.h>
 #include <linux/err.h>
 
+#ifdef CONFIG_ARCH_ROCKCHIP
+__weak void reset_misc(void)
+{
+}
+#endif
+
 int sysreset_request(struct udevice *dev, enum sysreset_t type)
 {
 	struct sysreset_ops *ops = sysreset_get_ops(dev);
@@ -95,6 +101,10 @@ void reboot(const char *mode)
 
 int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+#ifdef CONFIG_ARCH_ROCKCHIP
+	reset_misc();
+#endif
+
 	if (argc > 1)
 		reboot(argv[1]);
 	else

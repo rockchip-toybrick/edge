@@ -592,6 +592,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&spi0_tx &spi0_rx &spi0_clk &spi0_cs0 &spi0_cs1>;
 		clock-names = "spiclk", "apb_pclk";
+		clocks = <&cru SCLK_SPI0>, <&cru PCLK_SPI0>;
 		dmas = <&pdma 8>, <&pdma 9>;
 		dma-names = "tx", "rx";
 		#address-cells = <1>;

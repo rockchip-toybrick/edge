@@ -9,6 +9,7 @@
 #include <common.h>
 #include <command.h>
 #include <console.h>
+#include <dm/device.h>
 #include <g_dnl.h>
 #include <part.h>
 #include <usb.h>
@@ -41,17 +42,27 @@ static int rkusb_write_sector(struct ums *ums_dev,
 {
 	struct blk_desc *block_dev = &ums_dev->block_dev;
 	lbaint_t blkstart = start + ums_dev->start_sector;
+	struct blk_desc *mtd_blk = NULL;
 	int ret;
 
-	if (block_dev->if_type == IF_TYPE_MTD)
-		block_dev->op_flag |= BLK_MTD_CONT_WRITE;
+	if (block_dev->if_type == IF_TYPE_MTD) {
+		mtd_blk = dev_get_uclass_platdata(block_dev->bdev);
+		mtd_blk->op_flag |= BLK_MTD_CONT_WRITE;
+	}
 
 	ret = blk_dwrite(block_dev, blkstart, blkcnt, buf);
 	if (!ret)
 		ret = -EIO;
-
-	if (block_dev->if_type == IF_TYPE_MTD)
-		block_dev->op_flag &= ~(BLK_MTD_CONT_WRITE);
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_UFS))
+	if (block_dev->if_type == IF_TYPE_SCSI && block_dev->rawblksz == 4096) {
+		/* write loader to UFS BootA */
+		if (blkstart < 8192 && blkstart >= 64)
+			blk_write_devnum(IF_TYPE_SCSI, 1, blkstart, blkcnt, (ulong *)buf);
+	}
+#endif
+	if (block_dev->if_type == IF_TYPE_MTD) {
+		mtd_blk->op_flag &= ~(BLK_MTD_CONT_WRITE);
+	}
 	return ret;
 }
 
@@ -60,6 +71,21 @@ static int rkusb_erase_sector(struct ums *ums_dev,
 {
 	struct blk_desc *block_dev = &ums_dev->block_dev;
 	lbaint_t blkstart = start + ums_dev->start_sector;
+
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_UFS))
+	if (block_dev->if_type == IF_TYPE_SCSI && block_dev->rawblksz == 4096) {
+		/* write loader to UFS BootA */
+		if (blkstart < 8192) {
+			lbaint_t cur_cnt = 8192 - blkstart;
+
+			if (cur_cnt > blkcnt)
+				cur_cnt = blkcnt;
+			blk_erase_devnum(IF_TYPE_SCSI, 1, blkstart, cur_cnt);
+			blkcnt -= cur_cnt;
+			blkstart += cur_cnt;
+		}
+	}
+#endif
 
 	return blk_derase(block_dev, blkstart, blkcnt);
 }
@@ -98,11 +124,19 @@ static int rkusb_init(const char *devtype, const char *devnums_part_str)
 		devnum_part_str = strsep(&t, ",");
 		if (!devnum_part_str)
 			break;
-
-		partnum = blk_get_device_part_str(devtype, devnum_part_str,
-					&block_dev, &info, 1);
-		if (partnum < 0)
-			goto cleanup;
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_UFS))
+		if (!strcmp(devtype, "scsi")) {
+			block_dev= blk_get_devnum_by_typename(devtype, 0);
+			if (block_dev == NULL)
+				return -ENXIO;
+		} else
+#endif
+		{
+			partnum = blk_get_device_part_str(devtype, devnum_part_str,
+						&block_dev, &info, 1);
+			if (partnum < 0)
+				goto cleanup;
+		}
 
 		/* f_mass_storage.c assumes SECTOR_SIZE sectors */
 		if (block_dev->blksz != SECTOR_SIZE)
@@ -192,7 +226,6 @@ static int do_rkusb(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	if (argc != 4)
 		return CMD_RET_USAGE;
 
-re_enumerate:
 	usb_controller = argv[1];
 	devtype = argv[2];
 	devnum	= argv[3];
@@ -225,6 +258,7 @@ re_enumerate:
 #endif
 	}
 
+re_enumerate:
 	controller_index = (unsigned int)(simple_strtoul(
 				usb_controller,	NULL, 0));
 	rc = usb_gadget_initialize(controller_index);
@@ -314,7 +348,6 @@ re_enumerate:
 				rkusb_force_to_usb2(true);
 				g_dnl_unregister();
 				usb_gadget_release(controller_index);
-				rkusb_fini();
 				goto re_enumerate;
 			}
 
@@ -334,7 +367,6 @@ re_enumerate:
 			printf("rockusb switch to usb3\n");
 			g_dnl_unregister();
 			usb_gadget_release(controller_index);
-			rkusb_fini();
 			goto re_enumerate;
 		}
 	}

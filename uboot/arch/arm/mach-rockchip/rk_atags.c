@@ -26,7 +26,7 @@ static int bootdev_map[] = {
 	BOOT_TYPE_SPI_NAND,
 	BOOT_TYPE_SD0,
 	BOOT_TYPE_UNKNOWN,
-	BOOT_TYPE_UNKNOWN,
+	BOOT_TYPE_UFS,
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_UNKNOWN
@@ -51,7 +51,9 @@ static int spl_bootdev_map[] = {
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_MTD_BLK_NAND,
 	BOOT_TYPE_MTD_BLK_SPI_NAND,
-	BOOT_TYPE_MTD_BLK_SPI_NOR
+	BOOT_TYPE_MTD_BLK_SPI_NOR,
+	BOOT_TYPE_UNKNOWN,
+	BOOT_TYPE_UFS
 };
 #endif
 
@@ -183,7 +185,7 @@ int atags_set_tag(u32 magic, void *tagdata)
 	u32 length, size = 0, hash;
 	int append = 1; /* 0: override */
 
-#if !defined(CONFIG_TPL_BUILD) && !defined(CONFIG_FPGA_ROCKCHIP)
+#if !defined(CONFIG_TPL_BUILD) && !CONFIG_IS_ENABLED(FPGA_ROCKCHIP)
 	if (!atags_is_available())
 		return -EPERM;
 #endif

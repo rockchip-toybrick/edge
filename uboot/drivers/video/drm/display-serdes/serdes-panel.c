@@ -7,7 +7,7 @@
  * Author: luowei <lw@rock-chips.com>
  */
 
-#include <serdes-display-core.h>
+#include "core.h"
 
 static void serdes_panel_init(struct serdes *serdes)
 {
@@ -22,7 +22,8 @@ static void serdes_panel_init(struct serdes *serdes)
 	if (serdes->chip_data->panel_ops->init)
 		serdes->chip_data->panel_ops->init(serdes);
 
-	serdes_i2c_set_sequence(serdes);
+	if (serdes->chip_data->serdes_type == TYPE_DES)
+		serdes_i2c_set_sequence(serdes);
 
 	SERDES_DBG_MFD("%s: %s %s\n", __func__, serdes->dev->name,
 		       serdes->chip_data->name);
@@ -31,7 +32,7 @@ static void serdes_panel_init(struct serdes *serdes)
 static void serdes_panel_prepare(struct rockchip_panel *panel)
 {
 	struct udevice *dev = panel->dev;
-	struct serdes *serdes = dev_get_priv(dev);
+	struct serdes *serdes = dev_get_priv(dev->parent);
 
 	if (serdes->chip_data->panel_ops->prepare)
 		serdes->chip_data->panel_ops->prepare(serdes);
@@ -43,7 +44,7 @@ static void serdes_panel_prepare(struct rockchip_panel *panel)
 static void serdes_panel_unprepare(struct rockchip_panel *panel)
 {
 	struct udevice *dev = panel->dev;
-	struct serdes *serdes = dev_get_priv(dev);
+	struct serdes *serdes = dev_get_priv(dev->parent);
 
 	if (serdes->chip_data->panel_ops->unprepare)
 		serdes->chip_data->panel_ops->unprepare(serdes);
@@ -55,7 +56,7 @@ static void serdes_panel_unprepare(struct rockchip_panel *panel)
 static void serdes_panel_enable(struct rockchip_panel *panel)
 {
 	struct udevice *dev = panel->dev;
-	struct serdes *serdes = dev_get_priv(dev);
+	struct serdes *serdes = dev_get_priv(dev->parent);
 
 	if (serdes->chip_data->panel_ops->enable)
 		serdes->chip_data->panel_ops->enable(serdes);
@@ -75,7 +76,7 @@ static void serdes_panel_enable(struct rockchip_panel *panel)
 static void serdes_panel_disable(struct rockchip_panel *panel)
 {
 	struct udevice *dev = panel->dev;
-	struct serdes *serdes = dev_get_priv(dev);
+	struct serdes *serdes = dev_get_priv(dev->parent);
 
 	if (serdes->chip_data->panel_ops->backlight_disable)
 		serdes->chip_data->panel_ops->backlight_disable(serdes);
@@ -99,18 +100,10 @@ static struct rockchip_panel_funcs serdes_panel_ops = {
 
 static int serdes_panel_probe(struct udevice *dev)
 {
-	struct serdes *serdes = dev_get_priv(dev);
+	struct serdes *serdes = dev_get_priv(dev->parent);
 	struct serdes_panel *serdes_panel = NULL;
 	struct rockchip_panel *panel;
 	int ret;
-
-	ret = i2c_set_chip_offset_len(dev, 2);
-	if (ret)
-		return ret;
-
-	serdes->dev = dev;
-	serdes->chip_data = (struct serdes_chip_data *)dev_get_driver_data(dev);
-	serdes->type = serdes->chip_data->serdes_type;
 
 	SERDES_DBG_MFD("%s: %s %s start\n", __func__, serdes->dev->name,
 		       serdes->chip_data->name);
@@ -151,10 +144,6 @@ static int serdes_panel_probe(struct udevice *dev)
 
 	serdes->serdes_panel->panel = panel;
 
-	ret = serdes_pinctrl_register(dev, serdes);
-	if (ret)
-		return ret;
-
 	printf("%s %s successful, version %s\n",
 	       __func__,
 	       serdes->dev->name,
@@ -170,13 +159,13 @@ free_panel:
 
 static const struct udevice_id serdes_of_match[] = {
 #if IS_ENABLED(CONFIG_SERDES_DISPLAY_CHIP_MAXIM_MAX96752)
-	{ .compatible = "maxim,max96752", .data = (ulong)&serdes_max96752_data },
+	{ .compatible = "maxim,max96752-panel",},
 #endif
 #if IS_ENABLED(CONFIG_SERDES_DISPLAY_CHIP_MAXIM_MAX96772)
-	{ .compatible = "maxim,max96772", .data = (ulong)&serdes_max96772_data },
+	{ .compatible = "maxim,max96772-panel",},
 #endif
 #if IS_ENABLED(CONFIG_SERDES_DISPLAY_CHIP_ROCKCHIP_RKX121)
-	{ .compatible = "rockchip,rkx121", .data = (ulong)&serdes_rkx121_data },
+	{ .compatible = "rockchip,rkx121-panel",},
 #endif
 	{ }
 };
@@ -186,5 +175,5 @@ U_BOOT_DRIVER(serdes_panel) = {
 	.id = UCLASS_PANEL,
 	.of_match = serdes_of_match,
 	.probe = serdes_panel_probe,
-	.priv_auto_alloc_size = sizeof(struct serdes),
+	.priv_auto_alloc_size = sizeof(struct serdes_panel),
 };

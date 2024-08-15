@@ -455,6 +455,15 @@ static AvbIOResult get_preloaded_partition(AvbOps* ops,
 		return AVB_IO_RESULT_ERROR_NO_SUCH_PARTITION;
 	}
 
+	/* Record partition name(either boot or recovery) */
+	if (!strncmp(partition, ANDROID_PARTITION_BOOT, 4) ||
+	    !strncmp(partition, ANDROID_PARTITION_RECOVERY, 8)) {
+		data->boot_partition = strdup(partition);
+#ifdef CONFIG_ANDROID_AB
+		*((char *)data->boot_partition + strlen(partition) - 2) = '\0';
+#endif
+	}
+
 	if (!allow_verification_error) {
 		if (!strncmp(partition, ANDROID_PARTITION_BOOT, 4) ||
 		    !strncmp(partition, ANDROID_PARTITION_RECOVERY, 8))

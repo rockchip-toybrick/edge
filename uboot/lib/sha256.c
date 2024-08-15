@@ -9,6 +9,7 @@
 #ifndef USE_HOSTCC
 #include <common.h>
 #include <linux/string.h>
+#include <crypto.h>
 #else
 #include <string.h>
 #endif /* USE_HOSTCC */
@@ -50,6 +51,23 @@ const uint8_t sha256_der_prefix[SHA256_DER_LEN] = {
 
 void sha256_starts(sha256_context * ctx)
 {
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA256) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	sha_context cctx;
+	u32 algo = CRYPTO_SHA256;
+
+	ctx->cdev = NULL;
+	if (ctx->length) {
+		ctx->cdev = crypto_get_device(algo);
+		if (ctx->cdev) {
+			cctx.algo = algo;
+			cctx.length = ctx->length;
+			crypto_sha_init(ctx->cdev, &cctx);
+			return;
+		}
+	}
+#endif
+#endif
 	ctx->total[0] = 0;
 	ctx->total[1] = 0;
 
@@ -213,6 +231,14 @@ void sha256_update(sha256_context *ctx, const uint8_t *input, uint32_t length)
 	if (!length)
 		return;
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA256) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	if (ctx->cdev) {
+		crypto_sha_update(ctx->cdev, (void *)input, length);
+		return;
+	}
+#endif
+#endif
 	left = ctx->total[0] & 0x3F;
 	fill = 64 - left;
 
@@ -251,6 +277,18 @@ void sha256_finish(sha256_context * ctx, uint8_t digest[32])
 	uint32_t high, low;
 	uint8_t msglen[8];
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA256) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	sha_context cctx;
+
+	if (ctx->cdev) {
+		cctx.algo = CRYPTO_SHA256;
+		cctx.length = ctx->length;
+		crypto_sha_final(ctx->cdev, &cctx, digest);
+		return;
+	}
+#endif
+#endif
 	high = ((ctx->total[0] >> 29)
 		| (ctx->total[1] << 3));
 	low = (ctx->total[0] << 3);
@@ -282,6 +320,11 @@ void sha256_csum(const unsigned char *input, unsigned int ilen,
 {
 	sha256_context ctx;
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA256) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = ilen;
+#endif
+#endif
 	sha256_starts(&ctx);
 	sha256_update(&ctx, input, ilen);
 	sha256_finish(&ctx, output);
@@ -301,6 +344,11 @@ void sha256_csum_wd(const unsigned char *input, unsigned int ilen,
 	int chunk;
 #endif
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA256) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = ilen;
+#endif
+#endif
 	sha256_starts(&ctx);
 
 #if defined(CONFIG_HW_WATCHDOG) || defined(CONFIG_WATCHDOG)

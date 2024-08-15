@@ -20,6 +20,7 @@
 #ifndef USE_HOSTCC
 #include <common.h>
 #include <linux/string.h>
+#include <crypto.h>
 #else
 #include <string.h>
 #endif /* USE_HOSTCC */
@@ -65,6 +66,23 @@ const uint8_t sha1_der_prefix[SHA1_DER_LEN] = {
  */
 void sha1_starts (sha1_context * ctx)
 {
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	sha_context cctx;
+	u32 algo = CRYPTO_SHA1;
+
+	ctx->cdev = NULL;
+	if (ctx->length) {
+		ctx->cdev = crypto_get_device(algo);
+		if (ctx->cdev) {
+			cctx.algo = algo;
+			cctx.length = ctx->length;
+			crypto_sha_init(ctx->cdev, &cctx);
+			return;
+		}
+	}
+#endif
+#endif
 	ctx->total[0] = 0;
 	ctx->total[1] = 0;
 
@@ -252,7 +270,14 @@ void sha1_update(sha1_context *ctx, const unsigned char *input,
 
 	if (ilen <= 0)
 		return;
-
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	if (ctx->cdev) {
+		crypto_sha_update(ctx->cdev, (void *)input, ilen);
+		return;
+	}
+#endif
+#endif
 	left = ctx->total[0] & 0x3F;
 	fill = 64 - left;
 
@@ -295,6 +320,18 @@ void sha1_finish (sha1_context * ctx, unsigned char output[20])
 	unsigned long high, low;
 	unsigned char msglen[8];
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	sha_context cctx;
+
+	if (ctx->cdev) {
+		cctx.algo = CRYPTO_SHA1;
+		cctx.length = ctx->length;
+		crypto_sha_final(ctx->cdev, &cctx, output);
+		return;
+	}
+#endif
+#endif
 	high = (ctx->total[0] >> 29)
 		| (ctx->total[1] << 3);
 	low = (ctx->total[0] << 3);
@@ -323,6 +360,11 @@ void sha1_csum(const unsigned char *input, unsigned int ilen,
 {
 	sha1_context ctx;
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = ilen;
+#endif
+#endif
 	sha1_starts (&ctx);
 	sha1_update (&ctx, input, ilen);
 	sha1_finish (&ctx, output);
@@ -340,7 +382,11 @@ void sha1_csum_wd(const unsigned char *input, unsigned int ilen,
 	const unsigned char *end, *curr;
 	int chunk;
 #endif
-
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = ilen;
+#endif
+#endif
 	sha1_starts (&ctx);
 
 #if defined(CONFIG_HW_WATCHDOG) || defined(CONFIG_WATCHDOG)
@@ -385,11 +431,21 @@ void sha1_hmac(const unsigned char *key, int keylen,
 		k_opad[i] ^= key[i];
 	}
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = 64 + ilen;
+#endif
+#endif
 	sha1_starts (&ctx);
 	sha1_update (&ctx, k_ipad, 64);
 	sha1_update (&ctx, input, ilen);
 	sha1_finish (&ctx, tmpbuf);
 
+#if !defined(USE_HOSTCC)
+#if !CONFIG_IS_ENABLED(ARMV8_CE_SHA1) && CONFIG_IS_ENABLED(DM_CRYPTO)
+	ctx.length = 64 + 20;
+#endif
+#endif
 	sha1_starts (&ctx);
 	sha1_update (&ctx, k_opad, 64);
 	sha1_update (&ctx, tmpbuf, 20);

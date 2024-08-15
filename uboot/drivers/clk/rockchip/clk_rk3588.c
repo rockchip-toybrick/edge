@@ -26,6 +26,7 @@ static struct rockchip_pll_rate_table rk3588_pll_rates[] = {
 	RK3588_PLL_RATE(1500000000, 2, 250, 1, 0),
 	RK3588_PLL_RATE(1200000000, 2, 200, 1, 0),
 	RK3588_PLL_RATE(1188000000, 2, 198, 1, 0),
+	RK3588_PLL_RATE(1150000000, 3, 575, 2, 0),
 	RK3588_PLL_RATE(1100000000, 3, 550, 2, 0),
 	RK3588_PLL_RATE(1008000000, 2, 336, 2, 0),
 	RK3588_PLL_RATE(1000000000, 3, 500, 2, 0),
@@ -1219,6 +1220,37 @@ static ulong rk3588_dclk_vop_set_clk(struct rk3588_clk_priv *priv,
 	return rk3588_dclk_vop_get_clk(priv, clk_id);
 }
 
+static ulong rk3588_clk_csihost_get_clk(struct rk3588_clk_priv *priv, ulong clk_id)
+{
+	struct rk3588_cru *cru = priv->cru;
+	u32 div, sel, con, parent;
+
+	switch (clk_id) {
+	case CLK_DSIHOST0:
+		con = readl(&cru->clksel_con[114]);
+		break;
+	case CLK_DSIHOST1:
+		con = readl(&cru->clksel_con[115]);
+		break;
+	default:
+		return -ENOENT;
+	}
+
+	div = (con & CLK_DSIHOST_DIV_MASK) >> CLK_DSIHOST_DIV_SHIFT;
+	sel = (con & CLK_DSIHOST_SEL_MASK) >> CLK_DSIHOST_SEL_SHIFT;
+
+	if (sel == CLK_DSIHOST_SEL_GPLL)
+		parent = priv->gpll_hz;
+	else if (sel == CLK_DSIHOST_SEL_CPLL)
+		parent = priv->cpll_hz;
+	else if (sel == CLK_DSIHOST_SEL_V0PLL)
+		parent = priv->v0pll_hz;
+	else
+		parent = priv->spll_hz;
+
+	return DIV_TO_RATE(parent, div);
+}
+
 static ulong rk3588_gmac_get_clk(struct rk3588_clk_priv *priv, ulong clk_id)
 {
 	struct rk3588_cru *cru = priv->cru;
@@ -1624,6 +1656,10 @@ static ulong rk3588_clk_get_rate(struct clk *clk)
 	case DCLK_VOP2_SRC:
 	case DCLK_VOP3:
 		rate = rk3588_dclk_vop_get_clk(priv, clk->id);
+		break;
+	case CLK_DSIHOST0:
+	case CLK_DSIHOST1:
+		rate = rk3588_clk_csihost_get_clk(priv, clk->id);
 		break;
 	case CLK_GMAC0_PTP_REF:
 	case CLK_GMAC1_PTP_REF:
@@ -2031,6 +2067,7 @@ static void rk3588_clk_init(struct rk3588_clk_priv *priv)
 		     ACLK_BUS_ROOT_DIV_MASK,
 		     div << ACLK_BUS_ROOT_DIV_SHIFT);
 
+	priv->spll_hz = 702000000;
 	if (priv->cpll_hz != CPLL_HZ) {
 		ret = rockchip_pll_set_rate(&rk3588_pll_clks[CPLL], priv->cru,
 					    CPLL, CPLL_HZ);
@@ -2044,14 +2081,13 @@ static void rk3588_clk_init(struct rk3588_clk_priv *priv)
 			priv->gpll_hz = GPLL_HZ;
 	}
 
-#ifdef CONFIG_PCI
 	if (priv->ppll_hz != PPLL_HZ) {
 		ret = rockchip_pll_set_rate(&rk3588_pll_clks[PPLL], priv->cru,
 					    PPLL, PPLL_HZ);
 		priv->ppll_hz = rockchip_pll_get_rate(&rk3588_pll_clks[PPLL],
 						      priv->cru, PPLL);
 	}
-#endif
+
 	rk_clrsetreg(&priv->cru->clksel_con[9],
 		     ACLK_TOP_S400_SEL_MASK |
 		     ACLK_TOP_S200_SEL_MASK,

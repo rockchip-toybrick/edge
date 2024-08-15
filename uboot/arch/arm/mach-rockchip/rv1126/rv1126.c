@@ -545,6 +545,31 @@ void board_debug_uart_init(void)
 #endif /* CONFIG_DEBUG_UART_BASE && CONFIG_DEBUG_UART_BASE == ... */
 }
 
+void board_set_iomux(enum if_type if_type, int devnum, int routing)
+{
+	static struct rv1126_grf * const grf = (void *)GRF_BASE;
+
+	switch (if_type) {
+	case IF_TYPE_MMC:
+		writel(0x0F0F0303, &grf->gpio0d_iomux_h);
+		writel(0xFFFF3333, &grf->gpio1a_iomux_l);
+		break;
+	case IF_TYPE_MTD:
+		if (devnum == 0) {
+			writel(0xFFFF1111, &grf->gpio0c_iomux_h);
+			writel(0xFFFF1111, &grf->gpio0d_iomux_l);
+			writel(0xF0FF1011, &grf->gpio0d_iomux_h);
+			writel(0xFFFF1111, &grf->gpio1a_iomux_l);
+		} else {
+			writel(0x0F0F0303, &grf->gpio0d_iomux_h);
+			writel(0xFFFF3333, &grf->gpio1a_iomux_l);
+		}
+		break;
+	default:
+		printf("Bootdev 0x%x is not support\n", if_type);
+	}
+}
+
 #ifndef CONFIG_TPL_BUILD
 int arch_cpu_init(void)
 {

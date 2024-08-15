@@ -131,7 +131,7 @@ int do_poweroff(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 #endif
 
-#ifdef CONFIG_PSCI_RESET
+#if defined(CONFIG_PSCI_RESET) && !defined(CONFIG_SYSRESET_PSCI)
 void reset_misc(void)
 {
 	psci_system_reset();

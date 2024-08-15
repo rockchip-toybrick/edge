@@ -678,6 +678,21 @@ config SPL_SATA_SUPPORT
 	  expense and power consumption. This enables loading from SATA
 	  using a configured device.
 
+config SPL_UFS_SUPPORT
+	bool "Support loading from UFS"
+	help
+	  Enable support for UFS in SPL. This allows
+	  use of UFS devices such as hard drives and flash drivers for
+	  loading U-Boot.
+
+config SYS_UFS_RAW_MODE_U_BOOT_SECTOR
+	hex "Address on the UFS to load U-Boot from"
+	depends on SPL_UFS_SUPPORT
+	default 0x4000
+	help
+	  Address on the block device to load U-Boot from，
+	  Units: UFS sectors (1 sector = 512 bytes).
+
 config SPL_SERIAL_SUPPORT
 	bool "Support serial"
 	help
@@ -931,6 +946,12 @@ config SPL_KERNEL_BOOT_SECTOR
 	depends on SPL_KERNEL_BOOT
 	depends on !SPL_LIBDISK_SUPPORT
 	default 0xa000
+
+config SPL_KERNEL_RAMDISK_SECTOR
+	hex "Sector address to load ramdisk in SPL"
+	depends on SPL_KERNEL_BOOT
+	depends on !SPL_LIBDISK_SUPPORT
+	default 0xf000
 
 if SPL_LOAD_RKFW
 config SPL_KERNEL_ADDR

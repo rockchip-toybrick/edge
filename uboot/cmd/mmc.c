@@ -241,35 +241,87 @@ int finish_rpmb(void)
 
 int do_readcounter(struct s_rpmb *requestpackets)
 {
+	int ret;
 	struct mmc *mmc = find_mmc_device(curr_device);
+	if (!mmc)
+		return -1;
 
-	return read_counter(mmc, requestpackets);
+	if (init_rpmb() != 0)
+		return -1;
+
+	ret = read_counter(mmc, requestpackets);
+
+	if (finish_rpmb() != 0)
+		return -1;
+
+	return ret;
 }
 
 int do_programkey(struct s_rpmb *requestpackets)
 {
+	int ret;
 	struct mmc *mmc = find_mmc_device(curr_device);
+	if (!mmc)
+		return -1;
 
-	return program_key(mmc, requestpackets);
+	if (init_rpmb() != 0)
+		return -1;
+
+	ret = program_key(mmc, requestpackets);
+
+	if (finish_rpmb() != 0)
+		return -1;
+
+	return ret;
 }
 
 int do_authenticatedread(struct s_rpmb *requestpackets, uint16_t block_count)
 {
+	int ret;
 	struct mmc *mmc = find_mmc_device(curr_device);
+	if (!mmc)
+		return -1;
 
-	return authenticated_read(mmc, requestpackets, block_count);
+	if (init_rpmb() != 0)
+		return -1;
+
+	ret = authenticated_read(mmc, requestpackets, block_count);
+
+	if (finish_rpmb() != 0)
+		return -1;
+
+	return ret;
 }
 
 int do_authenticatedwrite(struct s_rpmb *requestpackets)
 {
+	int ret;
 	struct mmc *mmc = find_mmc_device(curr_device);
+	if (!mmc)
+		return -1;
 
-	return authenticated_write(mmc, requestpackets);
+	if (init_rpmb() != 0)
+		return -1;
+
+	ret = authenticated_write(mmc, requestpackets);
+
+	if (finish_rpmb() != 0)
+		return -1;
+
+	return ret;
 }
 
 struct mmc *do_returnmmc(void)
 {
-	struct mmc *mmc = find_mmc_device(curr_device);
+	struct mmc *mmc;
+
+	if (init_rpmb() != 0)
+		return NULL;
+
+	mmc = find_mmc_device(curr_device);
+
+	if (finish_rpmb() != 0)
+		return NULL;
 
 	return mmc;
 }
