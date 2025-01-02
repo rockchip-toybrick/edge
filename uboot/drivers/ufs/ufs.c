@@ -493,6 +493,9 @@ static int ufshcd_link_startup(struct ufs_hba *hba)
 	int retries = DME_LINKSTARTUP_RETRIES;
 	bool link_startup_again = true;
 
+	if (ufshcd_is_device_present(hba))
+		goto  device_present;
+
 link_startup:
 	do {
 		ufshcd_ops_link_startup_notify(hba, PRE_CHANGE);
@@ -525,6 +528,7 @@ link_startup:
 		goto link_startup;
 	}
 
+device_present:
 	/* Mark that link is up in PWM-G1, 1-lane, SLOW-AUTO mode */
 	ufshcd_init_pwr_info(hba);
 
@@ -1543,9 +1547,9 @@ int ufs_send_scsi_cmd(struct ufs_hba *hba, struct scsi_cmd *pccb)
 	int ocs, result = 0, retry_count = 3;
 	u8 scsi_status;
 
-	/* cmd do not set lun for ufs 2.1 */
-	if (hba->dev_desc->w_spec_version == 0x1002) /* verison 0x210 in big end */
+	if (hba->quirks & UFSDEV_QUIRK_LUN_IN_SCSI_COMMANDS)
 		pccb->cmd[1] &= 0x1F;
+
 retry:
 	ufshcd_prepare_req_desc_hdr(req_desc, &upiu_flags, pccb->dma_dir);
 	ufshcd_prepare_utp_scsi_cmd_upiu(hba, pccb, upiu_flags);
@@ -1919,6 +1923,14 @@ int _ufs_start(struct ufs_hba *hba)
 
 		return ret;
 	}
+
+	if (hba->dev_desc->w_spec_version == 0x1002)
+		hba->quirks |= UFSDEV_QUIRK_LUN_IN_SCSI_COMMANDS;
+
+	if (hba->dev_desc->w_spec_version == 0x2002)
+		if (hba->dev_desc->w_manufacturer_id == 0x250A ||
+		    hba->dev_desc->w_manufacturer_id == 0x9802)
+			hba->quirks |= UFSDEV_QUIRK_LUN_IN_SCSI_COMMANDS;
 
 	return ret;
 }

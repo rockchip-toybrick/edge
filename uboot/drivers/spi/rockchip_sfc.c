@@ -197,7 +197,7 @@ struct rockchip_sfc {
 	u32 dll_cells[SFC_MAX_CHIPSELECT_NUM];
 	u32 max_dll_cells;
 
-#if defined(CONFIG_DM_GPIO) && !defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
 	struct gpio_desc cs_gpios[SFC_MAX_CHIPSELECT_NUM];
 #endif
 };
@@ -238,6 +238,9 @@ static u32 rockchip_sfc_get_max_iosize(struct rockchip_sfc *sfc)
 
 static u32 rockchip_sfc_get_max_dll_cells(struct rockchip_sfc *sfc)
 {
+	if (sfc->max_dll_cells)
+		return sfc->max_dll_cells;
+
 	if (sfc->version > SFC_VER_4)
 		return SFC_DLL_CTRL0_DLL_MAX_VER5;
 	else if (sfc->version == SFC_VER_4)
@@ -299,7 +302,7 @@ static int rockchip_sfc_init(struct rockchip_sfc *sfc)
 
 static int rockchip_cs_setup(struct udevice *bus)
 {
-#if defined(CONFIG_DM_GPIO) && !defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
 	struct rockchip_sfc *sfc = dev_get_platdata(bus);
 	int ret;
 	int i;
@@ -336,6 +339,9 @@ static int rockchip_sfc_ofdata_to_platdata(struct udevice *bus)
 	else
 		sfc->use_dma = true;
 	sfc->sclk_x2_bypass = ofnode_read_bool(dev_ofnode(bus), "rockchip,sclk-x2-bypass");
+	sfc->max_dll_cells = dev_read_u32_default(bus, "rockchip,max-dll", 0);
+	if (sfc->max_dll_cells > SFC_DLL_CTRL0_DLL_MAX_VER5)
+		sfc->max_dll_cells = SFC_DLL_CTRL0_DLL_MAX_VER5;
 #if CONFIG_IS_ENABLED(CLK)
 	int ret;
 
@@ -687,7 +693,7 @@ static int rockchip_sfc_xfer_done(struct rockchip_sfc *sfc, u32 timeout_us)
 
 static int rockchip_spi_set_cs(struct rockchip_sfc *sfc, struct spi_slave *mem, bool enable)
 {
-#if defined(CONFIG_DM_GPIO) && !defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
 	struct dm_spi_slave_platdata *plat = dev_get_parent_platdata(mem->dev);
 	u32 cs = plat->cs;
 
@@ -793,6 +799,11 @@ static void rockchip_sfc_delay_lines_tuning(struct rockchip_sfc *sfc, struct spi
 			left, right, sfc->dll_cells[cs], sfc->speed[cs],
 			rockchip_sfc_get_max_dll_cells(sfc), rockchip_sfc_get_version(sfc));
 		rockchip_sfc_set_delay_lines(sfc, (u16)sfc->dll_cells[cs], cs);
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+		sfc->speed[1] = sfc->cur_speed;
+		sfc->dll_cells[1] = sfc->dll_cells[0];
+		rockchip_sfc_set_delay_lines(sfc, (u16)sfc->dll_cells[1], 1);
+#endif
 	} else {
 		dev_err(sfc->dev, "%d %d dll training failed in %dMHz, reduce the speed\n",
 			left, right, sfc->speed[cs]);
@@ -813,6 +824,10 @@ static int rockchip_sfc_exec_op(struct spi_slave *mem,
 	struct dm_spi_slave_platdata *plat = dev_get_parent_platdata(mem->dev);
 	u32 len = min_t(u32, op->data.nbytes, sfc->max_iosize);
 	int ret;
+
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+	plat->cs = mem->auto_merge_cs_cur;
+#endif
 
 	if (rockchip_sfc_get_version(sfc) >= SFC_VER_4 &&
 	    sfc->cur_speed != sfc->speed[plat->cs]) {

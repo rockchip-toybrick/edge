@@ -556,7 +556,7 @@ static int spi_nor_erase_sector(struct spi_nor *nor, u32 addr)
 static int spi_nor_erase(struct mtd_info *mtd, struct erase_info *instr)
 {
 	struct spi_nor *nor = mtd_to_spi_nor(mtd);
-	u32 addr, len, rem;
+	u32 addr, len, rem, target;
 	int ret;
 
 	dev_dbg(nor->dev, "at 0x%llx, len %lld\n", (long long)instr->addr,
@@ -570,14 +570,20 @@ static int spi_nor_erase(struct mtd_info *mtd, struct erase_info *instr)
 	len = instr->len;
 
 	while (len) {
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+		nor->spi->auto_merge_cs_cur = addr < nor->auto_merge_single_chip_size ? 0 : 1;
+		target = addr - nor->spi->auto_merge_cs_cur * nor->auto_merge_single_chip_size;
+#else
+		target = addr;
+#endif
 #ifdef CONFIG_SPI_FLASH_BAR
-		ret = write_bar(nor, addr);
+		ret = write_bar(nor, target);
 		if (ret < 0)
 			return ret;
 #endif
 		write_enable(nor);
 
-		ret = spi_nor_erase_sector(nor, addr);
+		ret = spi_nor_erase_sector(nor, target);
 		if (ret)
 			goto erase_err;
 
@@ -923,6 +929,13 @@ static int spi_nor_read(struct mtd_info *mtd, loff_t from, size_t len,
 		loff_t addr = from;
 		size_t read_len = len;
 
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+		if (addr < nor->auto_merge_single_chip_size && (addr + len) > nor->auto_merge_single_chip_size)
+			read_len = nor->auto_merge_single_chip_size - addr;
+		nor->spi->auto_merge_cs_cur = addr < nor->auto_merge_single_chip_size ? 0 : 1;
+		addr -= nor->spi->auto_merge_cs_cur * nor->auto_merge_single_chip_size;
+#endif
+
 #ifdef CONFIG_SPI_FLASH_BAR
 		u32 remain_len;
 
@@ -1245,6 +1258,11 @@ static int spi_nor_write(struct mtd_info *mtd, loff_t to, size_t len,
 	for (i = 0; i < len; ) {
 		ssize_t written;
 		loff_t addr = to + i;
+
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+		nor->spi->auto_merge_cs_cur = addr < nor->auto_merge_single_chip_size ? 0 : 1;
+		addr -= nor->spi->auto_merge_cs_cur * nor->auto_merge_single_chip_size;
+#endif
 
 		/*
 		 * If page_size is a power of two, the offset can be quickly
@@ -2689,6 +2707,21 @@ int spi_nor_scan(struct spi_nor *nor)
 	print_size(nor->erase_size, ", total ");
 	print_size(nor->size, "");
 	puts("\n");
+#endif
+
+#if defined(CONFIG_SPI_FLASH_AUTO_MERGE)
+	nor->auto_merge_single_chip_size = nor->size;
+	nor->spi->auto_merge_cs_cur = 1;
+	if (IS_ERR(spi_nor_read_id(nor))) {
+		printf("spinor enable auto_merge, but only cs0 valid\n");
+		return 0;
+	}
+	ret = spi_nor_init(nor);
+	if (!ret) {
+		mtd->size = mtd->size * 2;
+		nor->size = nor->size * 2;
+		printf("spinor enable auto_merge\n");
+	}
 #endif
 
 	return 0;

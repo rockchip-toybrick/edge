@@ -776,6 +776,12 @@ struct ufs_hba {
  */
 #define UFSHCD_QUIRK_HIBERN_FASTAUTO			BIT(2)
 
+/*
+ * Some UFS devices do not support SCSI commands containing
+ * the LUN device number.
+ */
+#define UFSDEV_QUIRK_LUN_IN_SCSI_COMMANDS		BIT(16)
+
 	/* Virtual memory reference */
 	struct utp_transfer_cmd_desc *ucdl;
 	struct utp_transfer_req_desc *utrdl;

@@ -247,6 +247,12 @@ static int rkusb_do_read_flash_id(struct fsg_common *common,
 		else
 			str = "NOR  ";
 		break;
+	case IF_TYPE_SCSI:
+		str = "SATA ";
+		break;
+	case IF_TYPE_NVME:
+		str = "PCIE ";
+		break;
 	default:
 		str = "UNKN "; /* unknown */
 		break;
@@ -314,11 +320,15 @@ static int rkusb_do_read_flash_info(struct fsg_common *common,
 	}
 
 	if (desc->if_type == IF_TYPE_MTD && desc->devnum == BLK_MTD_SPI_NOR) {
-		/* RV1126/RK3308 mtd spinor keep the former upgrade mode */
-#if !defined(CONFIG_ROCKCHIP_RV1126) && !defined(CONFIG_ROCKCHIP_RK3308)
+		/* RV1126 mtd spinor keep the former upgrade mode */
+#if !defined(CONFIG_ROCKCHIP_RV1126)
 		finfo.block_size = 0x80; /* Aligned to 64KB */
 #else
 		finfo.block_size = ROCKCHIP_FLASH_BLOCK_SIZE;
+#endif
+#if defined(CONFIG_ROCKCHIP_RK3308)
+	} else if (desc->if_type == IF_TYPE_SPINOR) {
+		finfo.block_size = 0x80; /* Aligned to 64KB */
 #endif
 	}
 
@@ -941,9 +951,13 @@ static int rkusb_do_read_capacity(struct fsg_common *common,
 	    devnum == BLK_MTD_SPI_NAND))
 		buf[0] |= (1 << 6);
 
-#if !defined(CONFIG_ROCKCHIP_RV1126) && !defined(CONFIG_ROCKCHIP_RK3308)
+#if !defined(CONFIG_ROCKCHIP_RV1126)
 	if (type == IF_TYPE_MTD && devnum == BLK_MTD_SPI_NOR)
 		buf[0] |= (1 << 6);
+#if defined(CONFIG_ROCKCHIP_RK3308)
+	else if (type == IF_TYPE_SPINOR)
+		buf[0] |= (1 << 6);
+#endif
 #endif
 
 #if defined(CONFIG_ROCKCHIP_NEW_IDB)

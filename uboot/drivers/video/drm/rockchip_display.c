@@ -1462,8 +1462,10 @@ static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
 	}
 
 	bmp_data = malloc(MAX_IMAGE_BYTES);
-	if (!bmp_data)
+	if (!bmp_data) {
+		printf("failed to alloc bmp data\n");
 		return -ENOMEM;
+	}
 
 	bmp_create(&bmp, &bitmap_callbacks);
 
@@ -1480,6 +1482,14 @@ static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
 		ret = -EINVAL;
 		goto free_bmp_data;
 	}
+
+	if (bmp.buffer_size > MAX_IMAGE_BYTES) {
+		printf("bmp[%s] data size[%dKB] is over the limitation MAX_IMAGE_BYTES[%dKB]\n",
+			bmp_name, bmp.buffer_size / 1024, MAX_IMAGE_BYTES / 1024);
+		ret = -EINVAL;
+		goto free_bmp_data;
+	}
+
 	/* fix bpp to 32 */
 	logo->bpp = 32;
 	logo->offset = 0;
@@ -1493,13 +1503,6 @@ static int load_bmp_logo(struct logo_info *logo, const char *bmp_name)
 		/* allow partially decoded images */
 		if (code != BMP_INSUFFICIENT_DATA && code != BMP_DATA_ERROR) {
 			printf("failed to allocate the buffer of bmp:%s\n", bmp_name);
-			ret = -EINVAL;
-			goto free_bmp_data;
-		}
-
-		/* skip if the partially decoded image would be ridiculously large */
-		if ((bmp.width * bmp.height) > 200000) {
-			printf("partially decoded bmp:%s can not be too large\n", bmp_name);
 			ret = -EINVAL;
 			goto free_bmp_data;
 		}

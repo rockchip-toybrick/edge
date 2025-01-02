@@ -71,6 +71,7 @@ struct rockchip_combphy_grfcfg {
 
 struct rockchip_combphy_cfg {
 	const struct rockchip_combphy_grfcfg *grfcfg;
+	bool force_det_out; /* Tx detect Rx errata */
 	int (*combphy_cfg)(struct rockchip_combphy_priv *priv);
 };
 
@@ -115,6 +116,7 @@ static u32 rockchip_combphy_is_ready(struct rockchip_combphy_priv *priv)
 static int rockchip_combphy_pcie_init(struct rockchip_combphy_priv *priv)
 {
 	int ret = 0;
+	u32 val;
 
 	if (priv->cfg->combphy_cfg) {
 		ret = priv->cfg->combphy_cfg(priv);
@@ -122,6 +124,12 @@ static int rockchip_combphy_pcie_init(struct rockchip_combphy_priv *priv)
 			dev_err(priv->dev, "failed to init phy for pcie\n");
 			return ret;
 		}
+	}
+
+	if (priv->cfg->force_det_out) {
+		val = readl(priv->mmio + (0x19 << 2));
+		val |= BIT(5);
+		writel(val, priv->mmio + (0x19 << 2));
 	}
 
 	return ret;
@@ -611,6 +619,7 @@ static const struct rockchip_combphy_grfcfg rk3562_combphy_grfcfgs = {
 static const struct rockchip_combphy_cfg rk3562_combphy_cfgs = {
 	.grfcfg		= &rk3562_combphy_grfcfgs,
 	.combphy_cfg	= rk3562_combphy_cfg,
+	.force_det_out  = true,
 };
 #endif
 
@@ -753,6 +762,7 @@ static const struct rockchip_combphy_grfcfg rk3568_combphy_grfcfgs = {
 static const struct rockchip_combphy_cfg rk3568_combphy_cfgs = {
 	.grfcfg		= &rk3568_combphy_grfcfgs,
 	.combphy_cfg	= rk3568_combphy_cfg,
+	.force_det_out  = true,
 };
 #endif
 
@@ -889,6 +899,7 @@ static const struct rockchip_combphy_grfcfg rk3588_combphy_grfcfgs = {
 static const struct rockchip_combphy_cfg rk3588_combphy_cfgs = {
 	.grfcfg		= &rk3588_combphy_grfcfgs,
 	.combphy_cfg	= rk3588_combphy_cfg,
+	.force_det_out  = true,
 };
 #endif
 

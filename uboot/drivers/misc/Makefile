@@ -61,6 +61,7 @@ obj-$(CONFIG_ROCKCHIP_RK3308) += rk3308-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_PX30)   += px30-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3328) += rk3328-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3568) += rk3568-secure-otp.o
+obj-$(CONFIG_ROCKCHIP_RV1103B) += rv1103b-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RV1106) += rv1106-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RV1126) += rv1126-secure-otp.o
 obj-$(CONFIG_ROCKCHIP_RK3588) += rk3588-secure-otp.o

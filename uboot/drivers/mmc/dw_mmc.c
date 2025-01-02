@@ -440,6 +440,8 @@ static int dwmci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	if (cmd->cmdidx == MMC_CMD_STOP_TRANSMISSION)
 		flags |= DWMCI_CMD_ABORT_STOP;
+	else if (cmd->cmdidx == MMC_CMD_GO_IDLE_STATE)
+		flags |= SDMMC_CMD_INIT | DWMCI_CMD_ABORT_STOP;
 	else
 		flags |= DWMCI_CMD_PRV_DAT_WAIT;
 

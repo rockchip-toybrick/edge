@@ -68,6 +68,7 @@ struct rk_pcie {
 	struct gpio_desc	rst_gpio;
 	struct pci_region	io;
 	struct pci_region	mem;
+	struct pci_region	mem64;
 	bool		is_bifurcation;
 	u32 gen;
 };
@@ -129,6 +130,7 @@ enum {
 #define PCIE_ATU_UNR_LOWER_TARGET	0x14
 #define PCIE_ATU_UNR_UPPER_TARGET	0x18
 
+#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
 #define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
 #define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
 #define PCIE_ATU_TYPE_MEM		(0x0 << 0)
@@ -593,6 +595,7 @@ static int rk_pcie_link_up(struct rk_pcie *priv, u32 cap_speed)
 	}
 
 	dev_err(priv->dev, "PCIe-%d Link Fail\n", priv->dev->seq);
+	rk_pcie_disable_ltssm(priv);
 	return -EINVAL;
 }
 
@@ -627,7 +630,7 @@ static int rockchip_pcie_init_port(struct udevice *dev)
 	ret = generic_phy_init(&priv->phy);
 	if (ret) {
 		dev_err(dev, "failed to init phy (ret=%d)\n", ret);
-		return ret;
+		goto err_disable_3v3;
 	}
 
 	ret = generic_phy_power_on(&priv->phy);
@@ -670,6 +673,9 @@ err_power_off_phy:
 	generic_phy_power_off(&priv->phy);
 err_exit_phy:
 	generic_phy_exit(&priv->phy);
+err_disable_3v3:
+	if(priv->vpcie3v3)
+		regulator_set_enable(priv->vpcie3v3, false);
 	return ret;
 }
 
@@ -752,7 +758,7 @@ static int rockchip_pcie_probe(struct udevice *dev)
 
 	ret = rockchip_pcie_init_port(dev);
 	if (ret)
-		return ret;
+		goto free_rst;
 
 	dev_info(dev, "PCIE-%d: Link up (Gen%d-x%d, Bus%d)\n",
 		 dev->seq, rk_pcie_get_link_speed(priv),
@@ -765,17 +771,59 @@ static int rockchip_pcie_probe(struct udevice *dev)
 			priv->io.bus_start  = hose->regions[ret].bus_start;  /* IO_bus_addr */
 			priv->io.size       = hose->regions[ret].size;      /* IO size */
 		} else if (hose->regions[ret].flags == PCI_REGION_MEM) {
-			priv->mem.phys_start = hose->regions[ret].phys_start; /* MEM base */
-			priv->mem.bus_start  = hose->regions[ret].bus_start;  /* MEM_bus_addr */
-			priv->mem.size	     = hose->regions[ret].size;	    /* MEM size */
+			if (upper_32_bits(hose->regions[ret].bus_start)) {/* MEM64 base */
+				priv->mem64.phys_start = hose->regions[ret].phys_start;
+				priv->mem64.bus_start  = hose->regions[ret].bus_start;
+				priv->mem64.size       = hose->regions[ret].size;
+			} else { /* MEM32 base */
+				priv->mem.phys_start = hose->regions[ret].phys_start;
+				priv->mem.bus_start  = hose->regions[ret].bus_start;
+				priv->mem.size	     = hose->regions[ret].size;
+			}
 		} else if (hose->regions[ret].flags == PCI_REGION_SYS_MEMORY) {
 			priv->cfg_base = (void *)(priv->io.phys_start - priv->io.size);
 			priv->cfg_size = priv->io.size;
+		} else if (hose->regions[ret].flags == PCI_REGION_PREFETCH) {
+			dev_err(dev, "don't support prefetchable memory, please fix your dtb.\n");
 		} else {
-			dev_err(dev, "invalid flags type!\n");
+			dev_err(dev, "invalid flags type\n");
 		}
 	}
 
+#ifdef CONFIG_SYS_PCI_64BIT
+	dev_dbg(dev, "Config space: [0x%p - 0x%p, size 0x%llx]\n",
+		priv->cfg_base, priv->cfg_base + priv->cfg_size,
+		priv->cfg_size);
+
+	dev_dbg(dev, "IO space: [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->io.phys_start, priv->io.phys_start + priv->io.size,
+		priv->io.size);
+
+	dev_dbg(dev, "IO bus:   [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->io.bus_start, priv->io.bus_start + priv->io.size,
+		priv->io.size);
+
+	dev_dbg(dev, "MEM32 space: [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->mem.phys_start, priv->mem.phys_start + priv->mem.size,
+		priv->mem.size);
+
+	dev_dbg(dev, "MEM32 bus:   [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->mem.bus_start, priv->mem.bus_start + priv->mem.size,
+		priv->mem.size);
+
+	dev_dbg(dev, "MEM64 space: [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->mem64.phys_start, priv->mem64.phys_start + priv->mem64.size,
+		priv->mem64.size);
+
+	dev_dbg(dev, "MEM64 bus:   [0x%llx - 0x%llx, size 0x%llx]\n",
+		priv->mem64.bus_start, priv->mem64.bus_start + priv->mem64.size,
+		priv->mem64.size);
+
+	rk_pcie_prog_outbound_atu_unroll(priv, PCIE_ATU_REGION_INDEX2,
+					 PCIE_ATU_TYPE_MEM,
+					 priv->mem64.phys_start,
+					 priv->mem64.bus_start, priv->mem64.size);
+#else
 	dev_dbg(dev, "Config space: [0x%p - 0x%p, size 0x%llx]\n",
 		priv->cfg_base, priv->cfg_base + priv->cfg_size,
 		priv->cfg_size);
@@ -788,19 +836,24 @@ static int rockchip_pcie_probe(struct udevice *dev)
 		priv->io.bus_start, priv->io.bus_start + priv->io.size,
 		priv->io.size);
 
-	dev_dbg(dev, "MEM space: [0x%llx - 0x%llx, size 0x%x]\n",
+	dev_dbg(dev, "MEM32 space: [0x%llx - 0x%llx, size 0x%x]\n",
 		priv->mem.phys_start, priv->mem.phys_start + priv->mem.size,
 		priv->mem.size);
 
-	dev_dbg(dev, "MEM bus:   [0x%x - 0x%x, size 0x%x]\n",
+	dev_dbg(dev, "MEM32 bus:   [0x%x - 0x%x, size 0x%x]\n",
 		priv->mem.bus_start, priv->mem.bus_start + priv->mem.size,
 		priv->mem.size);
 
+#endif
 	rk_pcie_prog_outbound_atu_unroll(priv, PCIE_ATU_REGION_INDEX0,
 					 PCIE_ATU_TYPE_MEM,
 					 priv->mem.phys_start,
 					 priv->mem.bus_start, priv->mem.size);
+
 	return 0;
+free_rst:
+	dm_gpio_free(dev, &priv->rst_gpio);
+	return ret;
 }
 
 static const struct dm_pci_ops rockchip_pcie_ops = {

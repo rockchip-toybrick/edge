@@ -11,6 +11,7 @@
 #include <dm.h>
 #include <linux/err.h>
 #include <linux/ioport.h>
+#include <reset.h>
 #include <ufs.h>
 
 #include "ufs.h"
@@ -44,7 +45,7 @@ static int ufs_rockchip_test_linkup(struct ufs_hba *hba)
 		enabled_intr_status = intr_status & hba->intr_mask;
 		ufshcd_writel(hba, intr_status, REG_INTERRUPT_STATUS);
 
-		if (get_timer(start) > 50) {
+		if (get_timer(start) > 100) {
 			dev_err(hba->dev,
 				"Timedout waiting for UIC response\n");
 			return -ETIMEDOUT;
@@ -73,19 +74,15 @@ static int ufs_rockchip_hce_enable_notify(struct ufs_hba *hba,
 
 #if !defined(CONFIG_SPL_BUILD) && !defined(CONFIG_ROCKCHIP_UFS_DISABLED_LINKUP_TEST)
 		/* Try linkup to test if mphy has power supply */
-		if (ufs_rockchip_test_linkup(hba)) {
+		if (ufs_rockchip_test_linkup(hba))
 			return -EIO;
-		} else {
-			ufshcd_dme_reset(hba);
-			ufshcd_dme_enable(hba);
-		}
 #endif
 		if (hba->ops->phy_initialization) {
-                       err = hba->ops->phy_initialization(hba);
-                       if (err) {
-                               dev_err(hba->dev, "Phy setup failed (%d)\n", err);
-                       }
-               }
+			err = hba->ops->phy_initialization(hba);
+			if (err) {
+				dev_err(hba->dev, "Phy setup failed (%d)\n", err);
+			}
+		}
 	}
 
 	return err;
@@ -220,6 +217,12 @@ static int ufs_rockchip_common_init(struct ufs_hba *hba)
 
 	host->phy_config_mode = dev_read_u32_default(dev, "ufs-phy-config-mode", 0);
 
+	err = reset_get_bulk(dev, &host->rsts);
+	if (err) {
+		dev_err(dev, "Can't get reset: %d\n", err);
+		return err;
+	}
+
 	host->hba = hba;
 
 	return 0;
@@ -227,6 +230,8 @@ static int ufs_rockchip_common_init(struct ufs_hba *hba)
 
 static int ufs_rockchip_rk3576_init(struct ufs_hba *hba)
 {
+	struct udevice *dev = hba->dev;
+	struct ufs_rockchip_host *host = dev_get_priv(dev);
 	int ret = 0;
 
 	ret = ufs_rockchip_common_init(hba);
@@ -237,10 +242,19 @@ static int ufs_rockchip_rk3576_init(struct ufs_hba *hba)
 
 	/* UFS PHY select 26M from ppll */
 	writel(0x00030002, 0x2722030C);
-	/* set UFS_REFCLK, UFS_RSTN */
+	/* Set UFS_REFCLK, UFS_RSTN */
 	writel(0x00FF0011, 0x2604B398);
+
+	/* Reset ufs controller and device */
+	reset_assert_bulk(&host->rsts);
+	writel(0x00100000, 0x2604B400);
+
 	udelay(20);
+
 	writel(0x00100010, 0x2604B400);
+	reset_deassert_bulk(&host->rsts);
+
+	udelay(20);
 
 	return 0;
 }

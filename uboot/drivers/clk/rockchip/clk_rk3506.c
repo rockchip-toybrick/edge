@@ -18,6 +18,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define RK3506_SCRU_BASE 0xFF9A8000
+
 #define DIV_TO_RATE(input_rate, div)    ((input_rate) / ((div) + 1))
 
 /*
@@ -1219,6 +1221,10 @@ static int rk3506_clk_probe(struct udevice *dev)
 	struct rk3506_clk_priv *priv = dev_get_priv(dev);
 	int ret;
 
+#ifdef CONFIG_SPL_BUILD
+	/* Init pka crypto rate, sel=v0pll, div=3 */
+	writel(0x3f801180, RK3506_SCRU_BASE + 0x0010);
+#endif
 	rk3506_clk_init(priv);
 
 	/* Process 'assigned-{clocks/clock-parents/clock-rates}' properties */

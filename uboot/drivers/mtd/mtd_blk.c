@@ -16,6 +16,7 @@
 #include <part.h>
 #include <spi.h>
 #include <dm/device-internal.h>
+#include <linux/mtd/spinand.h>
 #include <linux/mtd/spi-nor.h>
 #ifdef CONFIG_NAND
 #include <linux/mtd/nand.h>
@@ -511,11 +512,31 @@ ulong mtd_dread(struct udevice *udev, lbaint_t start,
 		if (!ret)
 			ret = blkcnt;
 	} else if (desc->devnum == BLK_MTD_SPI_NAND) {
-		ret = mtd_map_read(mtd, off, &rwsize,
-				   NULL, mtd->size,
-				   (u_char *)(dst));
-		if (!ret)
-			ret = blkcnt;
+#if defined(CONFIG_MTD_SPI_NAND)
+		struct spinand_device *spinand = mtd_to_spinand(mtd);
+		struct spi_slave *spi = spinand->slave;
+		size_t retlen_nand;
+
+		if (desc->op_flag == BLK_PRE_RW) {
+			spi->mode |= SPI_DMA_PREPARE;
+			ret = mtd_read(mtd, off, rwsize,
+				       &retlen_nand, (u_char *)(dst));
+			spi->mode &= ~SPI_DMA_PREPARE;
+			if (retlen_nand == rwsize)
+				ret = blkcnt;
+		} else {
+			if (spinand->support_cont_read)
+				ret = mtd_read(mtd, off, rwsize,
+					       &retlen_nand,
+					       (u_char *)(dst));
+			else
+				ret = mtd_map_read(mtd, off, &rwsize,
+						   NULL, mtd->size,
+						   (u_char *)(dst));
+			if (!ret)
+				ret = blkcnt;
+		}
+#endif
 	} else if (desc->devnum == BLK_MTD_SPI_NOR) {
 #if defined(CONFIG_SPI_FLASH_MTD) || defined(CONFIG_SPL_BUILD)
 		struct spi_nor *nor = (struct spi_nor *)mtd->priv;
